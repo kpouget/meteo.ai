@@ -15,6 +15,32 @@ const METRICS = {
     uv_idx: 'uv_idx{group="wundeground", instance="home.972.ovh:35007", job="raspi sensors"}'
 };
 
+const UNITS = {
+    rain_rate: 'mm/h',
+    rain_total_day: 'mm',
+    rain_total_week: 'mm',
+    rain_total_month: 'mm',
+    temperature_ext: '°C',
+    temperature_int: '°C',
+    wind_speed: 'km/h',
+    wind_gust: 'km/h',
+    wind_dir: '', // Special handling
+    pressure: 'Hpa',
+    sun_rad: 'J/m2',
+    uv_idx: ''
+};
+
+let currentPage = 1;
+let currentView = isKindle() ? 'kindle' : 'desktop';
+let kindleTimer;
+let currentRotation = 0;
+
+function degreesToCardinal(deg) {
+    const cardinals = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'];
+    const index = Math.round(deg / 22.5) % 16;
+    return cardinals[index];
+}
+
 function isKindle() {
     return /Kindle|Silk/i.test(navigator.userAgent);
 }
@@ -44,42 +70,139 @@ async function updateUI() {
     for (const metric in METRICS) {
         const value = await fetchMetric(metric);
         if (value !== null) {
+            let formattedValue;
+            if (metric === 'wind_dir') {
+                formattedValue = degreesToCardinal(parseFloat(value));
+            } else {
+                if (metric.startsWith('rain_') || metric.startsWith('wind_') || metric === 'uv_idx') {
+                    formattedValue = parseFloat(value).toFixed(0);
+                } else if (metric.startsWith('temperature_') || metric === 'pressure' || metric === 'sun_rad') {
+                    formattedValue = parseFloat(value).toFixed(1);
+                } else {
+                    formattedValue = parseFloat(value).toFixed(2);
+                }
+                if (UNITS[metric]) {
+                    formattedValue += ` ${UNITS[metric]}`;
+                }
+            }
+
             const kindleElement = document.getElementById(metric.replace(/_/g, '-'));
             if (kindleElement) {
-                kindleElement.querySelector('.value').textContent = parseFloat(value).toFixed(2);
+                kindleElement.querySelector('.value').textContent = formattedValue;
             }
             const desktopElement = document.getElementById(`desktop-${metric.replace(/_/g, '-')}`);
             if (desktopElement) {
-                desktopElement.querySelector('.value').textContent = parseFloat(value).toFixed(2);
+                desktopElement.querySelector('.value').textContent = formattedValue;
             }
         }
     }
 }
 
-if (isKindle()) {
+function updateUrlAnchor() {
+    let hash = `view=${currentView}`;
+    if (currentView === 'kindle') {
+        hash += `&page=${currentPage}`;
+    }
+    window.location.hash = hash;
+}
+
+function setupKindleView() {
     document.getElementById('kindle-view').style.display = 'block';
-    let currentPage = 1;
-    const totalPages = 6;
+    document.getElementById('desktop-view').style.display = 'none';
+    document.getElementById('rotate-kindle').style.display = 'inline-block';
+    document.getElementById('view-switcher').textContent = '💻';
+    const totalPages = 5;
+
+    for (let i = 1; i <= totalPages; i++) {
+        document.getElementById(`kindle-page-${i}`).style.display = 'none';
+    }
+    document.getElementById(`kindle-page-${currentPage}`).style.display = 'flex';
+
 
     const nextPage = () => {
         document.getElementById(`kindle-page-${currentPage}`).style.display = 'none';
         currentPage = (currentPage % totalPages) + 1;
         document.getElementById(`kindle-page-${currentPage}`).style.display = 'flex';
+        updateUrlAnchor();
     };
 
     const prevPage = () => {
         document.getElementById(`kindle-page-${currentPage}`).style.display = 'none';
         currentPage = (currentPage - 2 + totalPages) % totalPages + 1;
         document.getElementById(`kindle-page-${currentPage}`).style.display = 'flex';
+        updateUrlAnchor();
     };
 
-    document.getElementById('next-page').addEventListener('click', nextPage);
-    document.getElementById('prev-page').addEventListener('click', prevPage);
+    const resetTimer = () => {
+        clearInterval(kindleTimer);
+        kindleTimer = setInterval(nextPage, 10000);
+    };
 
-    setInterval(nextPage, 10000);
-} else {
-    document.getElementById('desktop-view').style.display = 'block';
+    document.getElementById('next-page').addEventListener('click', () => {
+        nextPage();
+        resetTimer();
+    });
+    document.getElementById('prev-page').addEventListener('click', () => {
+        prevPage();
+        resetTimer();
+    });
+
+    resetTimer();
 }
+
+function setupDesktopView() {
+    document.getElementById('desktop-view').style.display = 'block';
+    const kindleView = document.getElementById('kindle-view');
+    kindleView.style.display = 'none';
+    document.getElementById('rotate-kindle').style.display = 'none';
+    document.getElementById('view-switcher').textContent = '📖';
+    kindleView.classList.remove('rotated-90', 'rotated-180', 'rotated-270');
+    currentRotation = 0;
+    clearInterval(kindleTimer);
+}
+
+document.getElementById('rotate-kindle').addEventListener('click', () => {
+    const kindleView = document.getElementById('kindle-view');
+    kindleView.classList.remove(`rotated-${currentRotation}`);
+    currentRotation = (currentRotation + 90) % 360;
+    if (currentRotation !== 0) {
+        kindleView.classList.add(`rotated-${currentRotation}`);
+    }
+});
+
+function readUrlAnchor() {
+    const hash = window.location.hash.substring(1);
+    const params = new URLSearchParams(hash);
+    const view = params.get('view');
+    const page = params.get('page');
+
+    if (view) {
+        currentView = view;
+    }
+    if (page) {
+        currentPage = parseInt(page, 10);
+    }
+}
+
+readUrlAnchor();
+if (currentView === 'kindle') {
+    setupKindleView();
+} else {
+    setupDesktopView();
+}
+updateUrlAnchor();
+
+
+document.getElementById('view-switcher').addEventListener('click', () => {
+    if (currentView === 'kindle') {
+        currentView = 'desktop';
+        setupDesktopView();
+    } else {
+        currentView = 'kindle';
+        setupKindleView();
+    }
+    updateUrlAnchor();
+});
 
 updateUI();
 setInterval(updateUI, 60000);

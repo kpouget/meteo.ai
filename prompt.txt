@@ -24,3 +24,78 @@ I am interested in the following metrics:
 
 Build me this website.
 I don't want a backend. This will be a very low traffic website.
+
+---
+
+I want to add the units to the values, and rename the blocks:
+
+- the rate rate --> "Force de la pluie", in mm/h
+- the total rain --> "Pluie totale", in mm
+- the external temperature
+- the indoor temperature --> "Temp. intérieur", in degrees C
+- the wind speed --> "Vitesse du vent" in km/h
+- the wind guest --> "Vitesse des bourrasques", in km/h
+- the wind direction --> "Direction du vent", in degrees, to translate to "nord, sud, ..."
+- the pressure  --> "Pression", in Hpa
+- the sun radiation  --> "Radiation solaire", in J/m2
+- the UV index --> "Index UV", without unit
+
+-
+
+Remove the decimal values for the rain, the wind and UV index
+
+-
+
+Keep only 1 decimal digit for the temperature, pressure and radiation
+
+-
+
+Add a button to switch between the computer and kindle view, for testing on the computer.
+
+-
+
+In the kindle view, move the wind dir to the wind speed and wind guest page
+
+-
+
+Include the view type and the kindle page in the URL anchor, so that we can go directly to the page.
+
+-
+
+Rename "temperature ext" into "Temp. extérieur"
+
+-
+
+In the kindle view, reset the switch page timer to 0 when we switch the page manually
+
+-
+
+In the kindle view, add a button to rotate the page view of 90, so that the kindle can be on the any side
+
+-
+
+the rotate button doesn't work
+
+-
+
+make the rotate button less prominent.
+
+-
+
+Better. But the button only allows 2 orientations. I want to enable the 4 rotations
+
+-
+
+The "switch view" button is gone. I want it back, and I want this
+button and the Rotate button to be floating in the top right
+corner. Use a rotate arrow emoji for rotate, and another one for the
+switch.
+
+-
+
+In the computer page, change the emoji to look like a e-ink reader
+
+-
+
+Nice. In the kindle view, switch the order of the buttons, so that the
+switch-view is always the right-most
