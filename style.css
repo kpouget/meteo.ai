@@ -1,0 +1,97 @@
+body {
+    font-family: sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+.view {
+    display: none;
+}
+
+/* Kindle View */
+#kindle-view {
+    background-color: #fff;
+    color: #000;
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden;
+}
+
+#kindle-view .page {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    width: 100%;
+    border: 1px solid black;
+    box-sizing: border-box;
+}
+
+#kindle-view .data-point {
+    text-align: center;
+    margin: 20px;
+}
+
+#kindle-view .label {
+    font-size: 2em;
+    display: block;
+}
+
+#kindle-view .value {
+    font-size: 4em;
+    font-weight: bold;
+}
+
+.navigation {
+    display: none;
+}
+
+#kindle-view .navigation {
+    display: flex;
+    justify-content: space-between;
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+}
+
+#kindle-view .navigation button {
+    font-size: 2em;
+    padding: 20px;
+    width: 50%;
+    border: 1px solid black;
+    background-color: white;
+}
+
+/* Desktop View */
+#desktop-view {
+    padding: 20px;
+}
+
+#desktop-view h1 {
+    text-align: center;
+}
+
+.grid-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+}
+
+.grid-item {
+    background-color: #f0f0f0;
+    padding: 20px;
+    border-radius: 5px;
+    text-align: center;
+}
+
+.grid-item .label {
+    font-size: 1.2em;
+    display: block;
+    margin-bottom: 10px;
+}
+
+.grid-item .value {
+    font-size: 2em;
+    font-weight: bold;
+}

@@ -1,0 +1,26 @@
+I want to generate a website for showing my weather sensor data.
+I want to interfaces for this website:
+
+the first interface is for the Amazon kindle display. The page will be full screen, but it is a small e-reader touch screen, black and white. The content should be clear and simple, low density. The content should be shown over multiple pages. We'll define later on the exact content of each of the pages.
+
+the second interface is for standard computers and phones. It should be still simple, easy to read.
+
+The sensor data come from the Prometheus instance at this address: https://prometheus.972.ovh/
+
+I am interested in the following metrics:
+
+- the rate rate `rain{group="wundeground", instance="home.972.ovh:35007", job="raspi sensors", mode="rate"}`
+- the total rain `rain{group="wundeground", instance="home.972.ovh:35007", job="raspi sensors", mode="total"}`
+  - I want to know how much it rained over the last day, week, month
+
+- the external temperature `temperature{group="wundeground", instance="home.972.ovh:35007", job="raspi sensors", location="toiture", mode="actual"}`
+- the indoor temperature, in the living room `temperature{group="pac", instance="home.972.ovh:35004", job="raspi sensors", location="pac_interieur"}
+- the wind speed `wind{group="wundeground", instance="home.972.ovh:35007", job="raspi sensors", mode="speed"}`
+- the wind guest `wind{group="wundeground", instance="home.972.ovh:35007", job="raspi sensors", mode="gust"}`
+- the wind direction `wind_dir{group="wundeground", instance="home.972.ovh:35007", job="raspi sensors"}`
+- the pressure `pressure{group="wundeground", instance="home.972.ovh:35007", job="raspi sensors"}`
+- the sun radiation `sun_rad{group="wundeground", instance="home.972.ovh:35007", job="raspi sensors"}`
+- the UV index `uv_idx{group="wundeground", instance="home.972.ovh:35007", job="raspi sensors"}`
+
+Build me this website.
+I don't want a backend. This will be a very low traffic website.

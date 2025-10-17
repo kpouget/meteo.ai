@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Station</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="kindle-view" class="view">
+        <div id="kindle-page-1" class="page">
+            <div class="data-point" id="temperature-ext">
+                <span class="label">Temperature Ext</span>
+                <span class="value">--</span>
+            </div>
+            <div class="data-point" id="temperature-int">
+                <span class="label">Temperature Int</span>
+                <span class="value">--</span>
+            </div>
+        </div>
+        <div id="kindle-page-2" class="page" style="display: none;">
+            <div class="data-point" id="rain-rate">
+                <span class="label">Rain Rate</span>
+                <span class="value">--</span>
+            </div>
+            <div class="data-point" id="rain-total-day">
+                <span class="label">Rain Total (24h)</span>
+                <span class="value">--</span>
+            </div>
+        </div>
+        <div id="kindle-page-3" class="page" style="display: none;">
+            <div class="data-point" id="wind-speed">
+                <span class="label">Wind Speed</span>
+                <span class="value">--</span>
+            </div>
+            <div class="data-point" id="wind-gust">
+                <span class="label">Wind Gust</span>
+                <span class="value">--</span>
+            </div>
+        </div>
+        <div id="kindle-page-4" class="page" style="display: none;">
+            <div class="data-point" id="wind-dir">
+                <span class="label">Wind Direction</span>
+                <span class="value">--</span>
+            </div>
+            <div class="data-point" id="pressure">
+                <span class="label">Pressure</span>
+                <span class="value">--</span>
+            </div>
+        </div>
+        <div id="kindle-page-5" class="page" style="display: none;">
+            <div class="data-point" id="sun-rad">
+                <span class="label">Sun Radiation</span>
+                <span class="value">--</span>
+            </div>
+            <div class="data-point" id="uv-idx">
+                <span class="label">UV Index</span>
+                <span class="value">--</span>
+            </div>
+        </div>
+        <div id="kindle-page-6" class="page" style="display: none;">
+            <div class="data-point" id="rain-total-week">
+                <span class="label">Rain Total (1w)</span>
+                <span class="value">--</span>
+            </div>
+            <div class="data-point" id="rain-total-month">
+                <span class="label">Rain Total (1M)</span>
+                <span class="value">--</span>
+            </div>
+        </div>
+        <div class="navigation">
+            <button id="prev-page">Prev</button>
+            <button id="next-page">Next</button>
+        </div>
+    </div>
+
+    <div id="desktop-view" class="view">
+        <h1>Weather Data</h1>
+        <div class="grid-container">
+            <div class="grid-item" id="desktop-temperature-ext">
+                <span class="label">Temperature Ext</span>
+                <span class="value">--</span>
+            </div>
+            <div class="grid-item" id="desktop-temperature-int">
+                <span class="label">Temperature Int</span>
+                <span class="value">--</span>
+            </div>
+            <div class="grid-item" id="desktop-rain-rate">
+                <span class="label">Rain Rate</span>
+                <span class="value">--</span>
+            </div>
+            <div class="grid-item" id="desktop-rain-total-day">
+                <span class="label">Rain Total (24h)</span>
+                <span class="value">--</span>
+            </div>
+            <div class="grid-item" id="desktop-rain-total-week">
+                <span class="label">Rain Total (1w)</span>
+                <span class="value">--</span>
+            </div>
+            <div class="grid-item" id="desktop-rain-total-month">
+                <span class="label">Rain Total (1M)</span>
+                <span class="value">--</span>
+            </div>
+             <div class="grid-item" id="desktop-wind-speed">
+                <span class="label">Wind Speed</span>
+                <span class="value">--</span>
+            </div>
+            <div class="grid-item" id="desktop-wind-gust">
+                <span class="label">Wind Gust</span>
+                <span class="value">--</span>
+            </div>
+            <div class="grid-item" id="desktop-wind-direction">
+                <span class="label">Wind Direction</span>
+                <span class="value">--</span>
+            </div>
+            <div class="grid-item" id="desktop-pressure">
+                <span class="label">Pressure</span>
+                <span class="value">--</span>
+            </div>
+            <div class="grid-item" id="desktop-sun-rad">
+                <span class="label">Sun Radiation</span>
+                <span class="value">--</span>
+            </div>
+            <div class="grid-item" id="desktop-uv-idx">
+                <span class="label">UV Index</span>
+                <span class="value">--</span>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
