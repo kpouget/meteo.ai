@@ -133,3 +133,54 @@ also move the the "pluie sur une semaine"
 
 is there an auto-refresh on the desktop page?
 --> every 60s
+
+---
+
+I don't like the multi-column view. I want a simpler design:
+Temperature
+[temp ext: ...][temp int: ...]
+Vent
+[vitesse du vent: ...][bourasques: ...]
+etc
+
+-
+
+good. Make the squares all the same size. No need to fill the screen width. I will add more boxes in the future.
+
+-
+
+The desktop page isn't scrollable. Add the scrollbar, I can't see the
+bottom of the page
+
+-
+
+> In "Autres", add a link to this image: https://www.meteociel.fr/accueil/lastvigi2.gif, which should link to https://vigilance.meteofrance.fr/fr
+y
+
+-
+
+you deleted the css. Undo that!
+
+-
+
+Use this iframe instead of the image: https://vigilance.meteofrance.fr/fr/widget-vigilance/vigilance-departement/46
+
+-
+
+the iframe size is `width="302" height="122"` Make sure the CSS shows it all
+
+-
+
+remove the squares around the sections. Move the section title to the left (don't center it)
+
+> Add a section "Qualité de l'air" with the following queries:
+  PM1 `PM1`
+  PM2.5 `PM25 - PM1`
+  PM10 `PM10 - PM25`
+
+> add a section "Riviéres", with:
+  Lot `river_flow{river="Lot"}` and a link to https://www.vigicrues.gouv.fr/station/O823153002
+  Dordogne `river_flow{river="Dordogne"}` and a link to https://www.vigicrues.gouv.fr/station/P231502001
+  The metrics don't work right now, I'll fix that later
+
+> the air quality metrics don't work (it's a metric query, doesn't work the same way as a function query)

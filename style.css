@@ -3,7 +3,6 @@ html, body {
     font-family: sans-serif;
     margin: 0;
     padding: 0;
-    overflow: hidden; /* Prevents scrollbars during rotation */
 }
 
 .view {
@@ -110,6 +109,9 @@ html, body {
 /* Desktop View */
 #desktop-view {
     padding: 20px;
+    height: 100vh;
+    overflow-y: auto;
+    box-sizing: border-box;
 }
 
 #desktop-view h1 {
@@ -117,9 +119,16 @@ html, body {
 }
 
 .grid-container {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    display: flex;
+    flex-direction: column;
     gap: 20px;
+}
+
+.grid-items-container {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    flex-wrap: wrap;
 }
 
 .grid-item {
@@ -127,6 +136,8 @@ html, body {
     padding: 20px;
     border-radius: 5px;
     text-align: center;
+    width: 200px;
+    flex-shrink: 0;
 }
 
 .grid-item .label {
@@ -141,13 +152,24 @@ html, body {
 }
 
 .group {
-    border: 1px solid #ccc;
     border-radius: 5px;
     padding: 10px;
     margin-bottom: 20px;
 }
 
 .group h2 {
-    text-align: center;
+    text-align: left;
     margin-top: 0;
+}
+
+#vigi-meteo {
+    width: 302px;
+    height: 122px;
+    padding: 0;
+}
+
+.grid-item a {
+    text-decoration: none;
+    color: inherit;
+    display: block;
 }

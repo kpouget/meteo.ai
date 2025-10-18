@@ -12,7 +12,12 @@ const METRICS = {
     wind_dir: 'wind_dir{group="wundeground", instance="home.972.ovh:35007", job="raspi sensors"}',
     pressure: 'pressure{group="wundeground", instance="home.972.ovh:35007", job="raspi sensors"}',
     sun_rad: 'sun_rad{group="wundeground", instance="home.972.ovh:35007", job="raspi sensors"}',
-    uv_idx: 'uv_idx{group="wundeground", instance="home.972.ovh:35007", job="raspi sensors"}'
+    uv_idx: 'uv_idx{group="wundeground", instance="home.972.ovh:35007", job="raspi sensors"}',
+    pm1: 'PM1{instance="home.972.ovh:35000", job="raspi sensors"}',
+    pm25: 'PM25{instance="home.972.ovh:35000", job="raspi sensors"} - PM1{instance="home.972.ovh:35000", job="raspi sensors"}',
+    pm10: 'PM10{instance="home.972.ovh:35000", job="raspi sensors"} - PM25{instance="home.972.ovh:35000", job="raspi sensors"}',
+    river_lot: 'river_flow{river="Lot"}',
+    river_dordogne: 'river_flow{river="Dordogne"}'
 };
 
 const UNITS = {
@@ -25,9 +30,14 @@ const UNITS = {
     wind_speed: 'km/h',
     wind_gust: 'km/h',
     wind_dir: '', // Special handling
-    pressure: 'Hpa',
-    sun_rad: 'J/m2',
-    uv_idx: '/11'
+    pressure: 'hPa',
+    sun_rad: 'J/m²',
+    uv_idx: '/11',
+    pm1: 'µg/m³',
+    pm25: 'µg/m³',
+    pm10: 'µg/m³',
+    river_lot: 'm³/s',
+    river_dordogne: 'm³/s'
 };
 
 let currentPage = 1;
@@ -74,7 +84,7 @@ async function updateUI() {
             if (metric === 'wind_dir') {
                 formattedValue = degreesToCardinal(parseFloat(value));
             } else {
-                if (metric.startsWith('rain_') || metric.startsWith('wind_') || metric === 'uv_idx') {
+                if (metric.startsWith('rain_') || metric.startsWith('wind_') || metric === 'uv_idx' || metric.startsWith('pm')) {
                     formattedValue = parseFloat(value).toFixed(0);
                 } else if (metric.startsWith('temperature_') || metric === 'pressure' || metric === 'sun_rad') {
                     formattedValue = parseFloat(value).toFixed(1);

@@ -79,62 +79,107 @@
         <div class="grid-container">
             <div class="group">
                 <h2>Température</h2>
-                <div class="grid-item" id="desktop-temperature-ext">
-                    <span class="label">Temp. extérieur</span>
-                    <span class="value">--</span>
-                </div>
-                <div class="grid-item" id="desktop-temperature-int">
-                    <span class="label">Temp. intérieur</span>
-                    <span class="value">--</span>
+                <div class="grid-items-container">
+                    <div class="grid-item" id="desktop-temperature-ext">
+                        <span class="label">Temp. extérieur</span>
+                        <span class="value">--</span>
+                    </div>
+                    <div class="grid-item" id="desktop-temperature-int">
+                        <span class="label">Temp. intérieur</span>
+                        <span class="value">--</span>
+                    </div>
                 </div>
             </div>
             <div class="group">
                 <h2>Vent</h2>
-                <div class="grid-item" id="desktop-wind-speed">
-                    <span class="label">Vitesse du vent</span>
-                    <span class="value">--</span>
-                </div>
-                <div class="grid-item" id="desktop-wind-gust">
-                    <span class="label">Vitesse des bourrasques</span>
-                    <span class="value">--</span>
-                </div>
-                <div class="grid-item" id="desktop-wind-dir">
-                    <span class="label">Direction du vent</span>
-                    <span class="value">--</span>
+                <div class="grid-items-container">
+                    <div class="grid-item" id="desktop-wind-speed">
+                        <span class="label">Vitesse du vent</span>
+                        <span class="value">--</span>
+                    </div>
+                    <div class="grid-item" id="desktop-wind-gust">
+                        <span class="label">Vitesse des bourrasques</span>
+                        <span class="value">--</span>
+                    </div>
+                    <div class="grid-item" id="desktop-wind-dir">
+                        <span class="label">Direction du vent</span>
+                        <span class="value">--</span>
+                    </div>
                 </div>
             </div>
             <div class="group">
                 <h2>Pluie</h2>
-                <div class="grid-item" id="desktop-rain-rate">
-                    <span class="label">Force de la pluie</span>
-                    <span class="value">--</span>
-                </div>
-                <div class="grid-item" id="desktop-rain-total-day">
-                    <span class="label">Pluie sur 24h</span>
-                    <span class="value">--</span>
-                </div>
-                <div class="grid-item" id="desktop-rain-total-week">
-                    <span class="label">Pluie sur 1 semaine</span>
-                    <span class="value">--</span>
-                </div>
-                <div class="grid-item" id="desktop-rain-total-month">
-                    <span class="label">Pluie sur 1 mois</span>
-                    <span class="value">--</span>
+                <div class="grid-items-container">
+                    <div class="grid-item" id="desktop-rain-rate">
+                        <span class="label">Force de la pluie</span>
+                        <span class="value">--</span>
+                    </div>
+                    <div class="grid-item" id="desktop-rain-total-day">
+                        <span class="label">Pluie sur 24h</span>
+                        <span class="value">--</span>
+                    </div>
+                    <div class="grid-item" id="desktop-rain-total-week">
+                        <span class="label">Pluie sur 1 semaine</span>
+                        <span class="value">--</span>
+                    </div>
+                    <div class="grid-item" id="desktop-rain-total-month">
+                        <span class="label">Pluie sur 1 mois</span>
+                        <span class="value">--</span>
+                    </div>
                 </div>
             </div>
             <div class="group">
                 <h2>Autres</h2>
-                <div class="grid-item" id="desktop-pressure">
-                    <span class="label">Pression</span>
-                    <span class="value">--</span>
+                <div class="grid-items-container">
+                    <div class="grid-item" id="desktop-pressure">
+                        <span class="label">Pression</span>
+                        <span class="value">--</span>
+                    </div>
+                    <div class="grid-item" id="desktop-sun-rad">
+                        <span class="label">Radiation solaire</span>
+                        <span class="value">--</span>
+                    </div>
+                    <div class="grid-item" id="desktop-uv-idx">
+                        <span class="label">Index UV</span>
+                        <span class="value">--</span>
+                    </div>
+                    <div class="grid-item" id="vigi-meteo">
+                        <iframe src="https://vigilance.meteofrance.fr/fr/widget-vigilance/vigilance-departement/46" width="302" height="122" frameborder="0"></iframe>
+                    </div>
                 </div>
-                <div class="grid-item" id="desktop-sun-rad">
-                    <span class="label">Radiation solaire</span>
-                    <span class="value">--</span>
+            </div>
+            <div class="group">
+                <h2>Qualité de l'air</h2>
+                <div class="grid-items-container">
+                    <div class="grid-item" id="desktop-pm1">
+                        <span class="label">PM1</span>
+                        <span class="value">--</span>
+                    </div>
+                    <div class="grid-item" id="desktop-pm25">
+                        <span class="label">PM2.5</span>
+                        <span class="value">--</span>
+                    </div>
+                    <div class="grid-item" id="desktop-pm10">
+                        <span class="label">PM10</span>
+                        <span class="value">--</span>
+                    </div>
                 </div>
-                <div class="grid-item" id="desktop-uv-idx">
-                    <span class="label">Index UV</span>
-                    <span class="value">--</span>
+            </div>
+            <div class="group">
+                <h2>Riviéres</h2>
+                <div class="grid-items-container">
+                    <div class="grid-item" id="desktop-river-lot">
+                        <a href="https://www.vigicrues.gouv.fr/station/O823153002" target="_blank" rel="noopener noreferrer">
+                            <span class="label">Lot</span>
+                            <span class="value">--</span>
+                        </a>
+                    </div>
+                    <div class="grid-item" id="desktop-river-dordogne">
+                        <a href="https://www.vigicrues.gouv.fr/station/P231502001" target="_blank" rel="noopener noreferrer">
+                            <span class="label">Dordogne</span>
+                            <span class="value">--</span>
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
