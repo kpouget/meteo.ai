@@ -4,7 +4,7 @@ const METRICS = {
     rain_rate: 'rate(rain{group="wundeground", instance="home.972.ovh:35007", job="raspi sensors", mode="rate"}[5m])',
     rain_total_day: 'increase(rain{group="wundeground", instance="home.972.ovh:35007", job="raspi sensors", mode="total"}[1d])',
     rain_total_week: 'increase(rain{group="wundeground", instance="home.972.ovh:35007", job="raspi sensors", mode="total"}[1w])',
-    rain_total_month: 'increase(rain{group="wundeground", instance="home.972.ovh:35007", job="raspi sensors", mode="total"}[1M])',
+    rain_total_month: 'increase(rain{group="wundeground", instance="home.972.ovh:35007", job="raspi sensors", mode="total"}[30d])',
     temperature_ext: 'temperature{group="wundeground", instance="home.972.ovh:35007", job="raspi sensors", location="toiture", mode="actual"}',
     temperature_int: 'temperature{group="pac", instance="home.972.ovh:35004", job="raspi sensors", location="pac_interieur"}',
     wind_speed: 'wind{group="wundeground", instance="home.972.ovh:35007", job="raspi sensors", mode="speed"}',
@@ -27,7 +27,7 @@ const UNITS = {
     wind_dir: '', // Special handling
     pressure: 'Hpa',
     sun_rad: 'J/m2',
-    uv_idx: ''
+    uv_idx: '/11'
 };
 
 let currentPage = 1;
@@ -111,7 +111,7 @@ function setupKindleView() {
     document.getElementById('desktop-view').style.display = 'none';
     document.getElementById('rotate-kindle').style.display = 'inline-block';
     document.getElementById('view-switcher').textContent = '💻';
-    const totalPages = 5;
+    const totalPages = 4;
 
     for (let i = 1; i <= totalPages; i++) {
         document.getElementById(`kindle-page-${i}`).style.display = 'none';

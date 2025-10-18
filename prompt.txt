@@ -99,3 +99,37 @@ In the computer page, change the emoji to look like a e-ink reader
 
 Nice. In the kindle view, switch the order of the buttons, so that the
 switch-view is always the right-most
+
+-
+
+* manual adjustments of the labels
+
+-
+
+The wind direction doesn't work for the desktop view
+
+-
+
+Add '/11' for the UV index unit
+
+-
+
+for the Deskop view, split the boxes into multiple groups:
+"Température", "Vent", "Pluie", "Autres"
+
+-
+
+The rain over 1 month doesn't work. And it's missing in the Kindle version
+
+-
+
+Move the "pluie total sur 1 mois" to the rain page
+
+-
+
+also move the the "pluie sur une semaine"
+
+-
+
+is there an auto-refresh on the desktop page?
+--> every 60s
