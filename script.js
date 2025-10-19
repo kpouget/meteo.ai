@@ -1,44 +1,15 @@
 const PROMETHEUS_URL = 'https://prometheus.972.ovh/api/v1/query';
+let METRICS = {};
 
-const METRICS = {
-    rain_rate: 'rate(rain{group="wundeground", instance="home.972.ovh:35007", job="raspi sensors", mode="rate"}[5m])',
-    rain_total_day: 'increase(rain{group="wundeground", instance="home.972.ovh:35007", job="raspi sensors", mode="total"}[1d])',
-    rain_total_week: 'increase(rain{group="wundeground", instance="home.972.ovh:35007", job="raspi sensors", mode="total"}[1w])',
-    rain_total_month: 'increase(rain{group="wundeground", instance="home.972.ovh:35007", job="raspi sensors", mode="total"}[30d])',
-    temperature_ext: 'temperature{group="wundeground", instance="home.972.ovh:35007", job="raspi sensors", location="toiture", mode="actual"}',
-    temperature_int: 'temperature{group="pac", instance="home.972.ovh:35004", job="raspi sensors", location="pac_interieur"}',
-    wind_speed: 'wind{group="wundeground", instance="home.972.ovh:35007", job="raspi sensors", mode="speed"}',
-    wind_gust: 'wind{group="wundeground", instance="home.972.ovh:35007", job="raspi sensors", mode="gust"}',
-    wind_dir: 'wind_dir{group="wundeground", instance="home.972.ovh:35007", job="raspi sensors"}',
-    pressure: 'pressure{group="wundeground", instance="home.972.ovh:35007", job="raspi sensors"}',
-    sun_rad: 'sun_rad{group="wundeground", instance="home.972.ovh:35007", job="raspi sensors"}',
-    uv_idx: 'uv_idx{group="wundeground", instance="home.972.ovh:35007", job="raspi sensors"}',
-    pm1: 'PM1{instance="home.972.ovh:35000", job="raspi sensors"}',
-    pm25: 'PM25{instance="home.972.ovh:35000", job="raspi sensors"} - PM1{instance="home.972.ovh:35000", job="raspi sensors"}',
-    pm10: 'PM10{instance="home.972.ovh:35000", job="raspi sensors"} - PM25{instance="home.972.ovh:35000", job="raspi sensors"}',
-    river_lot: 'river_flow{name="Lot"}',
-    river_dordogne: 'river_flow{name="Dordogne"}'
-};
+function loadMetrics() {
+    try {
+        const yamlData = jsyaml.load(metricsYaml);
+        METRICS = yamlData.metrics;
+    } catch (error) {
+        console.error('Error loading or parsing metrics.js:', error);
+    }
+}
 
-const UNITS = {
-    rain_rate: 'mm/h',
-    rain_total_day: 'mm',
-    rain_total_week: 'mm',
-    rain_total_month: 'mm',
-    temperature_ext: '°C',
-    temperature_int: '°C',
-    wind_speed: 'km/h',
-    wind_gust: 'km/h',
-    wind_dir: '', // Special handling
-    pressure: 'hPa',
-    sun_rad: 'J/m²',
-    uv_idx: '/11',
-    pm1: 'µg/m³',
-    pm25: 'µg/m³',
-    pm10: 'µg/m³',
-    river_lot: 'm³/s',
-    river_dordogne: 'm³/s'
-};
 
 let currentPage = 1;
 let currentView = isKindle() ? 'kindle' : 'desktop';
@@ -56,7 +27,7 @@ function isKindle() {
 }
 
 async function fetchMetric(metricName) {
-    const query = METRICS[metricName];
+    const query = METRICS[metricName].query;
     if (!query) {
         console.error(`Metric ${metricName} not found`);
         return null;
@@ -91,8 +62,8 @@ async function updateUI() {
                 } else {
                     formattedValue = parseFloat(value).toFixed(2);
                 }
-                if (UNITS[metric]) {
-                    formattedValue += ` ${UNITS[metric]}`;
+                if (METRICS[metric].unit) {
+                    formattedValue += ` ${METRICS[metric].unit}`;
                 }
             }
 
@@ -194,25 +165,30 @@ function readUrlAnchor() {
     }
 }
 
-readUrlAnchor();
-if (currentView === 'kindle') {
-    setupKindleView();
-} else {
-    setupDesktopView();
-}
-updateUrlAnchor();
-
-
-document.getElementById('view-switcher').addEventListener('click', () => {
+function main() {
+    loadMetrics();
+    readUrlAnchor();
     if (currentView === 'kindle') {
-        currentView = 'desktop';
-        setupDesktopView();
-    } else {
-        currentView = 'kindle';
         setupKindleView();
+    } else {
+        setupDesktopView();
     }
     updateUrlAnchor();
-});
 
-updateUI();
-setInterval(updateUI, 60000);
+
+    document.getElementById('view-switcher').addEventListener('click', () => {
+        if (currentView === 'kindle') {
+            currentView = 'desktop';
+            setupDesktopView();
+        } else {
+            currentView = 'kindle';
+            setupKindleView();
+        }
+        updateUrlAnchor();
+    });
+
+    updateUI();
+    setInterval(updateUI, 60000);
+}
+
+main();
