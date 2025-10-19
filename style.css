@@ -173,3 +173,10 @@ html, body {
     color: inherit;
     display: block;
 }
+
+.dew-point-text {
+    font-size: 0.4em;
+    font-weight: normal;
+    display: block;
+    line-height: 1.2;
+}

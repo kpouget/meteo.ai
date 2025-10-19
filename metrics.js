@@ -18,6 +18,9 @@ metrics:
   temperature_int:
     query: 'temperature{group="pac", instance="home.972.ovh:35004", job="raspi sensors", location="pac_interieur"}'
     unit: '°C'
+  dew_point:
+    query: 'temperature{group="wundeground", instance="home.972.ovh:35007", job="raspi sensors", location="toiture", mode="dew_point"}'
+    unit: '°C'
   wind_speed:
     query: 'wind{group="wundeground", instance="home.972.ovh:35007", job="raspi sensors", mode="speed"}'
     unit: 'km/h'

@@ -11,6 +11,22 @@ function loadMetrics() {
 }
 
 
+function humiditeRessentie(dewPoint) {
+  if (dewPoint < 0) {
+    return "Air très sec (froid piquant, peau sèche)";
+  } else if (dewPoint < 10) {
+    return "Agréable et confortable (air sec à légèrement humide)";
+  } else if (dewPoint < 15) {
+    return "Humidité modérée (air un peu lourd)";
+  } else if (dewPoint < 18) {
+    return "Assez humide (sensation moite)";
+  } else if (dewPoint < 21) {
+    return "Très humide (air lourd, collant)";
+  } else {
+    return "Oppressant (forte humidité, inconfort marqué)";
+  }
+}
+
 let currentPage = 1;
 let currentView = isKindle() ? 'kindle' : 'desktop';
 let kindleTimer;
@@ -52,8 +68,16 @@ async function updateUI() {
         const value = await fetchMetric(metric);
         if (value !== null) {
             let formattedValue;
+            let useInnerHTML = false;
+
             if (metric === 'wind_dir') {
                 formattedValue = degreesToCardinal(parseFloat(value));
+            } else if (metric === 'dew_point') {
+                const numericValue = parseFloat(value).toFixed(1);
+                const textValue = humiditeRessentie(parseFloat(value));
+                const unit = METRICS[metric].unit || '';
+                formattedValue = `${numericValue}${unit}<span class="dew-point-text">${textValue}</span>`;
+                useInnerHTML = true;
             } else {
                 if (metric.startsWith('rain_') || metric.startsWith('wind_') || metric === 'uv_idx' || metric.startsWith('pm')) {
                     formattedValue = parseFloat(value).toFixed(0);
@@ -69,11 +93,21 @@ async function updateUI() {
 
             const kindleElement = document.getElementById(metric.replace(/_/g, '-'));
             if (kindleElement) {
-                kindleElement.querySelector('.value').textContent = formattedValue;
+                const valueElement = kindleElement.querySelector('.value');
+                if (useInnerHTML) {
+                    valueElement.innerHTML = formattedValue;
+                } else {
+                    valueElement.textContent = formattedValue;
+                }
             }
             const desktopElement = document.getElementById(`desktop-${metric.replace(/_/g, '-')}`);
             if (desktopElement) {
-                desktopElement.querySelector('.value').textContent = formattedValue;
+                const valueElement = desktopElement.querySelector('.value');
+                if (useInnerHTML) {
+                    valueElement.innerHTML = formattedValue;
+                } else {
+                    valueElement.textContent = formattedValue;
+                }
             }
         }
     }
