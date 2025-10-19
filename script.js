@@ -16,8 +16,8 @@ const METRICS = {
     pm1: 'PM1{instance="home.972.ovh:35000", job="raspi sensors"}',
     pm25: 'PM25{instance="home.972.ovh:35000", job="raspi sensors"} - PM1{instance="home.972.ovh:35000", job="raspi sensors"}',
     pm10: 'PM10{instance="home.972.ovh:35000", job="raspi sensors"} - PM25{instance="home.972.ovh:35000", job="raspi sensors"}',
-    river_lot: 'river_flow{river="Lot"}',
-    river_dordogne: 'river_flow{river="Dordogne"}'
+    river_lot: 'river_flow{name="Lot"}',
+    river_dordogne: 'river_flow{name="Dordogne"}'
 };
 
 const UNITS = {
