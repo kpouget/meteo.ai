@@ -108,6 +108,19 @@ async function updateUI() {
                 } else {
                     valueElement.textContent = formattedValue;
                 }
+
+                if (METRICS[metric].plot_url) {
+                    const link = document.createElement('a');
+                    link.href = METRICS[metric].plot_url;
+                    link.target = '_blank';
+                    link.rel = 'noopener noreferrer';
+                    
+                    // Wrap the existing content of the desktop element with the link
+                    while (desktopElement.firstChild) {
+                        link.appendChild(desktopElement.firstChild);
+                    }
+                    desktopElement.appendChild(link);
+                }
             }
         }
     }
