@@ -221,6 +221,10 @@ function main() {
         updateUrlAnchor();
     });
 
+    document.getElementById('refresh-button').addEventListener('click', () => {
+        updateUI();
+    });
+
     updateUI();
     setInterval(updateUI, 60000);
 }
