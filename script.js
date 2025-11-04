@@ -19,11 +19,6 @@ var METRICS = {
         "unit": "mm",
         "plot_url": "https://prometheus.972.ovh/graph?g0.expr=increase(rain%7Bgroup%3D%22wundeground%22%2C%20instance%3D%22home.972.ovh%3A35007%22%2C%20job%3D%22raspi%20sensors%22%2C%20mode%3D%22total%22%7D%5B30d%5D)&g0.tab=0&g0.range_input=30d"
     },
-    "rain_total_year": {
-        "query": "increase(rain{group=\"wundeground\", instance=\"home.972.ovh:35007\", job=\"raspi sensors\", mode=\"total\"}[365d])",
-        "unit": "mm",
-        "plot_url": "https://prometheus.972.ovh/graph?g0.expr=increase(rain%7Bgroup%3D%22wundeground%22%2C%20instance%3D%22home.972.ovh%3A35007%22%2C%20job%3D%22raspi%20sensors%22%2C%20mode%3D%22total%22%7D%5B365d%5D)&g0.tab=0&g0.range_input=365d"
-    },
     "temperature_ext": {
         "query": "avg_over_time(temperature{group=\"wundeground\", instance=\"home.972.ovh:35007\", job=\"raspi sensors\", location=\"toiture\", mode=\"actual\"}[10m])",
         "unit": "&deg;C",
