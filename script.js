@@ -24,6 +24,11 @@ var METRICS = {
         "unit": "&deg;C",
         "plot_url": "https://prometheus.972.ovh/graph?g0.expr=temperature%7Bgroup%3D%22wundeground%22%2C%20instance%3D%22home.972.ovh%3A35007%22%2C%20job%3D%22raspi%20sensors%22%2C%20location%3D%22toiture%22%2C%20mode%3D%22actual%22%7D&g0.tab=0&g0.range_input=1d"
     },
+    "humidity_ext": {
+        "query": "humidity{group=\"thermo\", instance=\"home.972.ovh:35002\", job=\"raspi sensors\", location=\"exterieur\"}",
+        "unit": "%",
+        "plot_url": "https://prometheus.972.ovh/graph?g0.expr=humidity%7Bgroup%3D%22thermo%22%2C%20instance%3D%22home.972.ovh%3A35002%22%2C%20job%3D%22raspi%20sensors%22%2C%20location%3D%22exterieur%22%7D&g0.tab=0&g0.range_input=1d"
+    },
     "temperature_int": {
         "query": "temperature{group=\"pac\", instance=\"home.972.ovh:35004\", job=\"raspi sensors\", location=\"pac_interieur\"}",
         "unit": "&deg;C",
@@ -178,7 +183,7 @@ function updateUI() {
                     } else {
                         if (metric.indexOf('rain_') === 0 || metric.indexOf('wind_') === 0 || metric === 'uv_idx' || metric.indexOf('pm') === 0) {
                             formattedValue = parseFloat(value).toFixed(0);
-                        } else if (metric.indexOf('temperature_') === 0 || metric === 'pressure' || metric === 'sun_rad') {
+                        } else if (metric.indexOf('temperature_') === 0 || metric.indexOf('humidity_') === 0 || metric === 'pressure' || metric === 'sun_rad') {
                             formattedValue = parseFloat(value).toFixed(1);
                         } else {
                             formattedValue = parseFloat(value).toFixed(2);
