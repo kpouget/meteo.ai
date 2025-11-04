@@ -36,12 +36,12 @@ def main():
             # Query for the minimum value over the last 7 days
             min_query = f"min_over_time({base_query}[7d])"
             min_result = prom.custom_query(query=min_query)
-            min_value = round(float(min_result[0]['value'][1]), 1) if min_result else None
+            min_value = round(float(min_result[0]['value'][1])) if min_result else None
 
             # Query for the maximum value over the last 7 days
             max_query = f"max_over_time({base_query}[7d])"
             max_result = prom.custom_query(query=max_query)
-            max_value = round(float(max_result[0]['value'][1]), 1) if max_result else None
+            max_value = round(float(max_result[0]['value'][1])) if max_result else None
 
             if min_value is not None and max_value is not None:
                 stats[name] = {

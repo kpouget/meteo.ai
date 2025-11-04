@@ -183,8 +183,10 @@ function updateUI() {
                     } else {
                         if (metric.indexOf('rain_') === 0 || metric.indexOf('wind_') === 0 || metric === 'uv_idx' || metric.indexOf('pm') === 0) {
                             formattedValue = parseFloat(value).toFixed(0);
-                        } else if (metric.indexOf('temperature_') === 0 || metric.indexOf('humidity_') === 0 || metric === 'pressure' || metric === 'sun_rad') {
+                        } else if (metric.indexOf('temperature_') === 0 || metric.indexOf('humidity_') === 0 || metric === 'sun_rad') {
                             formattedValue = parseFloat(value).toFixed(1);
+                        } else if (metric === 'pressure') {
+                            formattedValue = parseFloat(value).toFixed(0);
                         } else {
                             formattedValue = parseFloat(value).toFixed(2);
                         }
