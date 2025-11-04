@@ -75,19 +75,19 @@ var METRICS = {
         "plot_url": "https://prometheus.972.ovh/graph?g0.expr=uv_idx%7Bgroup%3D%22wundeground%22%2C%20instance%3D%22home.972.ovh%3A35007%22%2C%20job%3D%22raspi%20sensors%22%7D&g0.tab=0&g0.range_input=10m"
     },
     "pm1": {
-        "query": "PM1{instance=\"home.972.ovh:35000\", job=\"raspi sensors\"}",
+        "query": "avg_over_time(PM1{instance=\"home.972.ovh:35000\", job=\"raspi sensors\"}[10m])",
         "unit": "&micro;g/m&sup3;",
-        "plot_url": "https://prometheus.972.ovh/graph?g0.expr=PM1%7Binstance%3D%22home.972.ovh%3A35000%22%2C%20job%3D%22raspi%20sensors%22%7D&g0.tab=0&g0.range_input=1d"
+        "plot_url": "https://prometheus.972.ovh/graph?g0.expr=PM1%7Binstance%3D%22home.972.ovh%3A35000%22%2C%20job%3D%22raspi%20sensors%22%7D&g0.tab=0&g0.range_input=10m"
     },
     "pm25": {
-        "query": "PM25{instance=\"home.972.ovh:35000\", job=\"raspi sensors\"} - PM1{instance=\"home.972.ovh:35000\", job=\"raspi sensors\"}",
+        "query": "avg_over_time(PM25{instance=\"home.972.ovh:35000\", job=\"raspi sensors\"}[10m]) - avg_over_time(PM1{instance=\"home.972.ovh:35000\", job=\"raspi sensors\"}[10m])",
         "unit": "&micro;g/m&sup3;",
-        "plot_url": "https://prometheus.972.ovh/graph?g0.expr=PM25%7Binstance%3D%22home.972.ovh%3A35000%22%2C%20job%3D%22raspi%20sensors%22%7D%20-%20PM1%7Binstance%3D%22home.972.ovh%3A35000%22%2C%20job%3D%22raspi%20sensors%22%7D&g0.tab=0&g0.range_input=1d"
+        "plot_url": "https://prometheus.972.ovh/graph?g0.expr=PM25%7Binstance%3D%22home.972.ovh%3A35000%22%2C%20job%3D%22raspi%20sensors%22%7D%20-%20PM1%7Binstance%3D%22home.972.ovh%3A35000%22%2C%20job%3D%22raspi%20sensors%22%7D&g0.tab=0&g0.range_input=10m"
     },
     "pm10": {
-        "query": "PM10{instance=\"home.972.ovh:35000\", job=\"raspi sensors\"} - PM25{instance=\"home.972.ovh:35000\", job=\"raspi sensors\"}",
+        "query": "avg_over_time(PM10{instance=\"home.972.ovh:35000\", job=\"raspi sensors\"}[10m]) - avg_over_time(PM25{instance=\"home.972.ovh:35000\", job=\"raspi sensors\"}[10m])",
         "unit": "&micro;g/m&sup3;",
-        "plot_url": "https://prometheus.972.ovh/graph?g0.expr=PM10%7Binstance%3D%22home.972.ovh%3A35000%22%2C%20job%3D%22raspi%20sensors%22%7D%20-%20PM25%7Binstance%3D%22home.972.ovh%3A35000%22%2C%20job%3D%22raspi%20sensors%22%7D&g0.tab=0&g0.range_input=1d"
+        "plot_url": "https://prometheus.972.ovh/graph?g0.expr=PM10%7Binstance%3D%22home.972.ovh%3A35000%22%2C%20job%3D%22raspi%20sensors%22%7D%20-%20PM25%7Binstance%3D%22home.972.ovh%3A35000%22%2C%20job%3D%22raspi%20sensors%22%7D&g0.tab=0&g0.range_input=10m"
     },
     "river_lot": {
         "query": "river_flow{name=\"Lot\"}",
