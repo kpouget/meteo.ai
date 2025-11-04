@@ -5,7 +5,7 @@ var STATS = {
         "min": 1003
     },
     "temperature_ext": {
-        "max": 22,
+        "max": 23,
         "unit": "\u00b0C",
         "min": 4
     },
@@ -15,9 +15,9 @@ var STATS = {
         "min": 51
     },
     "river_dordogne": {
-        "max": 393,
+        "max": 389,
         "unit": "m\u00b3/s",
-        "min": 217
+        "min": 216
     },
     "sun_rad": {
         "max": 478,
@@ -32,7 +32,7 @@ var STATS = {
         "unit": "mm"
     },
     "rain_total_year": {
-        "value": 1200,
+        "value": 252,
         "unit": "mm"
     }
 };
