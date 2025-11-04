@@ -6,6 +6,7 @@ from datetime import datetime
 from dateutil.relativedelta import relativedelta
 from calendar import monthrange
 from datetime import timedelta
+import locale
 
 # Configuration
 PROMETHEUS_URL = "https://prometheus.972.ovh"
@@ -47,6 +48,7 @@ def main():
     and writes the result to a JavaScript file.
     """
     try:
+        locale.setlocale(locale.LC_TIME, 'fr_FR.UTF-8')
         print(f"Connecting to Prometheus at {PROMETHEUS_URL}...")
         prom = PrometheusConnect(url=PROMETHEUS_URL, disable_ssl=False)
     except Exception as e:

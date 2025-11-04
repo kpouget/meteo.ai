@@ -1,64 +1,64 @@
 var STATS = {
     "rain_last_6_months": [
         {
-            "month": "october",
+            "month": "octobre",
             "value": 93,
             "unit": "mm"
         },
         {
-            "month": "september",
+            "month": "septembre",
             "value": 60,
             "unit": "mm"
         },
         {
-            "month": "august",
+            "month": "ao\u00fbt",
             "value": 50,
             "unit": "mm"
         },
         {
-            "month": "july",
+            "month": "juillet",
             "value": 20,
             "unit": "mm"
         },
         {
-            "month": "june",
+            "month": "juin",
             "value": 25,
             "unit": "mm"
         },
         {
-            "month": "may",
+            "month": "mai",
             "value": 0,
             "unit": "mm"
         }
     ],
     "rain_last_6_days": [
         {
-            "day": "Monday",
+            "day": "lundi",
             "value": 0,
             "unit": "mm"
         },
         {
-            "day": "Sunday",
+            "day": "dimanche",
             "value": 3,
             "unit": "mm"
         },
         {
-            "day": "Saturday",
+            "day": "samedi",
             "value": 1,
             "unit": "mm"
         },
         {
-            "day": "Friday",
+            "day": "vendredi",
             "value": 0,
             "unit": "mm"
         },
         {
-            "day": "Thursday",
+            "day": "jeudi",
             "value": 0,
             "unit": "mm"
         },
         {
-            "day": "Wednesday",
+            "day": "mercredi",
             "value": 0,
             "unit": "mm"
         }
@@ -79,7 +79,7 @@ var STATS = {
         "min": 51
     },
     "river_dordogne": {
-        "max": 388,
+        "max": 387,
         "unit": "m\u00b3/s",
         "min": 216
     },
