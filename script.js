@@ -1,6 +1,6 @@
 var METRICS = {
     "rain_rate": {
-        "query": "rain{group=\"wundeground\", instance=\"home.972.ovh:35007\", job=\"raspi sensors\", mode=\"rate\"}",
+        "query": "max_over_time(rain{group=\"wundeground\", instance=\"home.972.ovh:35007\", job=\"raspi sensors\", mode=\"rate\"}[1h])",
         "unit": "mm/h",
         "plot_url": "https://prometheus.972.ovh/graph?g0.expr=rain%7Bgroup%3D%22wundeground%22%2C%20instance%3D%22home.972.ovh%3A35007%22%2C%20job%3D%22raspi%20sensors%22%2C%20mode%3D%22rate%22%7D&g0.tab=0&g0.range_input=1d"
     },
