@@ -92,12 +92,12 @@ var METRICS = {
     "river_lot": {
         "query": "avg_over_time(river_flow{name=\"Lot\"}[10m])",
         "unit": "m&sup3;/s",
-        "plot_url": "https://prometheus.972.ovh/graph?g0.expr=river_flow%7Bname%3D%22Lot%22%7D&g0.tab=0&g0.range_input=10m"
+        "plot_url": "https://prometheus.972.ovh/graph?g0.expr=avg_over_time(river_flow%7Bname%3D%22Lot%22%7D%5B10m%5D)&g0.tab=0&g0.range_input=10m"
     },
     "river_dordogne": {
         "query": "avg_over_time(river_flow{name=\"Dordogne\"}[10m])",
         "unit": "m&sup3;/s",
-        "plot_url": "https://prometheus.972.ovh/graph?g0.expr=river_flow%7Bname%3D%22Dordogne%22%7D&g0.tab=0&g0.range_input=10m"
+        "plot_url": "https://prometheus.972.ovh/graph?g0.expr=avg_over_time(river_flow%7Bname%3D%22Dordogne%22%7D%5B10m%5D)&g0.tab=0&g0.range_input=10m"
     }
 };
 var PROMETHEUS_URL = 'https://prometheus.972.ovh/api/v1/query';
