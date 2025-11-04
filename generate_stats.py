@@ -56,6 +56,7 @@ def main():
     stats = {}
 
     # Query rain totals for the last 6 months
+    rain_last_6_months = []
     today = datetime.now()
     for i in range(1, 7):
         target_month_date = today - relativedelta(months=i)
@@ -73,15 +74,17 @@ def main():
             result = prom.custom_query(query=query, params={'time': end_of_month.timestamp()})
             value = round(float(result[0]['value'][1])) if result else None
             if value is not None:
-                stats[f"rain_total_{month_name}"] = {
+                rain_last_6_months.append({
+                    "month": month_name,
                     "value": value,
                     "unit": "mm"
-                }
+                })
                 print(f"  - Value: {value}")
             else:
                 print(f"  - Could not retrieve value for '{month_name}'.")
         except Exception as e:
             print(f"  - An error occurred while querying for '{month_name}': {e}")
+    stats["rain_last_6_months"] = rain_last_6_months
 
     for name, details in METRICS_TO_QUERY.items():
         base_query = details["query"]

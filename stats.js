@@ -1,28 +1,36 @@
 var STATS = {
-    "rain_total_october": {
-        "value": 93,
-        "unit": "mm"
-    },
-    "rain_total_september": {
-        "value": 60,
-        "unit": "mm"
-    },
-    "rain_total_august": {
-        "value": 50,
-        "unit": "mm"
-    },
-    "rain_total_july": {
-        "value": 20,
-        "unit": "mm"
-    },
-    "rain_total_june": {
-        "value": 25,
-        "unit": "mm"
-    },
-    "rain_total_may": {
-        "value": 0,
-        "unit": "mm"
-    },
+    "rain_last_6_months": [
+        {
+            "month": "october",
+            "value": 93,
+            "unit": "mm"
+        },
+        {
+            "month": "september",
+            "value": 60,
+            "unit": "mm"
+        },
+        {
+            "month": "august",
+            "value": 50,
+            "unit": "mm"
+        },
+        {
+            "month": "july",
+            "value": 20,
+            "unit": "mm"
+        },
+        {
+            "month": "june",
+            "value": 25,
+            "unit": "mm"
+        },
+        {
+            "month": "may",
+            "value": 0,
+            "unit": "mm"
+        }
+    ],
     "pressure": {
         "max": 1025,
         "unit": "hPa",
@@ -39,7 +47,7 @@ var STATS = {
         "min": 51
     },
     "river_dordogne": {
-        "max": 389,
+        "max": 388,
         "unit": "m\u00b3/s",
         "min": 216
     },
