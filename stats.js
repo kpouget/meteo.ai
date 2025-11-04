@@ -39,12 +39,12 @@ var STATS = {
         },
         {
             "day": "dimanche (02/11)",
-            "value": 3,
+            "value": 0,
             "unit": "mm"
         },
         {
             "day": "samedi (01/11)",
-            "value": 1,
+            "value": 0,
             "unit": "mm"
         },
         {
@@ -66,32 +66,32 @@ var STATS = {
     "sun_rad_last_6_days": [
         {
             "day": "lundi (03/11)",
-            "value": 23285,
+            "value": 0,
             "unit": "J/m\u00b2"
         },
         {
             "day": "dimanche (02/11)",
-            "value": 18781,
+            "value": 0,
             "unit": "J/m\u00b2"
         },
         {
             "day": "samedi (01/11)",
-            "value": 9087,
+            "value": 0,
             "unit": "J/m\u00b2"
         },
         {
             "day": "vendredi (31/10)",
-            "value": 20699,
+            "value": 0,
             "unit": "J/m\u00b2"
         },
         {
             "day": "jeudi (30/10)",
-            "value": 31592,
+            "value": 0,
             "unit": "J/m\u00b2"
         },
         {
             "day": "mercredi (29/10)",
-            "value": 8671,
+            "value": 0,
             "unit": "J/m\u00b2"
         }
     ],

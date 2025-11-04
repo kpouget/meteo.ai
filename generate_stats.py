@@ -102,7 +102,7 @@ def main():
         print(f"Querying rain total for '{day_name}'...")
         try:
             result = prom.custom_query(query=query, params={'time': end_of_day.timestamp()})
-            value = round(float(result[0]['value'][1])) if result else None
+            value = round(float(result[0]['value'][1]) / 100) * 100 if result else None
             if value is not None:
                 rain_last_6_days.append({
                     "day": day_name,
@@ -131,8 +131,7 @@ def main():
         
         print(f"Querying sun radiation for '{day_name}'...")
         try:
-            result = prom.custom_query(query=query, params={'time': end_of_day.timestamp()})
-            value = round(float(result[0]['value'][1])) if result else None
+            value = round(float(result[0]['value'][1]) / 100) * 100 if result else None
 
             if value is not None:
                 sun_rad_last_6_days.append({
