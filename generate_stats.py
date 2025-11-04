@@ -116,6 +116,37 @@ def main():
             print(f"  - An error occurred while querying for '{day_name}': {e}")
     stats["rain_last_6_days"] = rain_last_6_days
 
+    # Query sun radiation for the last 6 days
+    sun_rad_last_6_days = []
+    for i in range(1, 7):
+        target_day = today - timedelta(days=i)
+        day_name = target_day.strftime("%A (%d/%m)")
+        
+        end_of_day = target_day.replace(hour=23, minute=59, second=59, microsecond=999999)
+        
+        base_query = METRICS_TO_QUERY["sun_rad"]["query"]
+        unit = METRICS_TO_QUERY["sun_rad"]["unit"]
+
+        query = f"increase({base_query}[24h])"
+        
+        print(f"Querying sun radiation for '{day_name}'...")
+        try:
+            result = prom.custom_query(query=query, params={'time': end_of_day.timestamp()})
+            value = round(float(result[0]['value'][1])) if result else None
+
+            if value is not None:
+                sun_rad_last_6_days.append({
+                    "day": day_name,
+                    "value": value,
+                    "unit": unit
+                })
+                print(f"  - Value: {value}")
+            else:
+                print(f"  - Could not retrieve sun radiation data for '{day_name}'.")
+        except Exception as e:
+            print(f"  - An error occurred while querying for '{day_name}': {e}")
+    stats["sun_rad_last_6_days"] = sun_rad_last_6_days
+
     for name, details in METRICS_TO_QUERY.items():
         base_query = details["query"]
         print(f"Querying stats for '{name}'...")

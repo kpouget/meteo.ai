@@ -416,6 +416,44 @@ function updateStaticUI() {
         }
         chartContainer.appendChild(chart);
     }
+
+    if (STATS.sun_rad_last_6_days) {
+        var chartContainer = document.getElementById('sun-rad-chart-daily-container');
+        chartContainer.innerHTML = '<h3>Radiation solaire des 6 derniers jours</h3>';
+        var chart = document.createElement('div');
+        chart.className = 'rain-chart';
+
+        var maxRad = 0;
+        for (var i = 0; i < STATS.sun_rad_last_6_days.length; i++) {
+            if (STATS.sun_rad_last_6_days[i].value > maxRad) {
+                maxRad = STATS.sun_rad_last_6_days[i].value;
+            }
+        }
+
+        for (var i = STATS.sun_rad_last_6_days.length - 1; i >= 0; i--) {
+            var dayData = STATS.sun_rad_last_6_days[i];
+            var barContainer = document.createElement('div');
+            barContainer.className = 'bar-container';
+
+            var bar = document.createElement('div');
+            bar.className = 'bar';
+            bar.style.height = (dayData.value / maxRad * 100) + 'px';
+
+            var dayLabel = document.createElement('div');
+            dayLabel.className = 'month-label';
+            dayLabel.textContent = dayData.day;
+            
+            var valueLabel = document.createElement('div');
+            valueLabel.className = 'value-label';
+            valueLabel.textContent = dayData.value + ' ' + dayData.unit;
+
+            barContainer.appendChild(bar);
+            barContainer.appendChild(dayLabel);
+            barContainer.appendChild(valueLabel);
+            chart.appendChild(barContainer);
+        }
+        chartContainer.appendChild(chart);
+    }
 }
 
 function main() {
