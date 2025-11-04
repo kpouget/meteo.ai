@@ -380,6 +380,44 @@ function updateStaticUI() {
         }
         chartContainer.appendChild(chart);
     }
+
+    if (STATS.rain_last_6_days) {
+        var chartContainer = document.getElementById('rain-chart-daily-container');
+        chartContainer.innerHTML = '<h3>Précipitations des 6 derniers jours</h3>';
+        var chart = document.createElement('div');
+        chart.className = 'rain-chart';
+
+        var maxRain = 0;
+        for (var i = 0; i < STATS.rain_last_6_days.length; i++) {
+            if (STATS.rain_last_6_days[i].value > maxRain) {
+                maxRain = STATS.rain_last_6_days[i].value;
+            }
+        }
+
+        for (var i = 0; i < STATS.rain_last_6_days.length; i++) {
+            var dayData = STATS.rain_last_6_days[i];
+            var barContainer = document.createElement('div');
+            barContainer.className = 'bar-container';
+
+            var bar = document.createElement('div');
+            bar.className = 'bar';
+            bar.style.height = (dayData.value / maxRain * 100) + 'px';
+
+            var dayLabel = document.createElement('div');
+            dayLabel.className = 'month-label';
+            dayLabel.textContent = dayData.day;
+            
+            var valueLabel = document.createElement('div');
+            valueLabel.className = 'value-label';
+            valueLabel.textContent = dayData.value + ' ' + dayData.unit;
+
+            barContainer.appendChild(bar);
+            barContainer.appendChild(dayLabel);
+            barContainer.appendChild(valueLabel);
+            chart.appendChild(barContainer);
+        }
+        chartContainer.appendChild(chart);
+    }
 }
 
 function main() {

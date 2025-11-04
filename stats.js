@@ -31,6 +31,38 @@ var STATS = {
             "unit": "mm"
         }
     ],
+    "rain_last_6_days": [
+        {
+            "day": "Monday",
+            "value": 0,
+            "unit": "mm"
+        },
+        {
+            "day": "Sunday",
+            "value": 3,
+            "unit": "mm"
+        },
+        {
+            "day": "Saturday",
+            "value": 1,
+            "unit": "mm"
+        },
+        {
+            "day": "Friday",
+            "value": 0,
+            "unit": "mm"
+        },
+        {
+            "day": "Thursday",
+            "value": 0,
+            "unit": "mm"
+        },
+        {
+            "day": "Wednesday",
+            "value": 0,
+            "unit": "mm"
+        }
+    ],
     "pressure": {
         "max": 1025,
         "unit": "hPa",
