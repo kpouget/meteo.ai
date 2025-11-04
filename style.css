@@ -165,3 +165,41 @@ html, body {
     display: block;
     line-height: 1.2;
 }
+
+#rain-chart-container {
+    margin-top: 20px;
+}
+
+.rain-chart {
+    display: flex;
+    justify-content: space-around;
+    align-items: flex-end;
+    height: 120px;
+    border-left: 1px solid #ccc;
+    border-bottom: 1px solid #ccc;
+    padding-top: 10px;
+}
+
+.bar-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 15%;
+}
+
+.bar {
+    width: 30px;
+    background-color: #007bff;
+    transition: height 0.5s ease-in-out;
+}
+
+.month-label {
+    margin-top: 5px;
+    font-size: 0.8em;
+    color: #333;
+}
+
+.value-label {
+    font-size: 0.7em;
+    color: #666;
+}
