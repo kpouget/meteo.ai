@@ -246,7 +246,7 @@ function setupKindleView() {
     document.getElementById('kindle-view').style.display = 'block';
     document.getElementById('desktop-view').style.display = 'none';
     document.getElementById('view-switcher').textContent = '⌨';
-    var totalPages = 4;
+    var totalPages = 5;
 
     for (var i = 1; i <= totalPages; i++) {
         document.getElementById('kindle-page-' + i).style.display = 'none';
