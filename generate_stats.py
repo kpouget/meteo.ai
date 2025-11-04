@@ -92,7 +92,7 @@ def main():
     rain_last_6_days = []
     for i in range(1, 7):
         target_day = today - timedelta(days=i)
-        day_name = target_day.strftime("%A")
+        day_name = target_day.strftime("%A (%d/%m)")
         
         start_of_day = target_day.replace(hour=0, minute=0, second=0, microsecond=0)
         end_of_day = target_day.replace(hour=23, minute=59, second=59, microsecond=999999)

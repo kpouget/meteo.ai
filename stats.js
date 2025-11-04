@@ -33,32 +33,32 @@ var STATS = {
     ],
     "rain_last_6_days": [
         {
-            "day": "lundi",
+            "day": "lundi (03/11)",
             "value": 0,
             "unit": "mm"
         },
         {
-            "day": "dimanche",
+            "day": "dimanche (02/11)",
             "value": 3,
             "unit": "mm"
         },
         {
-            "day": "samedi",
+            "day": "samedi (01/11)",
             "value": 1,
             "unit": "mm"
         },
         {
-            "day": "vendredi",
+            "day": "vendredi (31/10)",
             "value": 0,
             "unit": "mm"
         },
         {
-            "day": "jeudi",
+            "day": "jeudi (30/10)",
             "value": 0,
             "unit": "mm"
         },
         {
-            "day": "mercredi",
+            "day": "mercredi (29/10)",
             "value": 0,
             "unit": "mm"
         }

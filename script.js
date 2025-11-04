@@ -392,7 +392,7 @@ function updateStaticUI() {
                 maxRain = STATS.rain_last_6_days[i].value;
             }
         }
-        for (var i = STATS.rain_last_6_days.length - 1; i >= 0; i--) {
+        for (var i = 0; i < STATS.rain_last_6_days.length; i++) {
             var dayData = STATS.rain_last_6_days[i];
             var barContainer = document.createElement('div');
             barContainer.className = 'bar-container';
