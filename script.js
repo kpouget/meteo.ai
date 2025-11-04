@@ -47,12 +47,12 @@ var METRICS = {
     "wind_speed": {
         "query": "avg_over_time(wind{group=\"wundeground\", instance=\"home.972.ovh:35007\", job=\"raspi sensors\", mode=\"speed\"}[1h])",
         "unit": "km/h",
-        "plot_url": "https://prometheus.972.ovh/graph?g0.expr=wind%7Bgroup%3D%22wundeground%22%2C%20instance%3D%22home.972.ovh%3A35007%22%2C%20job%3D%22raspi%20sensors%22%2C%20mode%3D%22speed%22%7D&g0.tab=0&g0.range_input=1d"
+        "plot_url": "https://prometheus.972.ovh/graph?g0.expr=wind%7Bgroup%3D%22wundeground%22%2C%20instance%3D%22home.972.ovh%3A35007%22%2C%20job%3D%22raspi%20sensors%22%2C%20mode%3D%22speed%22%7D&g0.tab=0&g0.range_input=1h"
     },
     "wind_gust": {
         "query": "max_over_time(wind{group=\"wundeground\", instance=\"home.972.ovh:35007\", job=\"raspi sensors\", mode=\"gust\"}[1h])",
         "unit": "km/h",
-        "plot_url": "https://prometheus.972.ovh/graph?g0.expr=wind%7Bgroup%3D%22wundeground%22%2C%20instance%3D%22home.972.ovh%3A35007%22%2C%20job%3D%22raspi%20sensors%22%2C%20mode%3D%22gust%22%7D&g0.tab=0&g0.range_input=1d"
+        "plot_url": "https://prometheus.972.ovh/graph?g0.expr=wind%7Bgroup%3D%22wundeground%22%2C%20instance%3D%22home.972.ovh%3A35007%22%2C%20job%3D%22raspi%20sensors%22%2C%20mode%3D%22gust%22%7D&g0.tab=0&g0.range_input=1h"
     },
     "wind_dir": {
         "query": "wind_dir{group=\"wundeground\", instance=\"home.972.ovh:35007\", job=\"raspi sensors\"}",
