@@ -175,7 +175,6 @@ function updateUI() {
             fetchMetric(metric, function(value) {
                 if (value !== null) {
                     var formattedValue;
-                    var useInnerHTML = false;
 
                     if (metric === 'wind_dir') {
                         formattedValue = degreesToCardinal(parseFloat(value));
