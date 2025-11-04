@@ -22,5 +22,13 @@ var STATS = {
     "sun_rad": {
         "max": 478,
         "unit": "J/m\u00b2"
+    },
+    "rain_total_week": {
+        "value": 4,
+        "unit": "mm"
+    },
+    "rain_total_month": {
+        "value": 94,
+        "unit": "mm"
     }
 };

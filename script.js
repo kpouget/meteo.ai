@@ -9,16 +9,6 @@ var METRICS = {
         "unit": "mm",
         "plot_url": "https://prometheus.972.ovh/graph?g0.expr=increase(rain%7Bgroup%3D%22wundeground%22%2C%20instance%3D%22home.972.ovh%3A35007%22%2C%20job%3D%22raspi%20sensors%22%2C%20mode%3D%22total%22%7D%5B1d%5D)&g0.tab=0&g0.range_input=1d"
     },
-    "rain_total_week": {
-        "query": "increase(rain{group=\"wundeground\", instance=\"home.972.ovh:35007\", job=\"raspi sensors\", mode=\"total\"}[1w])",
-        "unit": "mm",
-        "plot_url": "https://prometheus.972.ovh/graph?g0.expr=increase(rain%7Bgroup%3D%22wundeground%22%2C%20instance%3D%22home.972.ovh%3A35007%22%2C%20job%3D%22raspi%20sensors%22%2C%20mode%3D%22total%22%7D%5B1w%5D)&g0.tab=0&g0.range_input=1d"
-    },
-    "rain_total_month": {
-        "query": "increase(rain{group=\"wundeground\", instance=\"home.972.ovh:35007\", job=\"raspi sensors\", mode=\"total\"}[30d])",
-        "unit": "mm",
-        "plot_url": "https://prometheus.972.ovh/graph?g0.expr=increase(rain%7Bgroup%3D%22wundeground%22%2C%20instance%3D%22home.972.ovh%3A35007%22%2C%20job%3D%22raspi%20sensors%22%2C%20mode%3D%22total%22%7D%5B30d%5D)&g0.tab=0&g0.range_input=1d"
-    },
     "temperature_ext": {
         "query": "temperature{group=\"wundeground\", instance=\"home.972.ovh:35007\", job=\"raspi sensors\", location=\"toiture\", mode=\"actual\"}",
         "unit": "&deg;C",
@@ -209,37 +199,6 @@ function updateUI() {
                             valueElement.textContent = formattedValue;
                         }
 
-                        if (metric === 'pressure' && typeof STATS !== 'undefined' && STATS.pressure) {
-                            var subtitleElement = desktopElement.querySelector('.subtitle');
-                            if (subtitleElement) {
-                                subtitleElement.textContent = 'Min: ' + STATS.pressure.min + ' / Max: ' + STATS.pressure.max + ' (' + STATS.pressure.unit + ' 7j)';
-                            }
-                        }
-                        if (metric === 'temperature_ext' && typeof STATS !== 'undefined' && STATS.temperature_ext) {
-                            var subtitleElement = desktopElement.querySelector('.subtitle');
-                            if (subtitleElement) {
-                                subtitleElement.textContent = 'Min: ' + STATS.temperature_ext.min + ' / Max: ' + STATS.temperature_ext.max + ' (' + STATS.temperature_ext.unit + ' 7j)';
-                            }
-                        }
-                        if (metric === 'river_lot' && typeof STATS !== 'undefined' && STATS.river_lot) {
-                            var subtitleElement = desktopElement.querySelector('.subtitle');
-                            if (subtitleElement) {
-                                subtitleElement.textContent = 'Min: ' + STATS.river_lot.min + ' / Max: ' + STATS.river_lot.max + ' (' + STATS.river_lot.unit + ' 7j)';
-                            }
-                        }
-                        if (metric === 'river_dordogne' && typeof STATS !== 'undefined' && STATS.river_dordogne) {
-                            var subtitleElement = desktopElement.querySelector('.subtitle');
-                            if (subtitleElement) {
-                                subtitleElement.textContent = 'Min: ' + STATS.river_dordogne.min + ' / Max: ' + STATS.river_dordogne.max + ' (' + STATS.river_dordogne.unit + ' 7j)';
-                            }
-                        }
-                        if (metric === 'sun_rad' && typeof STATS !== 'undefined' && STATS.sun_rad) {
-                            var subtitleElement = desktopElement.querySelector('.subtitle');
-                            if (subtitleElement) {
-                                subtitleElement.textContent = 'Max: ' + STATS.sun_rad.max + ' (' + STATS.sun_rad.unit + ' 7j)';
-                            }
-                        }
-
                                                 if (METRICS[metric].plot_url) {
                                                     var link = desktopElement.querySelector('a');
                                                     if (!link) {
@@ -341,6 +300,46 @@ function readUrlAnchor() {
     }
 }
 
+function updateStaticUI() {
+    if (typeof STATS === 'undefined') {
+        return;
+    }
+
+    for (var metric in STATS) {
+        var stat = STATS[metric];
+        var desktopElement = document.getElementById('desktop-' + metric.replace(/_/g, '-'));
+        
+        if (desktopElement) {
+            if (stat.value !== undefined) { // For single-value metrics like rain
+                var formattedValue = stat.value.toFixed(0) + ' ' + (stat.unit || '');
+                desktopElement.querySelector('.value').textContent = formattedValue;
+                
+                var kindleElement = document.getElementById(metric.replace(/_/g, '-'));
+                if (kindleElement) {
+                    kindleElement.querySelector('.value').textContent = formattedValue;
+                }
+
+            } else { // For subtitle metrics
+                var subtitleElement = desktopElement.querySelector('.subtitle');
+                if (subtitleElement) {
+                    var subtitleText = '';
+                    if (stat.min !== undefined) {
+                        subtitleText += 'Min: ' + stat.min;
+                    }
+                    if (stat.max !== undefined) {
+                        if (subtitleText) subtitleText += ' / ';
+                        subtitleText += 'Max: ' + stat.max;
+                    }
+                    if (stat.unit) {
+                        subtitleText += ' (' + stat.unit + ' 7j)';
+                    }
+                    subtitleElement.textContent = subtitleText;
+                }
+            }
+        }
+    }
+}
+
 function main() {
     readUrlAnchor();
     if (currentView === 'kindle') {
@@ -349,6 +348,7 @@ function main() {
         setupDesktopView();
     }
     updateUrlAnchor();
+    updateStaticUI();
 
 
     document.getElementById('view-switcher').addEventListener('click', function() {
