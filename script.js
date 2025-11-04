@@ -383,7 +383,6 @@ function updateStaticUI() {
 
     if (STATS.rain_last_6_days) {
         var chartContainer = document.getElementById('rain-chart-daily-container');
-        chartContainer.innerHTML = '<h3>Précipitations des 6 derniers jours</h3>';
         var chart = document.createElement('div');
         chart.className = 'rain-chart';
 
@@ -393,8 +392,7 @@ function updateStaticUI() {
                 maxRain = STATS.rain_last_6_days[i].value;
             }
         }
-
-        for (var i = 0; i < STATS.rain_last_6_days.length; i++) {
+        for (var i = STATS.rain_last_6_days.length - 1; i >= 0; i--) {
             var dayData = STATS.rain_last_6_days[i];
             var barContainer = document.createElement('div');
             barContainer.className = 'bar-container';
@@ -406,7 +404,7 @@ function updateStaticUI() {
             var dayLabel = document.createElement('div');
             dayLabel.className = 'month-label';
             dayLabel.textContent = dayData.day;
-            
+
             var valueLabel = document.createElement('div');
             valueLabel.className = 'value-label';
             valueLabel.textContent = dayData.value + ' ' + dayData.unit;
