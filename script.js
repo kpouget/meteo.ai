@@ -208,11 +208,7 @@ function updateUI() {
                     var desktopElement = document.getElementById('desktop-' + metric.replace(/_/g, '-'));
                     if (desktopElement) {
                         var valueElement = desktopElement.querySelector('.value');
-                        if (useInnerHTML || (METRICS[metric].unit && METRICS[metric].unit.indexOf('&') !== -1)) {
-                            valueElement.innerHTML = formattedValue;
-                        } else {
-                            valueElement.textContent = formattedValue;
-                        }
+                        valueElement.innerHTML = formattedValue;
 
                                                 if (METRICS[metric].plot_url) {
                                                     var link = desktopElement.querySelector('a');
