@@ -39,12 +39,12 @@ var STATS = {
         },
         {
             "day": "dimanche (02/11)",
-            "value": 0,
+            "value": 3,
             "unit": "mm"
         },
         {
             "day": "samedi (01/11)",
-            "value": 0,
+            "value": 1,
             "unit": "mm"
         },
         {
@@ -66,32 +66,32 @@ var STATS = {
     "sun_rad_last_6_days": [
         {
             "day": "lundi (03/11)",
-            "value": 0,
+            "value": 23300,
             "unit": "J/m\u00b2"
         },
         {
             "day": "dimanche (02/11)",
-            "value": 0,
+            "value": 18800,
             "unit": "J/m\u00b2"
         },
         {
             "day": "samedi (01/11)",
-            "value": 0,
+            "value": 9100,
             "unit": "J/m\u00b2"
         },
         {
             "day": "vendredi (31/10)",
-            "value": 0,
+            "value": 20700,
             "unit": "J/m\u00b2"
         },
         {
             "day": "jeudi (30/10)",
-            "value": 0,
+            "value": 31600,
             "unit": "J/m\u00b2"
         },
         {
             "day": "mercredi (29/10)",
-            "value": 0,
+            "value": 8700,
             "unit": "J/m\u00b2"
         }
     ],
@@ -111,7 +111,7 @@ var STATS = {
         "min": 51
     },
     "river_dordogne": {
-        "max": 387,
+        "max": 386,
         "unit": "m\u00b3/s",
         "min": 216
     },

@@ -430,7 +430,7 @@ function updateStaticUI() {
             }
         }
 
-        for (var i = STATS.sun_rad_last_6_days.length - 1; i >= 0; i--) {
+        for (var i = 0; i < STATS.sun_rad_last_6_days.length; i++) {
             var dayData = STATS.sun_rad_last_6_days[i];
             var barContainer = document.createElement('div');
             barContainer.className = 'bar-container';
@@ -442,7 +442,7 @@ function updateStaticUI() {
             var dayLabel = document.createElement('div');
             dayLabel.className = 'month-label';
             dayLabel.textContent = dayData.day;
-            
+
             var valueLabel = document.createElement('div');
             valueLabel.className = 'value-label';
             valueLabel.textContent = dayData.value + ' ' + dayData.unit;

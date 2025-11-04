@@ -68,9 +68,9 @@ def main():
         num_days = monthrange(year, month)[1]
         range_seconds = num_days * 24 * 3600
         end_of_month = datetime(year, month, num_days, 23, 59, 59)
-        
+
         query = f'increase(rain{{group="wundeground", instance="home.972.ovh:35007", job="raspi sensors", mode="total"}}[{range_seconds}s])'
-        
+
         print(f"Querying rain total for '{month_name}'...")
         try:
             result = prom.custom_query(query=query, params={'time': end_of_month.timestamp()})
@@ -93,16 +93,16 @@ def main():
     for i in range(1, 7):
         target_day = today - timedelta(days=i)
         day_name = target_day.strftime("%A (%d/%m)")
-        
+
         start_of_day = target_day.replace(hour=0, minute=0, second=0, microsecond=0)
         end_of_day = target_day.replace(hour=23, minute=59, second=59, microsecond=999999)
-        
+
         query = f'increase(rain{{group="wundeground", instance="home.972.ovh:35007", job="raspi sensors", mode="total"}}[24h])'
-        
+
         print(f"Querying rain total for '{day_name}'...")
         try:
             result = prom.custom_query(query=query, params={'time': end_of_day.timestamp()})
-            value = round(float(result[0]['value'][1]) / 100) * 100 if result else None
+            value = round(float(result[0]['value'][1])) if result else None
             if value is not None:
                 rain_last_6_days.append({
                     "day": day_name,
@@ -121,18 +121,18 @@ def main():
     for i in range(1, 7):
         target_day = today - timedelta(days=i)
         day_name = target_day.strftime("%A (%d/%m)")
-        
+
         end_of_day = target_day.replace(hour=23, minute=59, second=59, microsecond=999999)
-        
+
         base_query = METRICS_TO_QUERY["sun_rad"]["query"]
         unit = METRICS_TO_QUERY["sun_rad"]["unit"]
 
         query = f"increase({base_query}[24h])"
-        
+
         print(f"Querying sun radiation for '{day_name}'...")
         try:
+            result = prom.custom_query(query=query, params={'time': end_of_day.timestamp()})
             value = round(float(result[0]['value'][1]) / 100) * 100 if result else None
-
             if value is not None:
                 sun_rad_last_6_days.append({
                     "day": day_name,
