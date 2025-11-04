@@ -1,3 +1,7 @@
+# Instructions
+
+- After every modification, commit the changes in git. Use `[gemini]` and a summary for the title, and the ptompt in the message.
+
 # Kindle Browser Compatibility Guide
 
 This document outlines the best practices for writing web code that is compatible with older browsers, specifically the Kindle e-reader's web browser. Adhering to these guidelines will help prevent common issues like blank screens, broken layouts, and unsupported features.
