@@ -2,6 +2,9 @@
 
 import json
 from prometheus_api_client import PrometheusConnect
+from datetime import datetime
+from dateutil.relativedelta import relativedelta
+from calendar import monthrange
 from datetime import timedelta
 
 # Configuration
@@ -51,6 +54,34 @@ def main():
         return
 
     stats = {}
+
+    # Query rain totals for the last 6 months
+    today = datetime.now()
+    for i in range(1, 7):
+        target_month_date = today - relativedelta(months=i)
+        year = target_month_date.year
+        month = target_month_date.month
+        month_name = target_month_date.strftime("%B").lower()
+        num_days = monthrange(year, month)[1]
+        range_seconds = num_days * 24 * 3600
+        end_of_month = datetime(year, month, num_days, 23, 59, 59)
+        
+        query = f'increase(rain{{group="wundeground", instance="home.972.ovh:35007", job="raspi sensors", mode="total"}}[{range_seconds}s])'
+        
+        print(f"Querying rain total for '{month_name}'...")
+        try:
+            result = prom.custom_query(query=query, params={'time': end_of_month.timestamp()})
+            value = round(float(result[0]['value'][1])) if result else None
+            if value is not None:
+                stats[f"rain_total_{month_name}"] = {
+                    "value": value,
+                    "unit": "mm"
+                }
+                print(f"  - Value: {value}")
+            else:
+                print(f"  - Could not retrieve value for '{month_name}'.")
+        except Exception as e:
+            print(f"  - An error occurred while querying for '{month_name}': {e}")
 
     for name, details in METRICS_TO_QUERY.items():
         base_query = details["query"]

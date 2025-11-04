@@ -1,4 +1,28 @@
 var STATS = {
+    "rain_total_october": {
+        "value": 93,
+        "unit": "mm"
+    },
+    "rain_total_september": {
+        "value": 60,
+        "unit": "mm"
+    },
+    "rain_total_august": {
+        "value": 50,
+        "unit": "mm"
+    },
+    "rain_total_july": {
+        "value": 20,
+        "unit": "mm"
+    },
+    "rain_total_june": {
+        "value": 25,
+        "unit": "mm"
+    },
+    "rain_total_may": {
+        "value": 0,
+        "unit": "mm"
+    },
     "pressure": {
         "max": 1025,
         "unit": "hPa",
