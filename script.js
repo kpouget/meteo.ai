@@ -67,12 +67,12 @@ var METRICS = {
     "sun_rad": {
         "query": "avg_over_time(sun_rad{group=\"wundeground\", instance=\"home.972.ovh:35007\", job=\"raspi sensors\"}[10m])",
         "unit": "J/m&sup2;",
-        "plot_url": "https://prometheus.972.ovh/graph?g0.expr=sun_rad%7Bgroup%3D%22wundeground%22%2C%20instance%3D%22home.972.ovh%3A35007%22%2C%20job%3D%22raspi%20sensors%22%7D&g0.tab=0&g0.range_input=10m"
+        "plot_url": "https://prometheus.972.ovh/graph?g0.expr=avg_over_time(sun_rad%7Bgroup%3D%22wundeground%22%2C%20instance%3D%22home.972.ovh%3A35007%22%2C%20job%3D%22raspi%20sensors%22%7D%5B10m%5D)&g0.tab=0&g0.range_input=10m"
     },
     "uv_idx": {
         "query": "avg_over_time(uv_idx{group=\"wundeground\", instance=\"home.972.ovh:35007\", job=\"raspi sensors\"}[10m])",
         "unit": "/11",
-        "plot_url": "https://prometheus.972.ovh/graph?g0.expr=uv_idx%7Bgroup%3D%22wundeground%22%2C%20instance%3D%22home.972.ovh%3A35007%22%2C%20job%3D%22raspi%20sensors%22%7D&g0.tab=0&g0.range_input=10m"
+        "plot_url": "https://prometheus.972.ovh/graph?g0.expr=avg_over_time(uv_idx%7Bgroup%3D%22wundeground%22%2C%20instance%3D%22home.972.ovh%3A35007%22%2C%20job%3D%22raspi%20sensors%22%7D%5B10m%5D)&g0.tab=0&g0.range_input=10m"
     },
     "pm1": {
         "query": "avg_over_time(PM1{instance=\"home.972.ovh:35000\", job=\"raspi sensors\"}[10m])",
