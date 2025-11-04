@@ -15,6 +15,14 @@ METRICS_TO_QUERY = {
     "temperature_ext": {
         "query": 'temperature{group="wundeground", instance="home.972.ovh:35007", job="raspi sensors", location="toiture", mode="actual"}',
         "unit": "°C"
+    },
+    "river_lot": {
+        "query": 'river_flow{name="Lot"}',
+        "unit": "m³/s"
+    },
+    "river_dordogne": {
+        "query": 'river_flow{name="Dordogne"}',
+        "unit": "m³/s"
     }
 }
 

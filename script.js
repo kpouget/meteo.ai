@@ -181,7 +181,7 @@ function updateUI() {
                         formattedValue = numericValue + unit + '<span class="dew-point-text">' + textValue + '</span>';
                         useInnerHTML = true;
                     } else {
-                        if (metric.indexOf('rain_') === 0 || metric.indexOf('wind_') === 0 || metric === 'uv_idx' || metric.indexOf('pm') === 0 || metric.indexOf('temperature_') === 0 || metric.indexOf('humidity_') === 0) {
+                        if (metric.indexOf('rain_') === 0 || metric.indexOf('wind_') === 0 || metric.indexOf('river_') === 0 || metric === 'uv_idx' || metric.indexOf('pm') === 0 || metric.indexOf('temperature_') === 0 || metric.indexOf('humidity_') === 0) {
                             formattedValue = parseFloat(value).toFixed(0);
                         } else if (metric === 'pressure') {
                             formattedValue = parseFloat(value).toFixed(0);
@@ -219,6 +219,18 @@ function updateUI() {
                             var subtitleElement = desktopElement.querySelector('.subtitle');
                             if (subtitleElement) {
                                 subtitleElement.textContent = 'Min: ' + STATS.temperature_ext.min + ' / Max: ' + STATS.temperature_ext.max + ' (' + STATS.temperature_ext.unit + ' 7j)';
+                            }
+                        }
+                        if (metric === 'river_lot' && typeof STATS !== 'undefined' && STATS.river_lot) {
+                            var subtitleElement = desktopElement.querySelector('.subtitle');
+                            if (subtitleElement) {
+                                subtitleElement.textContent = 'Min: ' + STATS.river_lot.min + ' / Max: ' + STATS.river_lot.max + ' (' + STATS.river_lot.unit + ' 7j)';
+                            }
+                        }
+                        if (metric === 'river_dordogne' && typeof STATS !== 'undefined' && STATS.river_dordogne) {
+                            var subtitleElement = desktopElement.querySelector('.subtitle');
+                            if (subtitleElement) {
+                                subtitleElement.textContent = 'Min: ' + STATS.river_dordogne.min + ' / Max: ' + STATS.river_dordogne.max + ' (' + STATS.river_dordogne.unit + ' 7j)';
                             }
                         }
 
