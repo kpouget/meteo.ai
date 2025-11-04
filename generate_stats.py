@@ -11,6 +11,10 @@ METRICS_TO_QUERY = {
     "pressure": {
         "query": 'pressure{group="wundeground", instance="home.972.ovh:35007", job="raspi sensors"}',
         "unit": "hPa"
+    },
+    "temperature_ext": {
+        "query": 'temperature{group="wundeground", instance="home.972.ovh:35007", job="raspi sensors", location="toiture", mode="actual"}',
+        "unit": "°C"
     }
 }
 

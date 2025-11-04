@@ -181,12 +181,12 @@ function updateUI() {
                         formattedValue = numericValue + unit + '<span class="dew-point-text">' + textValue + '</span>';
                         useInnerHTML = true;
                     } else {
-                        if (metric.indexOf('rain_') === 0 || metric.indexOf('wind_') === 0 || metric === 'uv_idx' || metric.indexOf('pm') === 0) {
+                        } else if (metric.indexOf('rain_') === 0 || metric.indexOf('wind_') === 0 || metric === 'uv_idx' || metric.indexOf('pm') === 0 || metric.indexOf('temperature_') === 0 || metric.indexOf('humidity_') === 0) {
                             formattedValue = parseFloat(value).toFixed(0);
-                        } else if (metric.indexOf('temperature_') === 0 || metric.indexOf('humidity_') === 0 || metric === 'sun_rad') {
-                            formattedValue = parseFloat(value).toFixed(1);
                         } else if (metric === 'pressure') {
                             formattedValue = parseFloat(value).toFixed(0);
+                        } else if (metric === 'sun_rad') {
+                            formattedValue = parseFloat(value).toFixed(1);
                         } else {
                             formattedValue = parseFloat(value).toFixed(2);
                         }
@@ -213,6 +213,12 @@ function updateUI() {
                             var subtitleElement = desktopElement.querySelector('.subtitle');
                             if (subtitleElement) {
                                 subtitleElement.textContent = 'Min: ' + STATS.pressure.min + ' / Max: ' + STATS.pressure.max + ' (' + STATS.pressure.unit + ' 7j)';
+                            }
+                        }
+                        if (metric === 'temperature_ext' && typeof STATS !== 'undefined' && STATS.temperature_ext) {
+                            var subtitleElement = desktopElement.querySelector('.subtitle');
+                            if (subtitleElement) {
+                                subtitleElement.textContent = 'Min: ' + STATS.temperature_ext.min + ' / Max: ' + STATS.temperature_ext.max + ' (' + STATS.temperature_ext.unit + ' 7j)';
                             }
                         }
 
