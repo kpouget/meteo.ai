@@ -233,6 +233,12 @@ function updateUI() {
                                 subtitleElement.textContent = 'Min: ' + STATS.river_dordogne.min + ' / Max: ' + STATS.river_dordogne.max + ' (' + STATS.river_dordogne.unit + ' 7j)';
                             }
                         }
+                        if (metric === 'sun_rad' && typeof STATS !== 'undefined' && STATS.sun_rad) {
+                            var subtitleElement = desktopElement.querySelector('.subtitle');
+                            if (subtitleElement) {
+                                subtitleElement.textContent = 'Max: ' + STATS.sun_rad.max + ' (' + STATS.sun_rad.unit + ' 7j)';
+                            }
+                        }
 
                                                 if (METRICS[metric].plot_url) {
                                                     var link = desktopElement.querySelector('a');

@@ -23,6 +23,10 @@ METRICS_TO_QUERY = {
     "river_dordogne": {
         "query": 'river_flow{name="Dordogne"}',
         "unit": "m³/s"
+    },
+    "sun_rad": {
+        "query": 'sun_rad{group="wundeground", instance="home.972.ovh:35007", job="raspi sensors"}',
+        "unit": "J/m²"
     }
 }
 
@@ -46,24 +50,32 @@ def main():
 
         try:
             # Query for the minimum value over the last 7 days
-            min_query = f"min_over_time({base_query}[7d])"
-            min_result = prom.custom_query(query=min_query)
-            min_value = round(float(min_result[0]['value'][1])) if min_result else None
+            min_value = None
+            if name != "sun_rad":
+                min_query = f"min_over_time({base_query}[7d])"
+                min_result = prom.custom_query(query=min_query)
+                min_value = round(float(min_result[0]['value'][1])) if min_result else None
 
             # Query for the maximum value over the last 7 days
             max_query = f"max_over_time({base_query}[7d])"
             max_result = prom.custom_query(query=max_query)
             max_value = round(float(max_result[0]['value'][1])) if max_result else None
 
-            if min_value is not None and max_value is not None:
+            if max_value is not None:
                 stats[name] = {
-                    "min": min_value,
                     "max": max_value,
                     "unit": details.get("unit", "")
                 }
-                print(f"  - Min: {min_value}, Max: {max_value}")
+                if min_value is not None:
+                    stats[name]["min"] = min_value
+                
+                log_msg = f"  - Max: {max_value}"
+                if min_value is not None:
+                    log_msg = f"  - Min: {min_value}, " + log_msg
+                print(log_msg)
+
             else:
-                print(f"  - Could not retrieve full min/max data for '{name}'.")
+                print(f"  - Could not retrieve max data for '{name}'.")
 
         except Exception as e:
             print(f"  - An error occurred while querying for '{name}': {e}")

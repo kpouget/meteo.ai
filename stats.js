@@ -1,22 +1,26 @@
 var STATS = {
     "pressure": {
-        "min": 1003,
         "max": 1025,
-        "unit": "hPa"
+        "unit": "hPa",
+        "min": 1003
     },
     "temperature_ext": {
-        "min": 4,
         "max": 22,
-        "unit": "\u00b0C"
+        "unit": "\u00b0C",
+        "min": 4
     },
     "river_lot": {
-        "min": 51,
         "max": 303,
-        "unit": "m\u00b3/s"
+        "unit": "m\u00b3/s",
+        "min": 51
     },
     "river_dordogne": {
-        "min": 217,
         "max": 393,
-        "unit": "m\u00b3/s"
+        "unit": "m\u00b3/s",
+        "min": 217
+    },
+    "sun_rad": {
+        "max": 478,
+        "unit": "J/m\u00b2"
     }
 };
