@@ -207,6 +207,13 @@ function updateUI() {
                             valueElement.textContent = formattedValue;
                         }
 
+                        if (metric === 'pressure' && typeof STATS !== 'undefined' && STATS.pressure) {
+                            var title = 'Min: ' + STATS.pressure.min + STATS.pressure.unit +
+                                        ' / Max: ' + STATS.pressure.max + STATS.pressure.unit +
+                                        ' (7 jours)';
+                            desktopElement.setAttribute('title', title);
+                        }
+
                                                 if (METRICS[metric].plot_url) {
                                                     var link = desktopElement.querySelector('a');
                                                     if (!link) {
