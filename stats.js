@@ -30,9 +30,5 @@ var STATS = {
     "rain_total_month": {
         "value": 94,
         "unit": "mm"
-    },
-    "rain_total_year": {
-        "value": 252,
-        "unit": "mm"
     }
 };

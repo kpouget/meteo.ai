@@ -35,10 +35,6 @@ METRICS_TO_QUERY = {
     "rain_total_month": {
         "query": 'increase(rain{group="wundeground", instance="home.972.ovh:35007", job="raspi sensors", mode="total"}[30d])',
         "unit": "mm"
-    },
-    "rain_total_year": {
-        "query": 'increase(rain{group="wundeground", instance="home.972.ovh:35007", job="raspi sensors", mode="total"}[365d])',
-        "unit": "mm"
     }
 }
 
@@ -61,7 +57,7 @@ def main():
         print(f"Querying stats for '{name}'...")
 
         try:
-            if name in ["rain_total_week", "rain_total_month", "rain_total_year"]:
+            if name in ["rain_total_week", "rain_total_month"]:
                 # Single value query
                 result = prom.custom_query(query=base_query)
                 value = round(float(result[0]['value'][1])) if result else None
@@ -92,7 +88,7 @@ def main():
                     }
                     if min_value is not None:
                         stats[name]["min"] = min_value
-                    
+
                     log_msg = f"  - Max: {max_value}"
                     if min_value is not None:
                         log_msg = f"  - Min: {min_value}, " + log_msg
