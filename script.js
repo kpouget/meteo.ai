@@ -345,7 +345,7 @@ function updateStaticUI() {
 
     if (STATS.rain_last_6_months) {
         var chartContainer = document.getElementById('rain-chart-container');
-        chartContainer.innerHTML = '<h3>Précipitations des 6 derniers mois</h3>';
+
         var chart = document.createElement('div');
         chart.className = 'rain-chart';
 
@@ -356,7 +356,7 @@ function updateStaticUI() {
             }
         }
 
-        for (var i = 0; i < STATS.rain_last_6_months.length; i++) {
+        for (var i = STATS.rain_last_6_months.length - 1; i >= 0; i--) {
             var monthData = STATS.rain_last_6_months[i];
             var barContainer = document.createElement('div');
             barContainer.className = 'bar-container';
@@ -368,7 +368,7 @@ function updateStaticUI() {
             var monthLabel = document.createElement('div');
             monthLabel.className = 'month-label';
             monthLabel.textContent = monthData.month.charAt(0).toUpperCase() + monthData.month.slice(1);
-            
+
             var valueLabel = document.createElement('div');
             valueLabel.className = 'value-label';
             valueLabel.textContent = monthData.value + ' ' + monthData.unit;
