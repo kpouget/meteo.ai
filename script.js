@@ -90,14 +90,14 @@ var METRICS = {
         "plot_url": "https://prometheus.972.ovh/graph?g0.expr=PM10%7Binstance%3D%22home.972.ovh%3A35000%22%2C%20job%3D%22raspi%20sensors%22%7D%20-%20PM25%7Binstance%3D%22home.972.ovh%3A35000%22%2C%20job%3D%22raspi%20sensors%22%7D&g0.tab=0&g0.range_input=10m"
     },
     "river_lot": {
-        "query": "river_flow{name=\"Lot\"}",
+        "query": "avg_over_time(river_flow{name=\"Lot\"}[10m])",
         "unit": "m&sup3;/s",
-        "plot_url": "https://prometheus.972.ovh/graph?g0.expr=river_flow%7Bname%3D%22Lot%22%7D&g0.tab=0&g0.range_input=1d"
+        "plot_url": "https://prometheus.972.ovh/graph?g0.expr=river_flow%7Bname%3D%22Lot%22%7D&g0.tab=0&g0.range_input=10m"
     },
     "river_dordogne": {
-        "query": "river_flow{name=\"Dordogne\"}",
+        "query": "avg_over_time(river_flow{name=\"Dordogne\"}[10m])",
         "unit": "m&sup3;/s",
-        "plot_url": "https://prometheus.972.ovh/graph?g0.expr=river_flow%7Bname%3D%22Dordogne%22%7D&g0.tab=0&g0.range_input=1d"
+        "plot_url": "https://prometheus.972.ovh/graph?g0.expr=river_flow%7Bname%3D%22Dordogne%22%7D&g0.tab=0&g0.range_input=10m"
     }
 };
 var PROMETHEUS_URL = 'https://prometheus.972.ovh/api/v1/query';
