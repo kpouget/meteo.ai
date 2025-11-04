@@ -331,7 +331,7 @@ function updateStaticUI() {
                 
                 var kindleElement = document.getElementById(metric.replace(/_/g, '-'));
                 if (kindleElement) {
-                    kindleElement.querySelector('.value').textContent = formattedValue;
+                    kindleElement.querySelector('.value').innerHTML = formattedValue;
                 }
 
             } else { // For subtitle metrics
