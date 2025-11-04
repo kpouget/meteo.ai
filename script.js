@@ -208,10 +208,10 @@ function updateUI() {
                         }
 
                         if (metric === 'pressure' && typeof STATS !== 'undefined' && STATS.pressure) {
-                            var title = 'Min: ' + STATS.pressure.min + STATS.pressure.unit +
-                                        ' / Max: ' + STATS.pressure.max + STATS.pressure.unit +
-                                        ' (7 jours)';
-                            desktopElement.setAttribute('title', title);
+                            var subtitleElement = desktopElement.querySelector('.subtitle');
+                            if (subtitleElement) {
+                                subtitleElement.textContent = 'Min: ' + STATS.pressure.min + ' / Max: ' + STATS.pressure.max + ' (' + STATS.pressure.unit + ' 7j)';
+                            }
                         }
 
                                                 if (METRICS[metric].plot_url) {

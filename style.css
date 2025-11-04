@@ -129,6 +129,13 @@ html, body {
     font-weight: bold;
 }
 
+.grid-item .subtitle {
+    font-size: 0.8em;
+    color: #666;
+    display: block;
+    margin-top: 5px;
+}
+
 .group {
     border-radius: 5px;
     padding: 10px;
