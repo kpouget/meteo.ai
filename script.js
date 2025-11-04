@@ -183,7 +183,6 @@ function updateUI() {
                         var textValue = humiditeRessentie(parseFloat(value));
                         var unit = METRICS[metric].unit || '';
                         formattedValue = numericValue + unit + '<span class="dew-point-text">' + textValue + '</span>';
-                        useInnerHTML = true;
                     } else {
                         if (metric.indexOf('rain_') === 0 || metric.indexOf('wind_') === 0 || metric.indexOf('river_') === 0 || metric === 'uv_idx' || metric.indexOf('pm') === 0 || metric.indexOf('temperature_') === 0 || metric.indexOf('humidity_') === 0) {
                             formattedValue = parseFloat(value).toFixed(0);
