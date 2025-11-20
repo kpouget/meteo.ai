@@ -2,7 +2,7 @@ var METRICS = {
     "rain_rate": {
         "query": "max_over_time(rain{group=\"wundeground\", instance=\"home.972.ovh:35007\", job=\"raspi sensors\", mode=\"rate\"}[10m])",
         "unit": "mm/h",
-        "plot_url": "https://prometheus.972.ovh/graph?g0.expr=max_over_time(rain%7Bgroup%3D%22wundeground%22%2C%20instance%3D%22home.972.ovh%3A35007%22%2C%20job%3D%22raspi%20sensors%22%2C%20mode%3D%22rate%22%7D%5B10m%5D)&g0.tab=0&g0.range_input=10m"
+        "plot_url": "https://prometheus.972.ovh/graph?g0.expr=max_over_time(rain%7Bgroup%3D%22wundeground%22%2C%20instance%3D%22home.972.ovh%3A35007%22%2C%20job%3D%22raspi%20sensors%22%2C%20mode%3D%22rate%22%7D%5B10m%5D)&g0.tab=0&g0.range_input=3h"
     },
     "rain_total_day": {
         "query": "increase(rain{group=\"wundeground\", instance=\"home.972.ovh:35007\", job=\"raspi sensors\", mode=\"total\"}[24h])",
@@ -22,77 +22,77 @@ var METRICS = {
     "temperature_ext": {
         "query": "avg_over_time(temperature{group=\"wundeground\", instance=\"home.972.ovh:35007\", job=\"raspi sensors\", location=\"toiture\", mode=\"actual\"}[10m])",
         "unit": "&deg;C",
-        "plot_url": "https://prometheus.972.ovh/graph?g0.expr=avg_over_time(temperature%7Bgroup%3D%22wundeground%22%2C%20instance%3D%22home.972.ovh%3A35007%22%2C%20job%3D%22raspi%20sensors%22%2C%20location%3D%22toiture%22%2C%20mode%3D%22actual%22%7D%5B10m%5D)&g0.tab=0&g0.range_input=10m"
+        "plot_url": "https://prometheus.972.ovh/graph?g0.expr=avg_over_time(temperature%7Bgroup%3D%22wundeground%22%2C%20instance%3D%22home.972.ovh%3A35007%22%2C%20job%3D%22raspi%20sensors%22%2C%20location%3D%22toiture%22%2C%20mode%3D%22actual%22%7D%5B10m%5D)&g0.tab=0&g0.range_input=1d"
     },
     "humidity_ext": {
-        "query": "avg_over_time(humidity{group=\"thermo\", instance=\"home.972.ovh:35002\", job=\"raspi sensors\", location=\"exterieur\"}[10m])",
+        "query": "avg_over_time(humidity{group=\"wundeground\", location=\"toiture\"}[10m])",
         "unit": "%",
-        "plot_url": "https://prometheus.972.ovh/graph?g0.expr=avg_over_time(humidity%7Bgroup%3D%22thermo%22%2C%20instance%3D%22home.972.ovh%3A35002%22%2C%20job%3D%22raspi%20sensors%22%2C%20location%3D%22exterieur%22%7D%5B10m%5D)&g0.tab=0&g0.range_input=10m"
+        "plot_url": "https://prometheus.972.ovh/graph?g0.expr=avg_over_time(humidity%7Bgroup%3D%22wundeground%22%2C%20%20location%3D%22toiture%22%7D%5B10m%5D)&g0.tab=0&g0.range_input=1d"
     },
     "temperature_int": {
         "query": "avg_over_time(temperature{group=\"pac\", instance=\"home.972.ovh:35004\", job=\"raspi sensors\", location=\"pac_interieur\"}[10m])",
         "unit": "&deg;C",
-        "plot_url": "https://prometheus.972.ovh/graph?g0.expr=avg_over_time(temperature%7Bgroup%3D%22pac%22%2C%20instance%3D%22home.972.ovh%3A35004%22%2C%20job%3D%22raspi%20sensors%22%2C%20location%3D%22pac_interieur%22%7D%5B10m%5D)&g0.tab=0&g0.range_input=10m"
+        "plot_url": "https://prometheus.972.ovh/graph?g0.expr=avg_over_time(temperature%7Bgroup%3D%22pac%22%2C%20instance%3D%22home.972.ovh%3A35004%22%2C%20job%3D%22raspi%20sensors%22%2C%20location%3D%22pac_interieur%22%7D%5B10m%5D)&g0.tab=0&g0.range_input=1d"
     },
     "dew_point": {
         "query": "avg_over_time(temperature{group=\"wundeground\", instance=\"home.972.ovh:35007\", job=\"raspi sensors\", location=\"toiture\", mode=\"dew_point\"}[10m])",
         "unit": "&deg;C",
-        "plot_url": "https://prometheus.972.ovh/graph?g0.expr=avg_over_time(temperature%7Bgroup%3D%22wundeground%22%2C%20instance%3D%22home.972.ovh%3A35007%22%2C%20job%3D%22raspi%20sensors%22%2C%20location%3D%22toiture%22%2C%20mode%3D%22dew_point%22%7D%5B10m%5D)&g0.tab=0&g0.range_input=10m"
+        "plot_url": "https://prometheus.972.ovh/graph?g0.expr=avg_over_time(temperature%7Bgroup%3D%22wundeground%22%2C%20instance%3D%22home.972.ovh%3A35007%22%2C%20job%3D%22raspi%20sensors%22%2C%20location%3D%22toiture%22%2C%20mode%3D%22dew_point%22%7D%5B10m%5D)&g0.tab=0&g0.range_input=1d"
     },
     "wind_speed": {
         "query": "avg_over_time(wind{group=\"wundeground\", instance=\"home.972.ovh:35007\", job=\"raspi sensors\", mode=\"speed\"}[10m])",
         "unit": "km/h",
-        "plot_url": "https://prometheus.972.ovh/graph?g0.expr=avg_over_time(wind%7Bgroup%3D%22wundeground%22%2C%20instance%3D%22home.972.ovh%3A35007%22%2C%20job%3D%22raspi%20sensors%22%2C%20mode%3D%22speed%22%7D%5B10m%5D)&g0.tab=0&g0.range_input=10m"
+        "plot_url": "https://prometheus.972.ovh/graph?g0.expr=avg_over_time(wind%7Bgroup%3D%22wundeground%22%2C%20instance%3D%22home.972.ovh%3A35007%22%2C%20job%3D%22raspi%20sensors%22%2C%20mode%3D%22speed%22%7D%5B10m%5D)&g0.tab=0&g0.range_input=1d"
     },
     "wind_gust": {
         "query": "avg_over_time(wind{group=\"wundeground\", instance=\"home.972.ovh:35007\", job=\"raspi sensors\", mode=\"gust\"}[10m])",
         "unit": "km/h",
-        "plot_url": "https://prometheus.972.ovh/graph?g0.expr=avg_over_time(wind%7Bgroup%3D%22wundeground%22%2C%20instance%3D%22home.972.ovh%3A35007%22%2C%20job%3D%22raspi%20sensors%22%2C%20mode%3D%22gust%22%7D%5B10m%5D)&g0.tab=0&g0.range_input=10m"
+        "plot_url": "https://prometheus.972.ovh/graph?g0.expr=avg_over_time(wind%7Bgroup%3D%22wundeground%22%2C%20instance%3D%22home.972.ovh%3A35007%22%2C%20job%3D%22raspi%20sensors%22%2C%20mode%3D%22gust%22%7D%5B10m%5D)&g0.tab=0&g0.range_input=1d"
     },
     "wind_dir": {
         "query": "avg_over_time(wind_dir{group=\"wundeground\", instance=\"home.972.ovh:35007\", job=\"raspi sensors\"}[10m])",
         "unit": "",
-        "plot_url": "https://prometheus.972.ovh/graph?g0.expr=avg_over_time(wind_dir%7Bgroup%3D%22wundeground%22%2C%20instance%3D%22home.972.ovh%3A35007%22%2C%20job%3D%22raspi%20sensors%22%7D%5B10m%5D)&g0.tab=0&g0.range_input=10m"
+        "plot_url": "https://prometheus.972.ovh/graph?g0.expr=avg_over_time(wind_dir%7Bgroup%3D%22wundeground%22%2C%20instance%3D%22home.972.ovh%3A35007%22%2C%20job%3D%22raspi%20sensors%22%7D%5B10m%5D)&g0.tab=0&g0.range_input=1d"
     },
     "pressure": {
         "query": "avg_over_time(pressure{group=\"wundeground\", instance=\"home.972.ovh:35007\", job=\"raspi sensors\"}[10m])",
         "unit": "hPa",
-        "plot_url": "https://prometheus.972.ovh/graph?g0.expr=avg_over_time(pressure%7Bgroup%3D%22wundeground%22%2C%20instance%3D%22home.972.ovh%3A35007%22%2C%20job%3D%22raspi%20sensors%22%7D%5B10m%5D)&g0.tab=0&g0.range_input=10m"
+        "plot_url": "https://prometheus.972.ovh/graph?g0.expr=avg_over_time(pressure%7Bgroup%3D%22wundeground%22%2C%20instance%3D%22home.972.ovh%3A35007%22%2C%20job%3D%22raspi%20sensors%22%7D%5B10m%5D)&g0.tab=0&g0.range_input=1d"
     },
     "sun_rad": {
         "query": "avg_over_time(sun_rad{group=\"wundeground\", instance=\"home.972.ovh:35007\", job=\"raspi sensors\"}[10m])",
         "unit": "J/m&sup2;",
-        "plot_url": "https://prometheus.972.ovh/graph?g0.expr=avg_over_time(sun_rad%7Bgroup%3D%22wundeground%22%2C%20instance%3D%22home.972.ovh%3A35007%22%2C%20job%3D%22raspi%20sensors%22%7D%5B10m%5D)&g0.tab=0&g0.range_input=10m"
+        "plot_url": "https://prometheus.972.ovh/graph?g0.expr=avg_over_time(sun_rad%7Bgroup%3D%22wundeground%22%2C%20instance%3D%22home.972.ovh%3A35007%22%2C%20job%3D%22raspi%20sensors%22%7D%5B10m%5D)&g0.tab=0&g0.range_input=1d"
     },
     "uv_idx": {
         "query": "avg_over_time(uv_idx{group=\"wundeground\", instance=\"home.972.ovh:35007\", job=\"raspi sensors\"}[10m])",
         "unit": "/11",
-        "plot_url": "https://prometheus.972.ovh/graph?g0.expr=avg_over_time(uv_idx%7Bgroup%3D%22wundeground%22%2C%20instance%3D%22home.972.ovh%3A35007%22%2C%20job%3D%22raspi%20sensors%22%7D%5B10m%5D)&g0.tab=0&g0.range_input=10m"
+        "plot_url": "https://prometheus.972.ovh/graph?g0.expr=avg_over_time(uv_idx%7Bgroup%3D%22wundeground%22%2C%20instance%3D%22home.972.ovh%3A35007%22%2C%20job%3D%22raspi%20sensors%22%7D%5B10m%5D)&g0.tab=0&g0.range_input=1d"
     },
     "pm1": {
         "query": "avg_over_time(PM1{instance=\"home.972.ovh:35000\", job=\"raspi sensors\"}[10m])",
         "unit": "&micro;g/m&sup3;",
-        "plot_url": "https://prometheus.972.ovh/graph?g0.expr=avg_over_time(PM1%7Binstance%3D%22home.972.ovh%3A35000%22%2C%20job%3D%22raspi%20sensors%22%7D%5B10m%5D)&g0.tab=0&g0.range_input=10m"
+        "plot_url": "https://prometheus.972.ovh/graph?g0.expr=avg_over_time(PM1%7Binstance%3D%22home.972.ovh%3A35000%22%2C%20job%3D%22raspi%20sensors%22%7D%5B10m%5D)&g0.tab=0&g0.range_input=1d"
     },
     "pm25": {
         "query": "avg_over_time(PM25{instance=\"home.972.ovh:35000\", job=\"raspi sensors\"}[10m]) - avg_over_time(PM1{instance=\"home.972.ovh:35000\", job=\"raspi sensors\"}[10m])",
         "unit": "&micro;g/m&sup3;",
-        "plot_url": "https://prometheus.972.ovh/graph?g0.expr=avg_over_time(PM25%7Binstance%3D%22home.972.ovh%3A35000%22%2C%20job%3D%22raspi%20sensors%22%7D%5B10m%5D)%20-%20avg_over_time(PM1%7Binstance%3D%22home.972.ovh%3A35000%22%2C%20job%3D%22raspi%20sensors%22%7D%5B10m%5D)&g0.tab=0&g0.range_input=10m"
+        "plot_url": "https://prometheus.972.ovh/graph?g0.expr=avg_over_time(PM25%7Binstance%3D%22home.972.ovh%3A35000%22%2C%20job%3D%22raspi%20sensors%22%7D%5B10m%5D)%20-%20avg_over_time(PM1%7Binstance%3D%22home.972.ovh%3A35000%22%2C%20job%3D%22raspi%20sensors%22%7D%5B10m%5D)&g0.tab=0&g0.range_input=1d"
     },
     "pm10": {
         "query": "avg_over_time(PM10{instance=\"home.972.ovh:35000\", job=\"raspi sensors\"}[10m]) - avg_over_time(PM25{instance=\"home.972.ovh:35000\", job=\"raspi sensors\"}[10m])",
         "unit": "&micro;g/m&sup3;",
-        "plot_url": "https://prometheus.972.ovh/graph?g0.expr=avg_over_time(PM10%7Binstance%3D%22home.972.ovh%3A35000%22%2C%20job%3D%22raspi%20sensors%22%7D%5B10m%5D)%20-%20avg_over_time(PM25%7Binstance%3D%22home.972.ovh%3A35000%22%2C%20job%3D%22raspi%20sensors%22%7D%5B10m%5D)&g0.tab=0&g0.range_input=10m"
+        "plot_url": "https://prometheus.972.ovh/graph?g0.expr=avg_over_time(PM10%7Binstance%3D%22home.972.ovh%3A35000%22%2C%20job%3D%22raspi%20sensors%22%7D%5B10m%5D)%20-%20avg_over_time(PM25%7Binstance%3D%22home.972.ovh%3A35000%22%2C%20job%3D%22raspi%20sensors%22%7D%5B10m%5D)&g0.tab=0&g0.range_input=1d"
     },
     "river_lot": {
         "query": "avg_over_time(river_flow{name=\"Lot\"}[10m])",
         "unit": "m&sup3;/s",
-        "plot_url": "https://prometheus.972.ovh/graph?g0.expr=avg_over_time(river_flow%7Bname%3D%22Lot%22%7D%5B10m%5D)&g0.tab=0&g0.range_input=10m"
+        "plot_url": "https://prometheus.972.ovh/graph?g0.expr=avg_over_time(river_flow%7Bname%3D%22Lot%22%7D%5B10m%5D)&g0.tab=0&g0.range_input=7d"
     },
     "river_dordogne": {
         "query": "avg_over_time(river_flow{name=\"Dordogne\"}[10m])",
         "unit": "m&sup3;/s",
-        "plot_url": "https://prometheus.972.ovh/graph?g0.expr=avg_over_time(river_flow%7Bname%3D%22Dordogne%22%7D%5B10m%5D)&g0.tab=0&g0.range_input=10m"
+        "plot_url": "https://prometheus.972.ovh/graph?g0.expr=avg_over_time(river_flow%7Bname%3D%22Dordogne%22%7D%5B10m%5D)&g0.tab=0&g0.range_input=7d"
     }
 };
 var PROMETHEUS_URL = 'https://prometheus.972.ovh/api/v1/query';
