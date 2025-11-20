@@ -1,0 +1,11 @@
+[Unit]
+Description=Run meteo-stats.service every 24h
+
+[Timer]
+OnCalendar=daily
+AccuracySec=1us
+Persistent=true
+RandomizedDelaySec=600
+
+[Install]
+WantedBy=timers.target
