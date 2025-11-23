@@ -597,7 +597,7 @@ function updateWindSummaryUI(topCategories) {
     topCategories.forEach(function(cat) {
         var item = document.createElement('div');
         item.className = 'grid-item';
-        item.innerHTML = '<span class="label">' + cat.direction + '</span><span class="value">' + cat.speed + '</span><span class="subtitle">(' + cat.percentage.toFixed(1) + '%)</span>';
+        item.innerHTML = '<span class="label">' + cat.direction + '</span><span class="value">' + cat.speed + '</span><span class="subtitle">' + cat.percentage.toFixed(0) + ' %</span>';
         container.appendChild(item);
     });
 }
@@ -709,7 +709,7 @@ function updateWindSummaryUIMonth(topCategories) {
     topCategories.forEach(function(cat) {
         var item = document.createElement('div');
         item.className = 'grid-item';
-        item.innerHTML = '<span class="label">' + cat.direction + '</span><span class="value">' + cat.speed + '</span><span class="subtitle">(' + cat.percentage.toFixed(1) + '%)</span>';
+        item.innerHTML = '<span class="label">' + cat.direction + '</span><span class="value">' + cat.speed + '</span><span class="subtitle">' + cat.percentage.toFixed(0) + ' %</span>';
         container.appendChild(item);
     });
 }
