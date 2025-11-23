@@ -456,6 +456,280 @@ function updateStaticUI() {
     }
 }
 
+function fetchWindData(callback) {
+    var end = new Date().getTime() / 1000;
+    var start = end - 24 * 60 * 60;
+    var step = 60 * 10; // 10 minutes
+
+    var speedQuery = 'avg_over_time(wind{group="wundeground", instance="home.972.ovh:35007", job="raspi sensors", mode="speed"}[10m])';
+    var gustQuery = 'avg_over_time(wind{group="wundeground", instance="home.972.ovh:35007", job="raspi sensors", mode="gust"}[10m])';
+    var dirQuery = 'avg_over_time(wind_dir{group="wundeground", instance="home.972.ovh:35007", job="raspi sensors"}[10m])';
+
+    var urls = [
+        PROMETHEUS_URL.replace('/query', '/query_range') + '?query=' + encodeURIComponent(speedQuery) + '&start=' + start + '&end=' + end + '&step=' + step,
+        PROMETHEUS_URL.replace('/query', '/query_range') + '?query=' + encodeURIComponent(gustQuery) + '&start=' + start + '&end=' + end + '&step=' + step,
+        PROMETHEUS_URL.replace('/query', '/query_range') + '?query=' + encodeURIComponent(dirQuery) + '&start=' + start + '&end=' + end + '&step=' + step
+    ];
+
+    var results = [];
+    var completedRequests = 0;
+
+    var handleResponse = function(index, xhr) {
+        if (xhr.readyState === 4) {
+            if (xhr.status === 200) {
+                try {
+                    var data = JSON.parse(xhr.responseText);
+                    results[index] = data;
+                } catch (error) {
+                    console.error('Error parsing response for wind data:', error);
+                }
+            } else {
+                console.error('Error fetching wind data:', xhr.statusText);
+            }
+            completedRequests++;
+            if (completedRequests === urls.length) {
+                var speedData = results[0].data.result[0].values;
+                var gustData = results[1].data.result[0].values;
+                var dirData = results[2].data.result[0].values;
+
+                var windData = [];
+                for (var i = 0; i < speedData.length; i++) {
+                    windData.push({
+                        time: speedData[i][0],
+                        speed: parseFloat(speedData[i][1]),
+                        gust: parseFloat(gustData[i][1]),
+                        direction: parseFloat(dirData[i][1])
+                    });
+                }
+                callback(windData);
+            }
+        }
+    };
+
+    for (var i = 0; i < urls.length; i++) {
+        (function(index) {
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', urls[index], true);
+            xhr.onreadystatechange = function() {
+                handleResponse(index, xhr);
+            };
+            xhr.onerror = function() {
+                console.error('Network error fetching wind data');
+                completedRequests++;
+                if (completedRequests === urls.length) {
+                    callback(null);
+                }
+            };
+            xhr.send();
+        })(i);
+    }
+}
+
+function processWindData(windData) {
+    var speedBins = [0, 10, 20, 30, 40, 50]; // km/h
+    var directionLabels = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'];
+    var directionBins = directionLabels.length;
+    var data = new Array(directionBins).fill(0).map(function() { return new Array(speedBins.length).fill(0); });
+
+    windData.forEach(function(d) {
+        var dirIndex = Math.round(d.direction / (360 / directionBins)) % directionBins;
+        var speedIndex = -1;
+        for (var i = 0; i < speedBins.length; i++) {
+            if (d.speed < speedBins[i]) {
+                speedIndex = i;
+                break;
+            }
+        }
+        if (speedIndex === -1) {
+            speedIndex = speedBins.length - 1;
+        }
+        data[dirIndex][speedIndex]++;
+    });
+
+    var flatData = [];
+    for (var i = 0; i < data.length; i++) {
+        for (var j = 0; j < data[i].length; j++) {
+            if (data[i][j] > 0) {
+                flatData.push({
+                    count: data[i][j],
+                    direction: directionLabels[i],
+                    speed: j === 0 ? '< ' + speedBins[1] + ' km/h' : speedBins[j] + ' - ' + (speedBins[j+1] || '> ' + speedBins[j]) + ' km/h'
+                });
+            }
+        }
+    }
+
+    flatData.sort(function(a, b) {
+        return b.count - a.count;
+    });
+
+    return {
+        chartData: {
+            labels: directionLabels,
+            datasets: speedBins.map(function(s, i) {
+                return {
+                    label: i === 0 ? '< ' + s + ' km/h' : s + ' - ' + (speedBins[i+1] || '> ' + s) + ' km/h',
+                    data: data.map(function(d) { return d[i]; }),
+                    backgroundColor: 'rgba(' + Math.floor(Math.random() * 255) + ',' + Math.floor(Math.random() * 255) + ',' + Math.floor(Math.random() * 255) + ', 0.5)',
+                    borderColor: '#000',
+                    borderWidth: 1
+                };
+            })
+        },
+        topCategories: flatData.slice(0, 3)
+    };
+}
+
+function updateWindSummaryUI(topCategories) {
+    var container = document.getElementById('desktop-wind-summary');
+    container.innerHTML = ''; 
+    topCategories.forEach(function(cat) {
+        var item = document.createElement('div');
+        item.className = 'grid-item';
+        item.innerHTML = '<span class="label">' + cat.direction + '</span><span class="value">' + cat.speed + '</span><span class="subtitle">(' + cat.count + ' mesures)</span>';
+        container.appendChild(item);
+    });
+}
+
+function renderWindRoseChart(processedData) {
+    var canvas = document.getElementById('wind-chart');
+    var ctx = canvas.getContext('2d');
+    var chart = new Chart(ctx, {
+        type: 'polarArea',
+        data: processedData.chartData,
+        options: {
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                r: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    canvas.addEventListener('click', function() {
+        var container = document.getElementById('wind-chart-container');
+        container.classList.toggle('fullscreen');
+        chart.resize();
+    });
+}
+
+function fetchWindDataMonth(callback) {
+    var end = new Date().getTime() / 1000;
+    var start = end - 30 * 24 * 60 * 60; // 30 days
+    var step = 60 * 60; // 1 hour
+
+    var speedQuery = 'avg_over_time(wind{group="wundeground", instance="home.972.ovh:35007", job="raspi sensors", mode="speed"}[1h])';
+    var gustQuery = 'avg_over_time(wind{group="wundeground", instance="home.972.ovh:35007", job="raspi sensors", mode="gust"}[1h])';
+    var dirQuery = 'avg_over_time(wind_dir{group="wundeground", instance="home.972.ovh:35007", job="raspi sensors"}[1h])';
+
+    var urls = [
+        PROMETHEUS_URL.replace('/query', '/query_range') + '?query=' + encodeURIComponent(speedQuery) + '&start=' + start + '&end=' + end + '&step=' + step,
+        PROMETHEUS_URL.replace('/query', '/query_range') + '?query=' + encodeURIComponent(gustQuery) + '&start=' + start + '&end=' + end + '&step=' + step,
+        PROMETHEUS_URL.replace('/query', '/query_range') + '?query=' + encodeURIComponent(dirQuery) + '&start=' + start + '&end=' + end + '&step=' + step
+    ];
+
+    var results = [];
+    var completedRequests = 0;
+
+    var handleResponse = function(index, xhr) {
+        if (xhr.readyState === 4) {
+            if (xhr.status === 200) {
+                try {
+                    var data = JSON.parse(xhr.responseText);
+                    results[index] = data;
+                } catch (error) {
+                    console.error('Error parsing response for monthly wind data:', error);
+                }
+            } else {
+                console.error('Error fetching monthly wind data:', xhr.statusText);
+            }
+            completedRequests++;
+            if (completedRequests === urls.length) {
+                if (results[0] && results[1] && results[2] && results[0].data.result.length > 0 && results[1].data.result.length > 0 && results[2].data.result.length > 0) {
+                    var speedData = results[0].data.result[0].values;
+                    var gustData = results[1].data.result[0].values;
+                    var dirData = results[2].data.result[0].values;
+
+                    var windData = [];
+                    for (var i = 0; i < speedData.length; i++) {
+                        windData.push({
+                            time: speedData[i][0],
+                            speed: parseFloat(speedData[i][1]),
+                            gust: parseFloat(gustData[i][1]),
+                            direction: parseFloat(dirData[i][1])
+                        });
+                    }
+                    callback(windData);
+                } else {
+                    callback(null);
+                }
+            }
+        }
+    };
+
+    for (var i = 0; i < urls.length; i++) {
+        (function(index) {
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', urls[index], true);
+            xhr.onreadystatechange = function() {
+                handleResponse(index, xhr);
+            };
+            xhr.onerror = function() {
+                console.error('Network error fetching monthly wind data');
+                completedRequests++;
+                if (completedRequests === urls.length) {
+                    callback(null);
+                }
+            };
+            xhr.send();
+        })(i);
+    }
+}
+
+
+function updateWindSummaryUIMonth(topCategories) {
+    var container = document.getElementById('desktop-wind-summary-month');
+    container.innerHTML = '';
+    topCategories.forEach(function(cat) {
+        var item = document.createElement('div');
+        item.className = 'grid-item';
+        item.innerHTML = '<span class="label">' + cat.direction + '</span><span class="value">' + cat.speed + '</span><span class="subtitle">(' + cat.count + ' mesures)</span>';
+        container.appendChild(item);
+    });
+}
+
+function renderWindRoseChartMonth(processedData) {
+    var canvas = document.getElementById('wind-chart-month');
+    var ctx = canvas.getContext('2d');
+    var chart = new Chart(ctx, {
+        type: 'polarArea',
+        data: processedData.chartData,
+        options: {
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                r: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    canvas.addEventListener('click', function() {
+        var container = document.getElementById('wind-chart-container-month');
+        container.classList.toggle('fullscreen');
+        chart.resize();
+    });
+}
+
 function main() {
     readUrlAnchor();
     if (currentView === 'kindle') {
@@ -484,6 +758,22 @@ function main() {
 
     updateUI();
     setInterval(updateUI, 60000);
+
+    fetchWindData(function(windData) {
+        if (windData) {
+            var processedData = processWindData(windData);
+            renderWindRoseChart(processedData);
+            updateWindSummaryUI(processedData.topCategories);
+        }
+    });
+
+    fetchWindDataMonth(function(windData) {
+        if (windData) {
+            var processedData = processWindData(windData);
+            renderWindRoseChartMonth(processedData);
+            updateWindSummaryUIMonth(processedData.topCategories);
+        }
+    });
 }
 
 main();

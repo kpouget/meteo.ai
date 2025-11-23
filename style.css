@@ -130,7 +130,7 @@ html, body {
 }
 
 .grid-item .subtitle {
-    font-size: 0.8em;
+    font-size: 1.2em;
     color: #666;
     display: block;
     margin-top: 5px;
@@ -145,6 +145,12 @@ html, body {
 .group h2 {
     text-align: left;
     margin-top: 0;
+}
+
+.wind-group-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
 
 #vigi-meteo {
@@ -202,4 +208,54 @@ html, body {
 .value-label {
     font-size: 0.7em;
     color: #666;
+}
+
+#wind-chart-container {
+    max-width: 150px;
+    max-height: 150px;
+}
+
+#wind-chart-container.fullscreen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #fff;
+    z-index: 10000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    max-width: none;
+    max-height: none;
+}
+
+#wind-chart-container.fullscreen canvas {
+    max-width: 90vw;
+    max-height: 90vh;
+}
+
+#wind-chart-container-month {
+    max-width: 150px;
+    max-height: 150px;
+}
+
+#wind-chart-container-month.fullscreen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #fff;
+    z-index: 10000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    max-width: none;
+    max-height: none;
+}
+
+#wind-chart-container-month.fullscreen canvas {
+    max-width: 90vw;
+    max-height: 90vh;
 }

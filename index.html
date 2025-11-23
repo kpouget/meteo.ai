@@ -112,18 +112,23 @@
             </div>
             <div class="group">
                 <h2>Vent</h2>
-                <div class="grid-items-container">
-                    <div class="grid-item" id="desktop-wind-speed">
-                        <span class="label">Vitesse du vent</span>
-                        <span class="value">--</span>
+                <div class="wind-group-container">
+                    <div id="wind-chart-container">
+                      <canvas id="wind-chart"></canvas>
                     </div>
-                    <div class="grid-item" id="desktop-wind-gust">
-                        <span class="label">Vitesse des bourrasques</span>
-                        <span class="value">--</span>
+                    <div class="grid-items-container" id="desktop-wind-summary">
+                        <!-- Top 3 wind categories will be inserted here by script.js -->
                     </div>
-                    <div class="grid-item" id="desktop-wind-dir">
-                        <span class="label">Direction du vent</span>
-                        <span class="value">--</span>
+                </div>
+            </div>
+            <div class="group">
+                <h2>Vent (Mois)</h2>
+                <div class="wind-group-container">
+                    <div id="wind-chart-container-month">
+                      <canvas id="wind-chart-month"></canvas>
+                    </div>
+                    <div class="grid-items-container" id="desktop-wind-summary-month">
+                        <!-- Top 3 wind categories for the month will be inserted here by script.js -->
                     </div>
                 </div>
             </div>
@@ -222,6 +227,7 @@
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="stats.js"></script>
     <script src="script.js"></script>
 </body>
