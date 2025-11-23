@@ -1,3 +1,12 @@
+function loadStatsAndRunMain() {
+    var script = document.createElement('script');
+    var date = new Date();
+    var timestamp = '' + date.getFullYear() + (date.getMonth() + 1).toString().padStart(2, '0') + date.getDate().toString().padStart(2, '0');
+    script.src = 'stats.js?v=' + timestamp;
+    script.onload = main;
+    document.head.appendChild(script);
+}
+
 var METRICS = {
     "rain_rate": {
         "query": "max_over_time(rain{group=\"wundeground\", instance=\"home.972.ovh:35007\", job=\"raspi sensors\", mode=\"rate\"}[10m])",
@@ -530,6 +539,7 @@ function processWindData(windData) {
     var directionLabels = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'];
     var directionBins = directionLabels.length;
     var data = new Array(directionBins).fill(0).map(function() { return new Array(speedBins.length).fill(0); });
+    var totalMeasures = windData.length;
 
     windData.forEach(function(d) {
         var dirIndex = Math.round(d.direction / (360 / directionBins)) % directionBins;
@@ -552,6 +562,7 @@ function processWindData(windData) {
             if (data[i][j] > 0) {
                 flatData.push({
                     count: data[i][j],
+                    percentage: (data[i][j] / totalMeasures * 100),
                     direction: directionLabels[i],
                     speed: j === 0 ? '< ' + speedBins[1] + ' km/h' : speedBins[j] + ' - ' + (speedBins[j+1] || '> ' + speedBins[j]) + ' km/h'
                 });
@@ -586,7 +597,7 @@ function updateWindSummaryUI(topCategories) {
     topCategories.forEach(function(cat) {
         var item = document.createElement('div');
         item.className = 'grid-item';
-        item.innerHTML = '<span class="label">' + cat.direction + '</span><span class="value">' + cat.speed + '</span><span class="subtitle">(' + cat.count + ' mesures)</span>';
+        item.innerHTML = '<span class="label">' + cat.direction + '</span><span class="value">' + cat.speed + '</span><span class="subtitle">(' + cat.percentage.toFixed(1) + '%)</span>';
         container.appendChild(item);
     });
 }
@@ -698,7 +709,7 @@ function updateWindSummaryUIMonth(topCategories) {
     topCategories.forEach(function(cat) {
         var item = document.createElement('div');
         item.className = 'grid-item';
-        item.innerHTML = '<span class="label">' + cat.direction + '</span><span class="value">' + cat.speed + '</span><span class="subtitle">(' + cat.count + ' mesures)</span>';
+        item.innerHTML = '<span class="label">' + cat.direction + '</span><span class="value">' + cat.speed + '</span><span class="subtitle">(' + cat.percentage.toFixed(1) + '%)</span>';
         container.appendChild(item);
     });
 }
@@ -776,4 +787,4 @@ function main() {
     });
 }
 
-main();
+loadStatsAndRunMain();
