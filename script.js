@@ -488,29 +488,40 @@ function fetchWindData(callback) {
             if (xhr.status === 200) {
                 try {
                     var data = JSON.parse(xhr.responseText);
-                    results[index] = data;
+                    if (data.status === 'success' && data.data.result.length > 0) {
+                        results[index] = data;
+                    } else {
+                        console.error('Error in Prometheus response for wind data:', data);
+                        results[index] = null;
+                    }
                 } catch (error) {
                     console.error('Error parsing response for wind data:', error);
+                    results[index] = null;
                 }
             } else {
-                console.error('Error fetching wind data:', xhr.statusText);
+                console.error('Error fetching wind data:', xhr.status, xhr.statusText);
+                results[index] = null;
             }
             completedRequests++;
             if (completedRequests === urls.length) {
-                var speedData = results[0].data.result[0].values;
-                var gustData = results[1].data.result[0].values;
-                var dirData = results[2].data.result[0].values;
+                if (results.indexOf(null) === -1) {
+                    var speedData = results[0].data.result[0].values;
+                    var gustData = results[1].data.result[0].values;
+                    var dirData = results[2].data.result[0].values;
 
-                var windData = [];
-                for (var i = 0; i < speedData.length; i++) {
-                    windData.push({
-                        time: speedData[i][0],
-                        speed: parseFloat(speedData[i][1]),
-                        gust: parseFloat(gustData[i][1]),
-                        direction: parseFloat(dirData[i][1])
-                    });
+                    var windData = [];
+                    for (var i = 0; i < speedData.length; i++) {
+                        windData.push({
+                            time: speedData[i][0],
+                            speed: parseFloat(speedData[i][1]),
+                            gust: parseFloat(gustData[i][1]),
+                            direction: parseFloat(dirData[i][1])
+                        });
+                    }
+                    callback(windData);
+                } else {
+                    callback(null);
                 }
-                callback(windData);
             }
         }
     };
@@ -523,7 +534,8 @@ function fetchWindData(callback) {
                 handleResponse(index, xhr);
             };
             xhr.onerror = function() {
-                console.error('Network error fetching wind data');
+                console.error('Network error fetching wind data. Check for CORS issues.');
+                results[index] = null;
                 completedRequests++;
                 if (completedRequests === urls.length) {
                     callback(null);
@@ -652,16 +664,23 @@ function fetchWindDataMonth(callback) {
             if (xhr.status === 200) {
                 try {
                     var data = JSON.parse(xhr.responseText);
-                    results[index] = data;
+                    if (data.status === 'success' && data.data.result.length > 0) {
+                        results[index] = data;
+                    } else {
+                        console.error('Error in Prometheus response for monthly wind data:', data);
+                        results[index] = null;
+                    }
                 } catch (error) {
                     console.error('Error parsing response for monthly wind data:', error);
+                    results[index] = null;
                 }
             } else {
-                console.error('Error fetching monthly wind data:', xhr.statusText);
+                console.error('Error fetching monthly wind data:', xhr.status, xhr.statusText);
+                results[index] = null;
             }
             completedRequests++;
             if (completedRequests === urls.length) {
-                if (results[0] && results[1] && results[2] && results[0].data.result.length > 0 && results[1].data.result.length > 0 && results[2].data.result.length > 0) {
+                if (results.indexOf(null) === -1) {
                     var speedData = results[0].data.result[0].values;
                     var gustData = results[1].data.result[0].values;
                     var dirData = results[2].data.result[0].values;
@@ -691,7 +710,8 @@ function fetchWindDataMonth(callback) {
                 handleResponse(index, xhr);
             };
             xhr.onerror = function() {
-                console.error('Network error fetching monthly wind data');
+                console.error('Network error fetching monthly wind data. Check for CORS issues.');
+                results[index] = null;
                 completedRequests++;
                 if (completedRequests === urls.length) {
                     callback(null);
