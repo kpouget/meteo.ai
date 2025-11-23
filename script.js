@@ -44,9 +44,9 @@ var METRICS = {
         "plot_url": "https://prometheus.972.ovh/graph?g0.expr=avg_over_time(temperature%7Bgroup%3D%22pac%22%2C%20instance%3D%22home.972.ovh%3A35004%22%2C%20job%3D%22raspi%20sensors%22%2C%20location%3D%22pac_interieur%22%7D%5B10m%5D)&g0.tab=0&g0.range_input=1d"
     },
     "temperature_e1_chauffage": {
-        "query": "avg_over_time(temperature{group=\"pac\", instance=\"home.972.ovh:35004\", job=\"raspi sensors\", location=\"e1_chauffage\"}[10m])",
+        "query": "avg_over_time(temperature{group=\"thermo\", instance=\"home.972.ovh:35002\", job=\"raspi sensors\", location=\"e1_chauffage\"}[10m])",
         "unit": "&deg;C",
-        "plot_url": "https://prometheus.972.ovh/graph?g0.expr=avg_over_time(temperature%7Bgroup%3D%22pac%22%2C%20instance%3D%22home.972.ovh%3A35004%22%2C%20job%3D%22raspi%20sensors%22%2C%20location%3D%22e1_chauffage%22%7D%5B10m%5D)&g0.tab=0&g0.range_input=1d"
+        "plot_url": "https://prometheus.972.ovh/graph?g0.expr=avg_over_time(temperature%7Bgroup%3D%22thermo%22%2C%20instance%3D%22home.972.ovh%3A35002%22%2C%20job%3D%22raspi%20sensors%22%2C%20location%3D%22e1_chauffage%22%7D%5B10m%5D)&g0.tab=0&g0.range_input=1d"
     },
     "dew_point": {
         "query": "avg_over_time(temperature{group=\"wundeground\", instance=\"home.972.ovh:35007\", job=\"raspi sensors\", location=\"toiture\", mode=\"dew_point\"}[10m])",
