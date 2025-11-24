@@ -4,5 +4,3 @@ Description=Generate Meteo Stats
 [Service]
 ExecStart=/usr/bin/python3 ./generate_stats.py
 WorkingDirectory=/var/www/alternc/k/kevin/www/0x972.info/tools/meteo.ai
-User=kevin
-Group=kevin
