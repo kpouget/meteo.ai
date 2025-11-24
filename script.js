@@ -75,7 +75,7 @@ var METRICS = {
     },
     "sun_rad": {
         "query": "avg_over_time(sun_rad{group=\"wundeground\", instance=\"home.972.ovh:35007\", job=\"raspi sensors\"}[10m])",
-        "unit": "J/m&sup2;",
+        "unit": "KJ/m&sup2;",
         "plot_url": "https://prometheus.972.ovh/graph?g0.expr=avg_over_time(sun_rad%7Bgroup%3D%22wundeground%22%2C%20instance%3D%22home.972.ovh%3A35007%22%2C%20job%3D%22raspi%20sensors%22%7D%5B10m%5D)&g0.tab=0&g0.range_input=1d"
     },
     "uv_idx": {
@@ -446,6 +446,7 @@ function updateStaticUI() {
 
         for (var i = 0; i < STATS.sun_rad_last_6_days.length; i++) {
             var dayData = STATS.sun_rad_last_6_days[i];
+            dayData.value = dayData.value / 1000;
             var barContainer = document.createElement('div');
             barContainer.className = 'bar-container';
 
