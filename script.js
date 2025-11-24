@@ -457,7 +457,7 @@ function updateStaticUI() {
 
             var valueLabel = document.createElement('div');
             valueLabel.className = 'value-label';
-            valueLabel.textContent = dayData.value + ' ' + dayData.unit;
+            valueLabel.innerHTML = dayData.value + ' ' + dayData.unit;
 
             barContainer.appendChild(bar);
             barContainer.appendChild(dayLabel);
