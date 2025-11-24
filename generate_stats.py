@@ -125,7 +125,7 @@ def main():
         end_of_day = target_day.replace(hour=23, minute=59, second=59, microsecond=999999)
 
         base_query = METRICS_TO_QUERY["sun_rad"]["query"]
-        unit = "KJ/m&sup2;"
+        unit = "KJ/m²"
 
         query = f"increase({base_query}[24h])"
 
