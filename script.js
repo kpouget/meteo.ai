@@ -75,28 +75,28 @@ var METRICS = {
     },
     "sun_rad": {
         "query": "avg_over_time(sun_rad{group=\"wundeground\", instance=\"home.972.ovh:35007\", job=\"raspi sensors\"}[10m])",
-        "unit": "KJ/m&sup2;",
-        "plot_url": "https://prometheus.972.ovh/graph?g0.expr=avg_over_time(sun_rad%7Bgroup%3D%22wundeground%22%2C%20instance%3D%22home.972.ovh%3A35007%22%2C%20job%3D%22raspi%20sensors%22%7D%5B10m%5D)&g0.tab=0&g0.range_input=1d"
+        "unit": "J/m&sup2;",
+        "plot_url": "https://prometheus.972.ovh/graph?g0.expr=avg_over_time(sun_rad%7Bgroup%3D%22wundeground%22%2C%20instance%3D%22home.972.ovh%3A35007%22%2C%20job%3D%22raspi%22%7D%5B10m%5D)&g0.tab=0&g0.range_input=1d"
     },
     "uv_idx": {
         "query": "avg_over_time(uv_idx{group=\"wundeground\", instance=\"home.972.ovh:35007\", job=\"raspi sensors\"}[10m])",
         "unit": "/11",
-        "plot_url": "https://prometheus.972.ovh/graph?g0.expr=avg_over_time(uv_idx%7Bgroup%3D%22wundeground%22%2C%20instance%3D%22home.972.ovh%3A35007%22%2C%20job%3D%22raspi%20sensors%22%7D%5B10m%5D)&g0.tab=0&g0.range_input=1d"
+        "plot_url": "https://prometheus.972.ovh/graph?g0.expr=avg_over_time(uv_idx%7Bgroup%3D%22wundeground%22%2C%20instance%3D%22home.972.ovh%3A35007%22%2C%20job%3D%22raspi%22%7D%5B10m%5D)&g0.tab=0&g0.range_input=1d"
     },
     "pm1": {
         "query": "avg_over_time(PM1{instance=\"home.972.ovh:35000\", job=\"raspi sensors\"}[10m])",
         "unit": "&micro;g/m&sup3;",
-        "plot_url": "https://prometheus.972.ovh/graph?g0.expr=avg_over_time(PM1%7Binstance%3D%22home.972.ovh%3A35000%22%2C%20job%3D%22raspi%20sensors%22%7D%5B10m%5D)&g0.tab=0&g0.range_input=1d"
+        "plot_url": "https://prometheus.972.ovh/graph?g0.expr=avg_over_time(PM1%7Binstance%3D%22home.972.ovh%3A35000%22%2C%20job%3D%22raspi%22%7D%5B10m%5D)&g0.tab=0&g0.range_input=1d"
     },
     "pm25": {
         "query": "avg_over_time(PM25{instance=\"home.972.ovh:35000\", job=\"raspi sensors\"}[10m]) - avg_over_time(PM1{instance=\"home.972.ovh:35000\", job=\"raspi sensors\"}[10m])",
         "unit": "&micro;g/m&sup3;",
-        "plot_url": "https://prometheus.972.ovh/graph?g0.expr=avg_over_time(PM25%7Binstance%3D%22home.972.ovh%3A35000%22%2C%20job%3D%22raspi%20sensors%22%7D%5B10m%5D)%20-%20avg_over_time(PM1%7Binstance%3D%22home.972.ovh%3A35000%22%2C%20job%3D%22raspi%20sensors%22%7D%5B10m%5D)&g0.tab=0&g0.range_input=1d"
+        "plot_url": "https://prometheus.972.ovh/graph?g0.expr=avg_over_time(PM25%7Binstance%3D%22home.972.ovh%3A35000%22%2C%20job%3D%22raspi%22%7D%5B10m%5D)%20-%20avg_over_time(PM1%7Binstance%3D%22home.972.ovh%3A35000%22%2C%20job%3D%22raspi%22%7D%5B10m%5D)&g0.tab=0&g0.range_input=1d"
     },
     "pm10": {
         "query": "avg_over_time(PM10{instance=\"home.972.ovh:35000\", job=\"raspi sensors\"}[10m]) - avg_over_time(PM25{instance=\"home.972.ovh:35000\", job=\"raspi sensors\"}[10m])",
         "unit": "&micro;g/m&sup3;",
-        "plot_url": "https://prometheus.972.ovh/graph?g0.expr=avg_over_time(PM10%7Binstance%3D%22home.972.ovh%3A35000%22%2C%20job%3D%22raspi%20sensors%22%7D%5B10m%5D)%20-%20avg_over_time(PM25%7Binstance%3D%22home.972.ovh%3A35000%22%2C%20job%3D%22raspi%20sensors%22%7D%5B10m%5D)&g0.tab=0&g0.range_input=1d"
+        "plot_url": "https://prometheus.972.ovh/graph?g0.expr=avg_over_time(PM10%7Binstance%3D%22home.972.ovh%3A35000%22%2C%20job%3D%22raspi%22%7D%5B10m%5D)%20-%20avg_over_time(PM25%7Binstance%3D%22home.972.ovh%3A35000%22%2C%20job%3D%22raspi%22%7D%5B10m%5D)&g0.tab=0&g0.range_input=1d"
     },
     "river_lot": {
         "query": "avg_over_time(river_flow{name=\"Lot\"}[10m])",
@@ -193,12 +193,10 @@ function updateUI() {
                         var unit = METRICS[metric].unit || '';
                         formattedValue = numericValue + unit + '<span class="dew-point-text">' + textValue + '</span>';
                     } else {
-                        if (metric.indexOf('rain_') === 0 || metric.indexOf('wind_') === 0 || metric.indexOf('river_') === 0 || metric === 'uv_idx' || metric.indexOf('pm') === 0 || metric.indexOf('temperature_') === 0 || metric.indexOf('humidity_') === 0) {
+                        if (metric.indexOf('rain_') === 0 || metric.indexOf('wind_') === 0 || metric.indexOf('river_') === 0 || metric === 'uv_idx' || metric.indexOf('pm') === 0 || metric.indexOf('temperature_') === 0 || metric.indexOf('humidity_') === 0 || metric === 'sun_rad') {
                             formattedValue = parseFloat(value).toFixed(0);
                         } else if (metric === 'pressure') {
                             formattedValue = parseFloat(value).toFixed(0);
-                        } else if (metric === 'sun_rad') {
-                            formattedValue = parseFloat(value).toFixed(1);
                         } else {
                             formattedValue = parseFloat(value).toFixed(2);
                         }
@@ -446,7 +444,6 @@ function updateStaticUI() {
 
         for (var i = 0; i < STATS.sun_rad_last_6_days.length; i++) {
             var dayData = STATS.sun_rad_last_6_days[i];
-            dayData.value = dayData.value / 1000;
             var barContainer = document.createElement('div');
             barContainer.className = 'bar-container';
 

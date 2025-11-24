@@ -125,14 +125,14 @@ def main():
         end_of_day = target_day.replace(hour=23, minute=59, second=59, microsecond=999999)
 
         base_query = METRICS_TO_QUERY["sun_rad"]["query"]
-        unit = METRICS_TO_QUERY["sun_rad"]["unit"]
+        unit = "KJ/m&sup2;"
 
         query = f"increase({base_query}[24h])"
 
         print(f"Querying sun radiation for '{day_name}'...")
         try:
             result = prom.custom_query(query=query, params={'time': end_of_day.timestamp()})
-            value = round(float(result[0]['value'][1]) / 100) * 100 if result else None
+            value = round(float(result[0]['value'][1]) / 100) / 10 if result else None
             if value is not None:
                 sun_rad_last_6_days.append({
                     "day": day_name,
