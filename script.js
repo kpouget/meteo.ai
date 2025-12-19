@@ -256,15 +256,17 @@ function updateStaticUI() {
                 var subtitleElement = desktopElement.querySelector('.subtitle');
                 if (subtitleElement) {
                     var subtitleText = '';
-                    if (stat.min !== undefined) {
-                        subtitleText += 'Min: ' + stat.min;
-                    }
                     if (stat.max !== undefined) {
-                        if (subtitleText) subtitleText += ' / ';
-                        subtitleText += 'Max: ' + stat.max;
-                    }
-                    if (stat.unit) {
-                        subtitleText += ' (' + stat.unit + ' 7j)';
+                        if (stat.min !== undefined && stat.min >= 1) {
+                            // Show range when min is >= 1
+                            subtitleText = stat.min + '..' + stat.max;
+                        } else {
+                            // Show only max when min is < 1
+                            subtitleText = '' + stat.max;
+                        }
+                        if (stat.unit) {
+                            subtitleText += ' ' + stat.unit + ' (7j)';
+                        }
                     }
                     subtitleElement.textContent = subtitleText;
                 }
@@ -710,6 +712,183 @@ function fetchPressureData(callback) {
     xhr.send();
 }
 
+function fetchRiversData(callback) {
+    var end = new Date().getTime() / 1000;
+    var start = end - 48 * 60 * 60; // 48 hours
+    var step = 60 * 30; // 30 minutes
+
+    // Get river queries from METRICS and process labels
+    var lotQuery = processQuery(METRICS.river_lot.query, METRICS.river_lot.labels);
+    var dordogneQuery = processQuery(METRICS.river_dordogne.query, METRICS.river_dordogne.labels);
+
+    var urls = [
+        PROMETHEUS_URL.replace('/query', '/query_range') + '?query=' + encodeURIComponent(lotQuery) + '&start=' + start + '&end=' + end + '&step=' + step,
+        PROMETHEUS_URL.replace('/query', '/query_range') + '?query=' + encodeURIComponent(dordogneQuery) + '&start=' + start + '&end=' + end + '&step=' + step
+    ];
+
+    var results = [];
+    var completedRequests = 0;
+
+    var handleResponse = function(index, xhr) {
+        if (xhr.readyState === 4) {
+            if (xhr.status === 200) {
+                try {
+                    var data = JSON.parse(xhr.responseText);
+                    if (data.status === 'success' && data.data.result.length > 0) {
+                        results[index] = data;
+                    } else {
+                        console.error('Error in Prometheus response for river data:', data);
+                        results[index] = null;
+                    }
+                } catch (error) {
+                    console.error('Error parsing response for river data:', error);
+                    results[index] = null;
+                }
+            } else {
+                console.error('Error fetching river data:', xhr.status, xhr.statusText);
+                results[index] = null;
+            }
+            completedRequests++;
+            if (completedRequests === urls.length) {
+                if (results[0] && results[1]) {
+                    var lotValues = results[0].data.result[0].values;
+                    var dordogneValues = results[1].data.result[0].values;
+
+                    var riversData = {
+                        lot: lotValues.map(function(point) {
+                            return {
+                                time: point[0] * 1000, // Convert to milliseconds
+                                flow: parseFloat(point[1])
+                            };
+                        }),
+                        dordogne: dordogneValues.map(function(point) {
+                            return {
+                                time: point[0] * 1000, // Convert to milliseconds
+                                flow: parseFloat(point[1])
+                            };
+                        })
+                    };
+                    callback(riversData);
+                } else {
+                    callback(null);
+                }
+            }
+        }
+    };
+
+    for (var i = 0; i < urls.length; i++) {
+        (function(index) {
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', urls[index], true);
+            xhr.onreadystatechange = function() {
+                handleResponse(index, xhr);
+            };
+            xhr.onerror = function() {
+                console.error('Network error fetching river data. Check for CORS issues.');
+                results[index] = null;
+                completedRequests++;
+                if (completedRequests === urls.length) {
+                    callback(null);
+                }
+            };
+            xhr.send();
+        })(i);
+    }
+}
+
+function fetchPMData(callback) {
+    var end = new Date().getTime() / 1000;
+    var start = end - 48 * 60 * 60; // 48 hours
+    var step = 60 * 30; // 30 minutes
+
+    // Get PM queries from METRICS and process labels
+    var pm1Query = processQuery(METRICS.pm1.query, METRICS.pm1.labels);
+    var pm25Query = processQuery(METRICS.pm25.query, METRICS.pm25.labels); // PM2.5 - PM1
+    var pm10Query = processQuery(METRICS.pm10.query, METRICS.pm10.labels); // PM10 - PM2.5
+
+    var urls = [
+        PROMETHEUS_URL.replace('/query', '/query_range') + '?query=' + encodeURIComponent(pm1Query) + '&start=' + start + '&end=' + end + '&step=' + step,
+        PROMETHEUS_URL.replace('/query', '/query_range') + '?query=' + encodeURIComponent(pm25Query) + '&start=' + start + '&end=' + end + '&step=' + step,
+        PROMETHEUS_URL.replace('/query', '/query_range') + '?query=' + encodeURIComponent(pm10Query) + '&start=' + start + '&end=' + end + '&step=' + step
+    ];
+
+    var results = [];
+    var completedRequests = 0;
+
+    var handleResponse = function(index, xhr) {
+        if (xhr.readyState === 4) {
+            if (xhr.status === 200) {
+                try {
+                    var data = JSON.parse(xhr.responseText);
+                    if (data.status === 'success' && data.data.result.length > 0) {
+                        results[index] = data;
+                    } else {
+                        console.error('Error in Prometheus response for PM data:', data);
+                        results[index] = null;
+                    }
+                } catch (error) {
+                    console.error('Error parsing response for PM data:', error);
+                    results[index] = null;
+                }
+            } else {
+                console.error('Error fetching PM data:', xhr.status, xhr.statusText);
+                results[index] = null;
+            }
+            completedRequests++;
+            if (completedRequests === urls.length) {
+                if (results[0] && results[1] && results[2]) {
+                    var pm1Values = results[0].data.result[0].values;
+                    var pm25Values = results[1].data.result[0].values;
+                    var pm10Values = results[2].data.result[0].values;
+
+                    var pmData = {
+                        pm1: pm1Values.map(function(point) {
+                            return {
+                                time: point[0] * 1000, // Convert to milliseconds
+                                value: parseFloat(point[1])
+                            };
+                        }),
+                        pm25: pm25Values.map(function(point) {
+                            return {
+                                time: point[0] * 1000, // Convert to milliseconds
+                                value: parseFloat(point[1])
+                            };
+                        }),
+                        pm10: pm10Values.map(function(point) {
+                            return {
+                                time: point[0] * 1000, // Convert to milliseconds
+                                value: parseFloat(point[1])
+                            };
+                        })
+                    };
+                    callback(pmData);
+                } else {
+                    callback(null);
+                }
+            }
+        }
+    };
+
+    for (var i = 0; i < urls.length; i++) {
+        (function(index) {
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', urls[index], true);
+            xhr.onreadystatechange = function() {
+                handleResponse(index, xhr);
+            };
+            xhr.onerror = function() {
+                console.error('Network error fetching PM data. Check for CORS issues.');
+                results[index] = null;
+                completedRequests++;
+                if (completedRequests === urls.length) {
+                    callback(null);
+                }
+            };
+            xhr.send();
+        })(i);
+    }
+}
+
 function calculatePressureTrend(pressureData) {
     if (pressureData.length < 2) return { trend: 'stable', intensity: 0 };
 
@@ -771,7 +950,7 @@ function renderPressureChart(pressureData) {
     var trendInfo = calculatePressureTrend(pressureData);
     var colors = getPressureColor(trendInfo.trend, trendInfo.intensity);
 
-    // Update title with trend indicator
+    // Update title with trend indicator and 7-day max
     var titleElement = document.querySelector('#pressure-chart-container h3');
     var trendIcon = '';
     switch (trendInfo.trend) {
@@ -780,6 +959,7 @@ function renderPressureChart(pressureData) {
         default: trendIcon = ' ➡️'; break;
     }
     var deltaText = Math.abs(trendInfo.delta) > 0.1 ? ' (' + (trendInfo.delta > 0 ? '+' : '') + trendInfo.delta.toFixed(1) + ' hPa)' : '';
+
     titleElement.innerHTML = 'Évolution de la pression (48h)' + trendIcon + deltaText;
 
     var chart = new Chart(ctx, {
@@ -841,6 +1021,266 @@ function renderPressureChart(pressureData) {
 
     canvas.addEventListener('click', function() {
         var container = document.getElementById('pressure-chart-container');
+        container.classList.toggle('fullscreen');
+        chart.resize();
+    });
+}
+
+function renderRiversChart(riversData) {
+    var canvas = document.getElementById('rivers-chart');
+    var ctx = canvas.getContext('2d');
+
+
+    var labels = riversData.lot.map(function(point) {
+        var date = new Date(point.time);
+        return date.toLocaleDateString('fr-FR', { weekday: 'short', hour: '2-digit', minute: '2-digit' });
+    });
+
+    var lotValues = riversData.lot.map(function(point) {
+        return point.flow;
+    });
+
+    var dordogneValues = riversData.dordogne.map(function(point) {
+        return point.flow;
+    });
+
+    var chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Lot (m³/s)',
+                data: lotValues,
+                borderColor: '#1E88E5',
+                backgroundColor: 'rgba(30, 136, 229, 0.1)',
+                borderWidth: 2,
+                fill: false,
+                tension: 0.3,
+                pointRadius: 0,
+                pointHoverRadius: 4,
+                pointHitRadius: 10,
+                yAxisID: 'y-left'
+            }, {
+                label: 'Dordogne (m³/s)',
+                data: dordogneValues,
+                borderColor: '#D32F2F',
+                backgroundColor: 'rgba(211, 47, 47, 0.1)',
+                borderWidth: 2,
+                fill: false,
+                tension: 0.3,
+                pointRadius: 0,
+                pointHoverRadius: 4,
+                pointHitRadius: 10,
+                yAxisID: 'y-right'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                title: {
+                    display: false
+                },
+                legend: {
+                    display: true,
+                    position: 'top',
+                    labels: {
+                        font: {
+                            size: 10
+                        },
+                        usePointStyle: true
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    display: true,
+                    ticks: {
+                        maxTicksLimit: 4,
+                        font: {
+                            size: 10
+                        }
+                    }
+                },
+                'y-left': {
+                    type: 'linear',
+                    display: true,
+                    position: 'left',
+                    title: {
+                        display: true,
+                        text: 'Lot (m³/s)',
+                        font: {
+                            size: 10
+                        },
+                        color: '#1E88E5'
+                    },
+                    ticks: {
+                        font: {
+                            size: 10
+                        },
+                        color: '#1E88E5'
+                    },
+                    grid: {
+                        drawOnChartArea: false
+                    }
+                },
+                'y-right': {
+                    type: 'linear',
+                    display: true,
+                    position: 'right',
+                    title: {
+                        display: true,
+                        text: 'Dordogne (m³/s)',
+                        font: {
+                            size: 10
+                        },
+                        color: '#D32F2F'
+                    },
+                    ticks: {
+                        font: {
+                            size: 10
+                        },
+                        color: '#D32F2F'
+                    },
+                    grid: {
+                        drawOnChartArea: false
+                    }
+                }
+            },
+            interaction: {
+                intersect: false,
+                mode: 'index'
+            }
+        }
+    });
+
+    canvas.addEventListener('click', function() {
+        var container = document.getElementById('rivers-chart-container');
+        container.classList.toggle('fullscreen');
+        chart.resize();
+    });
+}
+
+function renderPMChart(pmData) {
+    var canvas = document.getElementById('pm-chart');
+    var ctx = canvas.getContext('2d');
+
+
+    var labels = pmData.pm1.map(function(point) {
+        var date = new Date(point.time);
+        return date.toLocaleDateString('fr-FR', { weekday: 'short', hour: '2-digit', minute: '2-digit' });
+    });
+
+    var pm1Values = pmData.pm1.map(function(point) {
+        return point.value;
+    });
+
+    var pm25Values = pmData.pm25.map(function(point) {
+        return point.value;
+    });
+
+    var pm10Values = pmData.pm10.map(function(point) {
+        return point.value;
+    });
+
+    var chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'PM1',
+                data: pm1Values,
+                borderColor: '#8D6E63',
+                backgroundColor: 'rgba(141, 110, 99, 0.7)',
+                borderWidth: 1,
+                fill: 'origin',
+                tension: 0.3,
+                pointRadius: 0,
+                pointHoverRadius: 4,
+                pointHitRadius: 10
+            }, {
+                label: 'PM2.5',
+                data: pm25Values,
+                borderColor: '#FFB74D',
+                backgroundColor: 'rgba(255, 183, 77, 0.7)',
+                borderWidth: 1,
+                fill: '-1',
+                tension: 0.3,
+                pointRadius: 0,
+                pointHoverRadius: 4,
+                pointHitRadius: 10
+            }, {
+                label: 'PM10',
+                data: pm10Values,
+                borderColor: '#E57373',
+                backgroundColor: 'rgba(229, 115, 115, 0.7)',
+                borderWidth: 1,
+                fill: '-1',
+                tension: 0.3,
+                pointRadius: 0,
+                pointHoverRadius: 4,
+                pointHitRadius: 10
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                title: {
+                    display: false
+                },
+                legend: {
+                    display: true,
+                    position: 'top',
+                    labels: {
+                        font: {
+                            size: 10
+                        },
+                        usePointStyle: true
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    display: true,
+                    ticks: {
+                        maxTicksLimit: 4,
+                        font: {
+                            size: 10
+                        }
+                    }
+                },
+                y: {
+                    stacked: true,
+                    display: true,
+                    title: {
+                        display: true,
+                        text: 'μg/m³',
+                        font: {
+                            size: 10
+                        }
+                    },
+                    ticks: {
+                        font: {
+                            size: 10
+                        }
+                    }
+                }
+            },
+            interaction: {
+                intersect: false,
+                mode: 'index'
+            },
+            elements: {
+                line: {
+                    fill: true
+                }
+            }
+        }
+    });
+
+    canvas.addEventListener('click', function() {
+        var container = document.getElementById('pm-chart-container');
         container.classList.toggle('fullscreen');
         chart.resize();
     });
@@ -921,6 +1361,18 @@ function main() {
     fetchPressureData(function(pressureData) {
         if (pressureData) {
             renderPressureChart(pressureData);
+        }
+    });
+
+    fetchRiversData(function(riversData) {
+        if (riversData) {
+            renderRiversChart(riversData);
+        }
+    });
+
+    fetchPMData(function(pmData) {
+        if (pmData) {
+            renderPMChart(pmData);
         }
     });
 }

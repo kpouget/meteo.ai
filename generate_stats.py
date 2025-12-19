@@ -39,6 +39,18 @@ METRICS_TO_QUERY = {
     "rain_total_month": {
         "query": 'increase(rain{group="wundeground", instance="home.972.ovh:35007", job="raspi sensors", mode="total"}[30d])',
         "unit": "mm"
+    },
+    "pm1": {
+        "query": 'PM1{instance="home.972.ovh:35000", job="raspi sensors"}',
+        "unit": "μg/m³"
+    },
+    "pm25": {
+        "query": 'PM25{instance="home.972.ovh:35000", job="raspi sensors"}',
+        "unit": "μg/m³"
+    },
+    "pm10": {
+        "query": 'PM10{instance="home.972.ovh:35000", job="raspi sensors"}',
+        "unit": "μg/m³"
     }
 }
 

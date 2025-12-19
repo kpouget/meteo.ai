@@ -206,6 +206,10 @@
                         </a>
                     </div>
                 </div>
+                <div id="rivers-chart-container" style="height: 200px; margin-top: 10px;">
+                    <h3 style="margin: 0 0 10px 0; font-size: 14px;">Évolution des rivières (48h)</h3>
+                    <canvas id="rivers-chart" style="height: 160px; width: 100%;"></canvas>
+                </div>
             </div>
             <div class="group">
                 <h2>Maison</h2>
@@ -225,15 +229,22 @@
                     <div class="grid-item" id="desktop-pm1">
                         <span class="label">PM1</span>
                         <span class="value">--</span>
+                        <span class="subtitle">--</span>
                     </div>
                     <div class="grid-item" id="desktop-pm25">
                         <span class="label">PM2.5</span>
                         <span class="value">--</span>
+                        <span class="subtitle">--</span>
                     </div>
                     <div class="grid-item" id="desktop-pm10">
                         <span class="label">PM10</span>
                         <span class="value">--</span>
+                        <span class="subtitle">--</span>
                     </div>
+                </div>
+                <div id="pm-chart-container" style="height: 200px; margin-top: 10px;">
+                    <h3 style="margin: 0 0 10px 0; font-size: 14px;">Évolution des particules (48h)</h3>
+                    <canvas id="pm-chart" style="height: 160px; width: 100%;"></canvas>
                 </div>
             </div>
         </div>
