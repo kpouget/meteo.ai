@@ -663,6 +663,189 @@ function updateWindSummaryUIMonth(topCategories) {
     });
 }
 
+function fetchPressureData(callback) {
+    var end = new Date().getTime() / 1000;
+    var start = end - 48 * 60 * 60; // 48 hours
+    var step = 60 * 30; // 30 minutes
+
+    // Get pressure query from METRICS and process labels
+    var pressureQuery = processQuery(METRICS.pressure.query, METRICS.pressure.labels);
+
+    var url = PROMETHEUS_URL.replace('/query', '/query_range') + '?query=' + encodeURIComponent(pressureQuery) + '&start=' + start + '&end=' + end + '&step=' + step;
+
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', url, true);
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState === 4) {
+            if (xhr.status === 200) {
+                try {
+                    var data = JSON.parse(xhr.responseText);
+                    if (data.status === 'success' && data.data.result.length > 0) {
+                        var values = data.data.result[0].values;
+                        var pressureData = values.map(function(point) {
+                            return {
+                                time: point[0] * 1000, // Convert to milliseconds
+                                pressure: parseFloat(point[1])
+                            };
+                        });
+                        callback(pressureData);
+                    } else {
+                        console.error('Error in Prometheus response for pressure data:', data);
+                        callback(null);
+                    }
+                } catch (error) {
+                    console.error('Error parsing response for pressure data:', error);
+                    callback(null);
+                }
+            } else {
+                console.error('Error fetching pressure data:', xhr.status, xhr.statusText);
+                callback(null);
+            }
+        }
+    };
+    xhr.onerror = function() {
+        console.error('Network error fetching pressure data. Check for CORS issues.');
+        callback(null);
+    };
+    xhr.send();
+}
+
+function calculatePressureTrend(pressureData) {
+    if (pressureData.length < 2) return { trend: 'stable', intensity: 0 };
+
+    // Calculate trend over the FULL 48 hours period (use all available data)
+    var startPressure = pressureData[0].pressure;
+    var endPressure = pressureData[pressureData.length - 1].pressure;
+    var delta = endPressure - startPressure;
+
+    // Determine trend direction
+    var trend = 'stable';
+    if (Math.abs(delta) > 0.5) { // 0.5 hPa threshold over the time period
+        if (delta > 0) trend = 'rising';
+        else trend = 'falling';
+    }
+
+    // Calculate intensity (0 to 1) based on delta magnitude
+    var intensity = Math.min(1, Math.abs(delta) / 10); // Scale: 10 hPa = max intensity
+
+    return { trend: trend, intensity: intensity, delta: delta };
+}
+
+function getPressureColor(trend, intensity) {
+    var alpha = 0.3 + (intensity * 0.7); // 0.3 to 1.0
+    var bgAlpha = 0.1 + (intensity * 0.2); // 0.1 to 0.3
+
+    switch (trend) {
+        case 'rising':
+            return {
+                border: 'rgba(34, 139, 34, ' + alpha + ')', // Forest Green
+                background: 'rgba(34, 139, 34, ' + bgAlpha + ')'
+            };
+        case 'falling':
+            return {
+                border: 'rgba(220, 20, 60, ' + alpha + ')', // Crimson Red
+                background: 'rgba(220, 20, 60, ' + bgAlpha + ')'
+            };
+        default: // stable
+            return {
+                border: 'rgba(46, 134, 171, ' + alpha + ')', // Original Blue
+                background: 'rgba(46, 134, 171, ' + bgAlpha + ')'
+            };
+    }
+}
+
+function renderPressureChart(pressureData) {
+    var canvas = document.getElementById('pressure-chart');
+    var ctx = canvas.getContext('2d');
+
+    var labels = pressureData.map(function(point) {
+        var date = new Date(point.time);
+        return date.toLocaleDateString('fr-FR', { weekday: 'short', hour: '2-digit', minute: '2-digit' });
+    });
+
+    var pressureValues = pressureData.map(function(point) {
+        return point.pressure;
+    });
+
+    // Calculate trend and get colors
+    var trendInfo = calculatePressureTrend(pressureData);
+    var colors = getPressureColor(trendInfo.trend, trendInfo.intensity);
+
+    // Update title with trend indicator
+    var titleElement = document.querySelector('#pressure-chart-container h3');
+    var trendIcon = '';
+    switch (trendInfo.trend) {
+        case 'rising': trendIcon = ' ↗️'; break;
+        case 'falling': trendIcon = ' ↘️'; break;
+        default: trendIcon = ' ➡️'; break;
+    }
+    var deltaText = Math.abs(trendInfo.delta) > 0.1 ? ' (' + (trendInfo.delta > 0 ? '+' : '') + trendInfo.delta.toFixed(1) + ' hPa)' : '';
+    titleElement.innerHTML = 'Évolution de la pression (48h)' + trendIcon + deltaText;
+
+    var chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Pression (hPa)',
+                data: pressureValues,
+                borderColor: colors.border,
+                backgroundColor: colors.background,
+                borderWidth: 2,
+                fill: true,
+                tension: 0.3,
+                pointRadius: 0,
+                pointHoverRadius: 4,
+                pointHitRadius: 10
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                title: {
+                    display: false
+                },
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                x: {
+                    display: true,
+                    ticks: {
+                        maxTicksLimit: 4,
+                        font: {
+                            size: 10
+                        }
+                    }
+                },
+                y: {
+                    display: true,
+                    title: {
+                        display: false
+                    },
+                    ticks: {
+                        font: {
+                            size: 10
+                        }
+                    }
+                }
+            },
+            interaction: {
+                intersect: false,
+                mode: 'index'
+            }
+        }
+    });
+
+    canvas.addEventListener('click', function() {
+        var container = document.getElementById('pressure-chart-container');
+        container.classList.toggle('fullscreen');
+        chart.resize();
+    });
+}
+
 function renderWindRoseChartMonth(processedData) {
     var canvas = document.getElementById('wind-chart-month');
     var ctx = canvas.getContext('2d');
@@ -732,6 +915,12 @@ function main() {
             var processedData = processWindData(windData);
             renderWindRoseChartMonth(processedData);
             updateWindSummaryUIMonth(processedData.topCategories);
+        }
+    });
+
+    fetchPressureData(function(pressureData) {
+        if (pressureData) {
+            renderPressureChart(pressureData);
         }
     });
 }
