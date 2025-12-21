@@ -150,6 +150,25 @@ function updateUI() {
             });
         })(metric);
     }
+
+    // Refresh the linear charts
+    fetchPressureData(function(pressureData) {
+        if (pressureData) {
+            renderPressureChart(pressureData);
+        }
+    });
+
+    fetchRiversData(function(riversData) {
+        if (riversData) {
+            renderRiversChart(riversData);
+        }
+    });
+
+    fetchPMData(function(pmData) {
+        if (pmData) {
+            renderPMChart(pmData);
+        }
+    });
 }
 
 function updateUrlAnchor() {
