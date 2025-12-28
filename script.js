@@ -1091,13 +1091,17 @@ function processSunRadDistribution(sunRadData) {
     var thresholds = [1, 40, 100, 200, 400, 800];
     var thresholdCounts = {};
 
-    // Initialize counts
+    // Initialize counts (including < 1)
+    thresholdCounts['<1'] = 0;
     thresholds.forEach(function(threshold) {
         thresholdCounts[threshold] = 0;
     });
 
     // Count hours meeting each threshold
     sunRadData.forEach(function(d) {
+        if (d.value < 1) {
+            thresholdCounts['<1']++;
+        }
         thresholds.forEach(function(threshold) {
             if (d.value >= threshold) {
                 thresholdCounts[threshold]++;
@@ -1105,9 +1109,10 @@ function processSunRadDistribution(sunRadData) {
         });
     });
 
+    var allThresholds = ['<1'].concat(thresholds);
     return {
         totalHours: sunRadData.length,
-        thresholds: thresholds.map(function(threshold) {
+        thresholds: allThresholds.map(function(threshold) {
             return {
                 threshold: threshold,
                 count: thresholdCounts[threshold],
@@ -1121,18 +1126,24 @@ function renderSunRadDistribution(distributionData) {
     var container = document.getElementById('sun-rad-distribution-container');
     if (!container) return;
 
-    container.innerHTML = '<h3>Distribution radiation solaire (7 jours)</h3>';
+    container.innerHTML = '<h3>Distribution radiation solaire (sur 7 jours)</h3>';
 
     var chart = document.createElement('div');
     chart.className = 'sun-rad-distribution';
 
-    distributionData.thresholds.forEach(function(item) {
+    distributionData.thresholds.filter(function(item) {
+        return item.count > 0;
+    }).forEach(function(item) {
         var barContainer = document.createElement('div');
         barContainer.className = 'distribution-item';
 
         var label = document.createElement('div');
         label.className = 'distribution-label';
-        label.textContent = '≥ ' + item.threshold + ' J/m²';
+        if (item.threshold === '<1') {
+            label.textContent = '< 1 J/m²';
+        } else {
+            label.textContent = '≥ ' + item.threshold + ' J/m²';
+        }
 
         var bar = document.createElement('div');
         bar.className = 'distribution-bar';
@@ -1143,7 +1154,7 @@ function renderSunRadDistribution(distributionData) {
 
         var value = document.createElement('div');
         value.className = 'distribution-value';
-        value.textContent = item.count + 'h (' + item.percentage + '%)';
+        value.textContent = (item.count / 7).toFixed(1) + 'h/j (' + item.percentage + '%)';
 
         bar.appendChild(fill);
         barContainer.appendChild(label);
