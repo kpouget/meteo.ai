@@ -9,6 +9,88 @@ function loadStatsAndRunMain() {
 
 var PROMETHEUS_URL = 'https://prometheus.972.ovh/api/v1/query';
 
+// Chart instances for cleanup
+var chartInstances = {
+    pressure: null,
+    rivers: null,
+    pm: null
+};
+
+// Station-aware functions
+function getMetricForStation(metricKey) {
+    var metric = METRICS[metricKey];
+    if (!metric) return null;
+
+    var station = getCurrentStation();
+
+    // Create metric copy with resolved labels
+    var resolvedMetric = {
+        query: metric.query,
+        labels: JSON.parse(JSON.stringify(metric.labels)), // Deep copy
+        unit: metric.unit,
+        range: metric.range
+    };
+
+    // Substitute station_id if present
+    if (resolvedMetric.labels.station_id === '{STATION_ID}') {
+        resolvedMetric.labels.station_id = station.station_id;
+    }
+
+    return resolvedMetric;
+}
+
+function isMetricAvailableForStation(metricKey) {
+    var metric = METRICS[metricKey];
+    if (!metric) return false;
+
+    // Check if metric has station_availability restriction
+    if (metric.station_availability && metric.station_availability.length > 0) {
+        return metric.station_availability.indexOf(currentStation) !== -1;
+    }
+
+    // For PM sensors, check station features
+    if (metricKey.indexOf('pm') === 0) {
+        var station = getCurrentStation();
+        return station.features.pm_sensors;
+    }
+
+    // For internal temperatures, only available for Cahors
+    if (metricKey === 'temperature_int' || metricKey === 'temperature_e1_chauffage') {
+        return currentStation === 'cahors';
+    }
+
+    return true;
+}
+
+function updateStationSpecificVisibility() {
+    // Hide/show PM chart container based on station features
+    var station = getCurrentStation();
+    var pmChartContainer = document.getElementById('pm-chart-container');
+    if (pmChartContainer) {
+        pmChartContainer.style.display = station.features.pm_sensors ? 'block' : 'none';
+    }
+
+    // Hide/show Maison group based on station (only for Cahors)
+    var maisonGroup = document.getElementById('maison-group');
+    if (maisonGroup) {
+        maisonGroup.style.display = (currentStation === 'cahors') ? 'block' : 'none';
+    }
+
+    // Hide/show metrics not available for current station
+    for (var metricKey in METRICS) {
+        var isAvailable = isMetricAvailableForStation(metricKey);
+        var kindleElement = document.getElementById(metricKey.replace(/_/g, '-'));
+        var desktopElement = document.getElementById('desktop-' + metricKey.replace(/_/g, '-'));
+
+        if (kindleElement) {
+            kindleElement.style.display = isAvailable ? 'block' : 'none';
+        }
+        if (desktopElement) {
+            desktopElement.style.display = isAvailable ? 'block' : 'none';
+        }
+    }
+}
+
 function formatLabels(labelsDict) {
     var labelPairs = [];
     for (var key in labelsDict) {
@@ -59,9 +141,15 @@ function isKindle() {
 }
 
 function fetchMetric(metricName, callback) {
-    var query = processQuery(METRICS[metricName].query, METRICS[metricName].labels);
+    var resolvedMetric = getMetricForStation(metricName);
+    if (!resolvedMetric) {
+        console.error('Metric ' + metricName + ' not available for current station');
+        callback(null);
+        return;
+    }
+    var query = processQuery(resolvedMetric.query, resolvedMetric.labels);
     if (!query) {
-        console.error('Metric ' + metricName + ' not found');
+        console.error('Failed to process query for metric ' + metricName);
         callback(null);
         return;
     }
@@ -97,17 +185,23 @@ function fetchMetric(metricName, callback) {
 
 function updateUI() {
     for (var metric in METRICS) {
+        // Skip metrics not available for current station
+        if (!isMetricAvailableForStation(metric)) {
+            continue;
+        }
+
         (function(metric) {
             fetchMetric(metric, function(value) {
                 if (value !== null) {
                     var formattedValue;
+                    var resolvedMetric = getMetricForStation(metric);
 
                     if (metric === 'wind_dir') {
                         formattedValue = degreesToCardinal(parseFloat(value));
                     } else if (metric === 'dew_point') {
                         var numericValue = parseFloat(value).toFixed(1);
                         var textValue = humiditeRessentie(parseFloat(value));
-                        var unit = METRICS[metric].unit || '';
+                        var unit = resolvedMetric.unit || '';
                         formattedValue = numericValue + unit + '<span class="dew-point-text">' + textValue + '</span>';
                     } else {
                         if (metric.indexOf('rain_') === 0 || metric.indexOf('wind_') === 0 || metric.indexOf('river_') === 0 || metric === 'uv_idx' || metric.indexOf('pm') === 0 || metric.indexOf('temperature_') === 0 || metric.indexOf('humidity_') === 0 || metric === 'sun_rad') {
@@ -117,8 +211,8 @@ function updateUI() {
                         } else {
                             formattedValue = parseFloat(value).toFixed(2);
                         }
-                        if (METRICS[metric].unit) {
-                            formattedValue += ' ' + METRICS[metric].unit;
+                        if (resolvedMetric.unit) {
+                            formattedValue += ' ' + resolvedMetric.unit;
                         }
                     }
 
@@ -132,20 +226,21 @@ function updateUI() {
                         var valueElement = desktopElement.querySelector('.value');
                         valueElement.innerHTML = formattedValue;
 
-                                                if (METRICS[metric].range) {
-                                                    var link = desktopElement.querySelector('a');
-                                                    if (!link) {
-                                                        link = document.createElement('a');
-                                                        link.href = generatePlotUrl(processQuery(METRICS[metric].query, METRICS[metric].labels), METRICS[metric].range);
-                                                        link.target = '_blank';
-                                                        link.rel = 'noopener noreferrer';
+                        if (resolvedMetric.range) {
+                            var link = desktopElement.querySelector('a');
+                            if (!link) {
+                                link = document.createElement('a');
+                                link.href = generatePlotUrl(processQuery(resolvedMetric.query, resolvedMetric.labels), resolvedMetric.range);
+                                link.target = '_blank';
+                                link.rel = 'noopener noreferrer';
 
-                                                        while (desktopElement.firstChild) {
-                                                            link.appendChild(desktopElement.firstChild);
-                                                        }
-                                                        desktopElement.appendChild(link);
-                                                    }
-                                                }                    }
+                                while (desktopElement.firstChild) {
+                                    link.appendChild(desktopElement.firstChild);
+                                }
+                                desktopElement.appendChild(link);
+                            }
+                        }
+                    }
                 }
             });
         })(metric);
@@ -195,14 +290,14 @@ function setupKindleView() {
         document.getElementById('kindle-page-' + currentPage).style.display = 'none';
         currentPage = (currentPage % totalPages) + 1;
         document.getElementById('kindle-page-' + currentPage).style.display = 'block';
-        updateUrlAnchor();
+        // updateUrlAnchor(); // Disabled to keep clean URLs
     };
 
     var prevPage = function() {
         document.getElementById('kindle-page-' + currentPage).style.display = 'none';
         currentPage = (currentPage - 2 + totalPages) % totalPages + 1;
         document.getElementById('kindle-page-' + currentPage).style.display = 'block';
-        updateUrlAnchor();
+        // updateUrlAnchor(); // Disabled to keep clean URLs
     };
 
     var resetTimer = function() {
@@ -689,8 +784,13 @@ function fetchPressureData(callback) {
     var start = end - 48 * 60 * 60; // 48 hours
     var step = 60 * 30; // 30 minutes
 
-    // Get pressure query from METRICS and process labels
-    var pressureQuery = processQuery(METRICS.pressure.query, METRICS.pressure.labels);
+    // Get pressure query from station-aware METRICS
+    var resolvedMetric = getMetricForStation('pressure');
+    if (!resolvedMetric) {
+        callback(null);
+        return;
+    }
+    var pressureQuery = processQuery(resolvedMetric.query, resolvedMetric.labels);
 
     var url = PROMETHEUS_URL.replace('/query', '/query_range') + '?query=' + encodeURIComponent(pressureQuery) + '&start=' + start + '&end=' + end + '&step=' + step;
 
@@ -736,9 +836,17 @@ function fetchRiversData(callback) {
     var start = end - 48 * 60 * 60; // 48 hours
     var step = 60 * 30; // 30 minutes
 
-    // Get river queries from METRICS and process labels
-    var lotQuery = processQuery(METRICS.river_lot.query, METRICS.river_lot.labels);
-    var dordogneQuery = processQuery(METRICS.river_dordogne.query, METRICS.river_dordogne.labels);
+    // Get river queries from station-aware METRICS
+    var lotMetric = getMetricForStation('river_lot');
+    var dordogneMetric = getMetricForStation('river_dordogne');
+
+    if (!lotMetric || !dordogneMetric) {
+        callback(null);
+        return;
+    }
+
+    var lotQuery = processQuery(lotMetric.query, lotMetric.labels);
+    var dordogneQuery = processQuery(dordogneMetric.query, dordogneMetric.labels);
 
     var urls = [
         PROMETHEUS_URL.replace('/query', '/query_range') + '?query=' + encodeURIComponent(lotQuery) + '&start=' + start + '&end=' + end + '&step=' + step,
@@ -816,14 +924,30 @@ function fetchRiversData(callback) {
 }
 
 function fetchPMData(callback) {
+    // Check if PM sensors are available for current station
+    var station = getCurrentStation();
+    if (!station.features.pm_sensors) {
+        callback(null);
+        return;
+    }
+
     var end = new Date().getTime() / 1000;
     var start = end - 48 * 60 * 60; // 48 hours
     var step = 60 * 30; // 30 minutes
 
-    // Get PM queries from METRICS and process labels
-    var pm1Query = processQuery(METRICS.pm1.query, METRICS.pm1.labels);
-    var pm25Query = processQuery(METRICS.pm25.query, METRICS.pm25.labels); // PM2.5 - PM1
-    var pm10Query = processQuery(METRICS.pm10.query, METRICS.pm10.labels); // PM10 - PM2.5
+    // Get PM queries from station-aware METRICS
+    var pm1Metric = getMetricForStation('pm1');
+    var pm25Metric = getMetricForStation('pm25');
+    var pm10Metric = getMetricForStation('pm10');
+
+    if (!pm1Metric || !pm25Metric || !pm10Metric) {
+        callback(null);
+        return;
+    }
+
+    var pm1Query = processQuery(pm1Metric.query, pm1Metric.labels);
+    var pm25Query = processQuery(pm25Metric.query, pm25Metric.labels); // PM2.5 - PM1
+    var pm10Query = processQuery(pm10Metric.query, pm10Metric.labels); // PM10 - PM2.5
 
     var urls = [
         PROMETHEUS_URL.replace('/query', '/query_range') + '?query=' + encodeURIComponent(pm1Query) + '&start=' + start + '&end=' + end + '&step=' + step,
@@ -953,6 +1077,12 @@ function getPressureColor(trend, intensity) {
 }
 
 function renderPressureChart(pressureData) {
+    // Destroy existing chart if it exists
+    if (chartInstances.pressure) {
+        chartInstances.pressure.destroy();
+        chartInstances.pressure = null;
+    }
+
     var canvas = document.getElementById('pressure-chart');
     var ctx = canvas.getContext('2d');
 
@@ -981,7 +1111,7 @@ function renderPressureChart(pressureData) {
 
     titleElement.innerHTML = 'Évolution de la pression (48h)' + trendIcon + deltaText;
 
-    var chart = new Chart(ctx, {
+    chartInstances.pressure = new Chart(ctx, {
         type: 'line',
         data: {
             labels: labels,
@@ -1041,11 +1171,17 @@ function renderPressureChart(pressureData) {
     canvas.addEventListener('click', function() {
         var container = document.getElementById('pressure-chart-container');
         container.classList.toggle('fullscreen');
-        chart.resize();
+        chartInstances.pressure.resize();
     });
 }
 
 function renderRiversChart(riversData) {
+    // Destroy existing chart if it exists
+    if (chartInstances.rivers) {
+        chartInstances.rivers.destroy();
+        chartInstances.rivers = null;
+    }
+
     var canvas = document.getElementById('rivers-chart');
     var ctx = canvas.getContext('2d');
 
@@ -1063,7 +1199,7 @@ function renderRiversChart(riversData) {
         return point.flow;
     });
 
-    var chart = new Chart(ctx, {
+    chartInstances.rivers = new Chart(ctx, {
         type: 'line',
         data: {
             labels: labels,
@@ -1176,11 +1312,17 @@ function renderRiversChart(riversData) {
     canvas.addEventListener('click', function() {
         var container = document.getElementById('rivers-chart-container');
         container.classList.toggle('fullscreen');
-        chart.resize();
+        chartInstances.rivers.resize();
     });
 }
 
 function renderPMChart(pmData) {
+    // Destroy existing chart if it exists
+    if (chartInstances.pm) {
+        chartInstances.pm.destroy();
+        chartInstances.pm = null;
+    }
+
     var canvas = document.getElementById('pm-chart');
     var ctx = canvas.getContext('2d');
 
@@ -1202,7 +1344,7 @@ function renderPMChart(pmData) {
         return point.value;
     });
 
-    var chart = new Chart(ctx, {
+    chartInstances.pm = new Chart(ctx, {
         type: 'line',
         data: {
             labels: labels,
@@ -1301,7 +1443,7 @@ function renderPMChart(pmData) {
     canvas.addEventListener('click', function() {
         var container = document.getElementById('pm-chart-container');
         container.classList.toggle('fullscreen');
-        chart.resize();
+        chartInstances.pm.resize();
     });
 }
 
@@ -1333,13 +1475,17 @@ function renderWindRoseChartMonth(processedData) {
 }
 
 function main() {
-    readUrlAnchor();
+    // Initialize station system (no UI, just URL parameter detection)
+    loadStationFromSources();
+    updateStationSpecificVisibility();
+
+    // readUrlAnchor(); // Disabled to keep clean URLs
     if (currentView === 'kindle') {
         setupKindleView();
     } else {
         setupDesktopView();
     }
-    updateUrlAnchor();
+    // updateUrlAnchor(); // Disabled to keep clean URLs
     updateStaticUI();
 
 
@@ -1351,7 +1497,7 @@ function main() {
             currentView = 'kindle';
             setupKindleView();
         }
-        updateUrlAnchor();
+        // updateUrlAnchor(); // Disabled to keep clean URLs
     });
 
     document.getElementById('refresh-button').addEventListener('click', function() {

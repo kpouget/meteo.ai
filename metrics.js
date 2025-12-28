@@ -2,10 +2,10 @@ var METRICS = {
     "rain_rate": {
         "query": "max_over_time(rain{LABELS}[10m])",
         "labels": {
-            "group": "wundeground",
-            "instance": "home.972.ovh:35007",
-            "job": "raspi sensors",
-            "mode": "rate"
+            "instance": "wunderground.972.ovh:443",
+            "job": "internet scraping",
+            "mode": "rate",
+            "station_id": "{STATION_ID}"
         },
         "unit": "mm/h",
         "range": "3h"
@@ -13,10 +13,10 @@ var METRICS = {
     "rain_total_day": {
         "query": "increase(rain{LABELS}[24h])",
         "labels": {
-            "group": "wundeground",
-            "instance": "home.972.ovh:35007",
-            "job": "raspi sensors",
-            "mode": "total"
+            "instance": "wunderground.972.ovh:443",
+            "job": "internet scraping",
+            "mode": "total",
+            "station_id": "{STATION_ID}"
         },
         "unit": "mm",
         "range": "24h"
@@ -24,10 +24,10 @@ var METRICS = {
     "rain_total_week": {
         "query": "increase(rain{LABELS}[7d])",
         "labels": {
-            "group": "wundeground",
-            "instance": "home.972.ovh:35007",
-            "job": "raspi sensors",
-            "mode": "total"
+            "instance": "wunderground.972.ovh:443",
+            "job": "internet scraping",
+            "mode": "total",
+            "station_id": "{STATION_ID}"
         },
         "unit": "mm",
         "range": "7d"
@@ -35,10 +35,10 @@ var METRICS = {
     "rain_total_month": {
         "query": "increase(rain{LABELS}[30d])",
         "labels": {
-            "group": "wundeground",
-            "instance": "home.972.ovh:35007",
-            "job": "raspi sensors",
-            "mode": "total"
+            "instance": "wunderground.972.ovh:443",
+            "job": "internet scraping",
+            "mode": "total",
+            "station_id": "{STATION_ID}"
         },
         "unit": "mm",
         "range": "30d"
@@ -46,11 +46,10 @@ var METRICS = {
     "temperature_ext": {
         "query": "avg_over_time(temperature{LABELS}[10m])",
         "labels": {
-            "group": "wundeground",
-            "instance": "home.972.ovh:35007",
-            "job": "raspi sensors",
-            "location": "toiture",
-            "mode": "actual"
+            "instance": "wunderground.972.ovh:443",
+            "job": "internet scraping",
+            "mode": "actual",
+            "station_id": "{STATION_ID}"
         },
         "unit": "&deg;C",
         "range": "1d"
@@ -58,8 +57,9 @@ var METRICS = {
     "humidity_ext": {
         "query": "avg_over_time(humidity{LABELS}[10m])",
         "labels": {
-            "group": "wundeground",
-            "location": "toiture"
+            "instance": "wunderground.972.ovh:443",
+            "job": "internet scraping",
+            "station_id": "{STATION_ID}"
         },
         "unit": "%",
         "range": "1d"
@@ -89,11 +89,10 @@ var METRICS = {
     "dew_point": {
         "query": "avg_over_time(temperature{LABELS}[10m])",
         "labels": {
-            "group": "wundeground",
-            "instance": "home.972.ovh:35007",
-            "job": "raspi sensors",
-            "location": "toiture",
-            "mode": "dew_point"
+            "instance": "wunderground.972.ovh:443",
+            "job": "internet scraping",
+            "mode": "dew_point",
+            "station_id": "{STATION_ID}"
         },
         "unit": "&deg;C",
         "range": "1d"
@@ -101,10 +100,10 @@ var METRICS = {
     "wind_speed": {
         "query": "avg_over_time(wind{LABELS}[10m])",
         "labels": {
-            "group": "wundeground",
-            "instance": "home.972.ovh:35007",
-            "job": "raspi sensors",
-            "mode": "speed"
+            "instance": "wunderground.972.ovh:443",
+            "job": "internet scraping",
+            "mode": "speed",
+            "station_id": "{STATION_ID}"
         },
         "unit": "km/h",
         "range": "1d"
@@ -112,10 +111,10 @@ var METRICS = {
     "wind_gust": {
         "query": "avg_over_time(wind{LABELS}[10m])",
         "labels": {
-            "group": "wundeground",
-            "instance": "home.972.ovh:35007",
-            "job": "raspi sensors",
-            "mode": "gust"
+            "instance": "wunderground.972.ovh:443",
+            "job": "internet scraping",
+            "mode": "gust",
+            "station_id": "{STATION_ID}"
         },
         "unit": "km/h",
         "range": "1d"
@@ -123,9 +122,9 @@ var METRICS = {
     "wind_dir": {
         "query": "avg_over_time(wind_dir{LABELS}[10m])",
         "labels": {
-            "group": "wundeground",
-            "instance": "home.972.ovh:35007",
-            "job": "raspi sensors"
+            "instance": "wunderground.972.ovh:443",
+            "job": "internet scraping",
+            "station_id": "{STATION_ID}"
         },
         "unit": "",
         "range": "1d"
@@ -133,9 +132,9 @@ var METRICS = {
     "pressure": {
         "query": "avg_over_time(pressure{LABELS}[10m])",
         "labels": {
-            "group": "wundeground",
-            "instance": "home.972.ovh:35007",
-            "job": "raspi sensors"
+            "instance": "wunderground.972.ovh:443",
+            "job": "internet scraping",
+            "station_id": "{STATION_ID}"
         },
         "unit": "hPa",
         "range": "1d"
@@ -143,9 +142,9 @@ var METRICS = {
     "sun_rad": {
         "query": "avg_over_time(sun_rad{LABELS}[10m])",
         "labels": {
-            "group": "wundeground",
-            "instance": "home.972.ovh:35007",
-            "job": "raspi sensors"
+            "instance": "wunderground.972.ovh:443",
+            "job": "internet scraping",
+            "station_id": "{STATION_ID}"
         },
         "unit": "J/m&sup2;",
         "range": "1d"
@@ -153,9 +152,9 @@ var METRICS = {
     "uv_idx": {
         "query": "avg_over_time(uv_idx{LABELS}[10m])",
         "labels": {
-            "group": "wundeground",
-            "instance": "home.972.ovh:35007",
-            "job": "raspi sensors"
+            "instance": "wunderground.972.ovh:443",
+            "job": "internet scraping",
+            "station_id": "{STATION_ID}"
         },
         "unit": "/11",
         "range": "1d"
@@ -190,6 +189,8 @@ var METRICS = {
     "river_lot": {
         "query": "avg_over_time(river_flow{LABELS}[10m])",
         "labels": {
+            "instance": "riverflow.972.ovh:443",
+            "job": "internet scraping",
             "name": "Lot"
         },
         "unit": "m&sup3;/s",
@@ -198,6 +199,8 @@ var METRICS = {
     "river_dordogne": {
         "query": "avg_over_time(river_flow{LABELS}[10m])",
         "labels": {
+            "instance": "riverflow.972.ovh:443",
+            "job": "internet scraping",
             "name": "Dordogne"
         },
         "unit": "m&sup3;/s",
