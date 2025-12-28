@@ -269,3 +269,45 @@ html, body {
     max-width: 90vw;
     max-height: 90vh;
 }
+
+/* Solar Radiation Distribution */
+.sun-rad-distribution {
+    margin-top: 20px;
+}
+
+.distribution-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    gap: 10px;
+}
+
+.distribution-label {
+    width: 80px;
+    font-size: 0.9em;
+    font-weight: bold;
+    text-align: right;
+}
+
+.distribution-bar {
+    flex: 1;
+    height: 20px;
+    background-color: #f0f0f0;
+    border-radius: 10px;
+    overflow: hidden;
+    position: relative;
+}
+
+.distribution-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #FFA726, #FF9800, #FF6F00);
+    border-radius: 10px;
+    transition: width 0.3s ease;
+}
+
+.distribution-value {
+    width: 100px;
+    font-size: 0.85em;
+    text-align: left;
+    color: #666;
+}

@@ -307,6 +307,14 @@ function updateUI() {
             renderPMChart(pmData);
         }
     });
+
+    // Refresh sun radiation distribution
+    fetchSunRadDistribution(function(sunRadData) {
+        if (sunRadData) {
+            var distributionData = processSunRadDistribution(sunRadData);
+            renderSunRadDistribution(distributionData);
+        }
+    });
 }
 
 function updateUrlAnchor() {
@@ -1022,6 +1030,131 @@ function fetchRiversData(callback) {
     }
 }
 
+function fetchSunRadDistribution(callback) {
+    var end = new Date().getTime() / 1000;
+    var start = end - 7 * 24 * 60 * 60; // 7 days
+    var step = 60 * 60; // 1 hour
+
+    // Get current station for station-aware queries
+    var station = getCurrentStation();
+    if (!station) {
+        console.error('No station available for sun rad distribution');
+        callback(null);
+        return;
+    }
+
+    // Use new Wunderground labels with station_id
+    var sunRadQuery = 'avg_over_time(sun_rad{instance="wunderground.972.ovh:443", job="internet scraping", station_id="' + station.station_id + '"}[1h])';
+
+    console.log('Fetching 7-day solar radiation distribution for station:', station.station_id);
+
+    var url = PROMETHEUS_URL.replace('/query', '/query_range') + '?query=' + encodeURIComponent(sunRadQuery) + '&start=' + start + '&end=' + end + '&step=' + step;
+
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', url, true);
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState === 4) {
+            if (xhr.status === 200) {
+                try {
+                    var data = JSON.parse(xhr.responseText);
+                    if (data.status === 'success' && data.data.result.length > 0) {
+                        var values = data.data.result[0].values;
+                        var sunRadData = values.map(function(point) {
+                            return {
+                                time: point[0] * 1000, // Convert to milliseconds
+                                value: parseFloat(point[1])
+                            };
+                        });
+                        callback(sunRadData);
+                    } else {
+                        console.error('Error in Prometheus response for sun rad distribution:', data);
+                        callback(null);
+                    }
+                } catch (error) {
+                    console.error('Error parsing response for sun rad distribution:', error);
+                    callback(null);
+                }
+            } else {
+                console.error('Error fetching sun rad distribution:', xhr.status, xhr.statusText);
+                callback(null);
+            }
+        }
+    };
+    xhr.onerror = function() {
+        console.error('Network error fetching sun rad distribution');
+        callback(null);
+    };
+    xhr.send();
+}
+
+function processSunRadDistribution(sunRadData) {
+    var thresholds = [1, 40, 100, 200, 400, 800];
+    var thresholdCounts = {};
+
+    // Initialize counts
+    thresholds.forEach(function(threshold) {
+        thresholdCounts[threshold] = 0;
+    });
+
+    // Count hours meeting each threshold
+    sunRadData.forEach(function(d) {
+        thresholds.forEach(function(threshold) {
+            if (d.value >= threshold) {
+                thresholdCounts[threshold]++;
+            }
+        });
+    });
+
+    return {
+        totalHours: sunRadData.length,
+        thresholds: thresholds.map(function(threshold) {
+            return {
+                threshold: threshold,
+                count: thresholdCounts[threshold],
+                percentage: (thresholdCounts[threshold] / sunRadData.length * 100).toFixed(1)
+            };
+        })
+    };
+}
+
+function renderSunRadDistribution(distributionData) {
+    var container = document.getElementById('sun-rad-distribution-container');
+    if (!container) return;
+
+    container.innerHTML = '<h3>Distribution radiation solaire (7 jours)</h3>';
+
+    var chart = document.createElement('div');
+    chart.className = 'sun-rad-distribution';
+
+    distributionData.thresholds.forEach(function(item) {
+        var barContainer = document.createElement('div');
+        barContainer.className = 'distribution-item';
+
+        var label = document.createElement('div');
+        label.className = 'distribution-label';
+        label.textContent = '≥ ' + item.threshold + ' J/m²';
+
+        var bar = document.createElement('div');
+        bar.className = 'distribution-bar';
+
+        var fill = document.createElement('div');
+        fill.className = 'distribution-fill';
+        fill.style.width = item.percentage + '%';
+
+        var value = document.createElement('div');
+        value.className = 'distribution-value';
+        value.textContent = item.count + 'h (' + item.percentage + '%)';
+
+        bar.appendChild(fill);
+        barContainer.appendChild(label);
+        barContainer.appendChild(bar);
+        barContainer.appendChild(value);
+        chart.appendChild(barContainer);
+    });
+
+    container.appendChild(chart);
+}
+
 function fetchPMData(callback) {
     // Check if PM sensors are available for current station
     var station = getCurrentStation();
@@ -1645,6 +1778,13 @@ function main() {
     fetchPMData(function(pmData) {
         if (pmData) {
             renderPMChart(pmData);
+        }
+    });
+
+    fetchSunRadDistribution(function(sunRadData) {
+        if (sunRadData) {
+            var distributionData = processSunRadDistribution(sunRadData);
+            renderSunRadDistribution(distributionData);
         }
     });
 }
