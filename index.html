@@ -3,11 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Weather Station</title>
+    <title id="page-title">Weather Station</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div id="floating-buttons">
+        <button id="station-switcher" title="Changer de station">Cahors</button>
         <button id="view-switcher">Kindle</button>
         <button id="refresh-button" title="Refresh">↻</button>
     </div>
@@ -89,7 +90,7 @@
     </div>
 
     <div id="desktop-view" class="view">
-        <h1>Weather Data</h1>
+        <h1 id="main-title">Weather Data</h1>
         <div class="grid-container">
             <div class="group">
                 <h2>Air</h2>

@@ -22,6 +22,16 @@ html, body {
     font-size: 2em;
     cursor: pointer;
     display: block;
+    margin-bottom: 5px;
+}
+
+#station-switcher {
+    font-size: 1.2em !important;
+    background: rgba(0, 0, 0, 0.1) !important;
+    padding: 5px 8px !important;
+    border-radius: 3px !important;
+    border: 1px solid rgba(0, 0, 0, 0.2) !important;
+    font-weight: bold;
 }
 
 /* Kindle View */

@@ -62,6 +62,49 @@ function isMetricAvailableForStation(metricKey) {
     return true;
 }
 
+function updateTitlesWithStation() {
+    var station = getCurrentStation();
+    if (station) {
+        var stationTitle = 'Données météo de ' + station.name;
+
+        // Update page title
+        var pageTitle = document.getElementById('page-title');
+        if (pageTitle) {
+            pageTitle.textContent = stationTitle;
+        }
+
+        // Update main H1
+        var mainTitle = document.getElementById('main-title');
+        if (mainTitle) {
+            mainTitle.textContent = stationTitle;
+        }
+    }
+}
+
+function updateStationSwitcher() {
+    var station = getCurrentStation();
+    var stationSwitcher = document.getElementById('station-switcher');
+    if (stationSwitcher && station) {
+        // Show current station and indicate what clicking will switch to
+        var otherStationName = (currentStation === 'cahors') ? 'Vayrac' : 'Cahors';
+        stationSwitcher.textContent = otherStationName;
+        stationSwitcher.title = 'Basculer vers ' + otherStationName;
+    }
+}
+
+function switchToStation(stationName) {
+    // Update the URL with the new station parameter
+    var currentUrl = new URL(window.location);
+    if (stationName === 'cahors') {
+        currentUrl.searchParams.delete('station'); // Cahors is default
+    } else {
+        currentUrl.searchParams.set('station', stationName);
+    }
+
+    // Reload the page with the new station
+    window.location.href = currentUrl.toString();
+}
+
 function updateStationSpecificVisibility() {
     // Hide/show PM chart container based on station features
     var station = getCurrentStation();
@@ -347,13 +390,44 @@ function readUrlAnchor() {
     }
 }
 
+function getStatsForCurrentStation() {
+    // Use station-aware stats if available, fallback to STATS for backward compatibility
+    if (typeof STATION_STATS !== 'undefined' && currentStation && STATION_STATS[currentStation]) {
+        console.log('Using station-aware stats for:', currentStation);
+        return STATION_STATS[currentStation];
+    }
+    if (typeof STATS !== 'undefined') {
+        console.log('Using backward compatibility STATS');
+        return STATS;
+    }
+    console.log('No stats available');
+    return null;
+}
+
 function updateStaticUI() {
-    if (typeof STATS === 'undefined') {
+    var stats = getStatsForCurrentStation();
+    if (!stats) {
         return;
     }
 
-    for (var metric in STATS) {
-        var stat = STATS[metric];
+    // Clear existing chart containers to prevent duplicates when switching stations
+    var rainChartContainer = document.getElementById('rain-chart-container');
+    if (rainChartContainer) {
+        rainChartContainer.innerHTML = '<h3>Précipitations des 6 derniers mois</h3>';
+    }
+
+    var rainChartDailyContainer = document.getElementById('rain-chart-daily-container');
+    if (rainChartDailyContainer) {
+        rainChartDailyContainer.innerHTML = '<h3>Précipitations des 6 derniers jours</h3>';
+    }
+
+    var sunRadChartContainer = document.getElementById('sun-rad-chart-daily-container');
+    if (sunRadChartContainer) {
+        sunRadChartContainer.innerHTML = '<h3>Radiation solaire des 6 derniers jours</h3>';
+    }
+
+    for (var metric in stats) {
+        var stat = stats[metric];
         var desktopElement = document.getElementById('desktop-' + metric.replace(/_/g, '-'));
 
         if (desktopElement) {
@@ -371,11 +445,14 @@ function updateStaticUI() {
                 if (subtitleElement) {
                     var subtitleText = '';
                     if (stat.max !== undefined) {
-                        if (stat.min !== undefined && stat.min >= 1) {
-                            // Show range when min is >= 1
+                        if (stat.min !== undefined && Math.abs(stat.min) >= 1) {
+                            // Show range when min absolute value is >= 1 (works for negative temps)
+                            subtitleText = stat.min + '..' + stat.max;
+                        } else if (stat.min !== undefined) {
+                            // Show range for small positive values or when min is very close to 0
                             subtitleText = stat.min + '..' + stat.max;
                         } else {
-                            // Show only max when min is < 1
+                            // Show only max when min is undefined
                             subtitleText = '' + stat.max;
                         }
                         if (stat.unit) {
@@ -388,21 +465,21 @@ function updateStaticUI() {
         }
     }
 
-    if (STATS.rain_last_6_months) {
+    if (stats.rain_last_6_months) {
         var chartContainer = document.getElementById('rain-chart-container');
 
         var chart = document.createElement('div');
         chart.className = 'rain-chart';
 
         var maxRain = 0;
-        for (var i = 0; i < STATS.rain_last_6_months.length; i++) {
-            if (STATS.rain_last_6_months[i].value > maxRain) {
-                maxRain = STATS.rain_last_6_months[i].value;
+        for (var i = 0; i < stats.rain_last_6_months.length; i++) {
+            if (stats.rain_last_6_months[i].value > maxRain) {
+                maxRain = stats.rain_last_6_months[i].value;
             }
         }
 
-        for (var i = STATS.rain_last_6_months.length - 1; i >= 0; i--) {
-            var monthData = STATS.rain_last_6_months[i];
+        for (var i = stats.rain_last_6_months.length - 1; i >= 0; i--) {
+            var monthData = stats.rain_last_6_months[i];
             var barContainer = document.createElement('div');
             barContainer.className = 'bar-container';
 
@@ -426,19 +503,19 @@ function updateStaticUI() {
         chartContainer.appendChild(chart);
     }
 
-    if (STATS.rain_last_6_days) {
+    if (stats.rain_last_6_days) {
         var chartContainer = document.getElementById('rain-chart-daily-container');
         var chart = document.createElement('div');
         chart.className = 'rain-chart';
 
         var maxRain = 0;
-        for (var i = 0; i < STATS.rain_last_6_days.length; i++) {
-            if (STATS.rain_last_6_days[i].value > maxRain) {
-                maxRain = STATS.rain_last_6_days[i].value;
+        for (var i = 0; i < stats.rain_last_6_days.length; i++) {
+            if (stats.rain_last_6_days[i].value > maxRain) {
+                maxRain = stats.rain_last_6_days[i].value;
             }
         }
-        for (var i = 0; i < STATS.rain_last_6_days.length; i++) {
-            var dayData = STATS.rain_last_6_days[i];
+        for (var i = 0; i < stats.rain_last_6_days.length; i++) {
+            var dayData = stats.rain_last_6_days[i];
             var barContainer = document.createElement('div');
             barContainer.className = 'bar-container';
 
@@ -462,21 +539,21 @@ function updateStaticUI() {
         chartContainer.appendChild(chart);
     }
 
-    if (STATS.sun_rad_last_6_days) {
+    if (stats.sun_rad_last_6_days) {
         var chartContainer = document.getElementById('sun-rad-chart-daily-container');
         chartContainer.innerHTML = '<h3>Radiation solaire des 6 derniers jours</h3>';
         var chart = document.createElement('div');
         chart.className = 'rain-chart';
 
         var maxRad = 0;
-        for (var i = 0; i < STATS.sun_rad_last_6_days.length; i++) {
-            if (STATS.sun_rad_last_6_days[i].value > maxRad) {
-                maxRad = STATS.sun_rad_last_6_days[i].value;
+        for (var i = 0; i < stats.sun_rad_last_6_days.length; i++) {
+            if (stats.sun_rad_last_6_days[i].value > maxRad) {
+                maxRad = stats.sun_rad_last_6_days[i].value;
             }
         }
 
-        for (var i = 0; i < STATS.sun_rad_last_6_days.length; i++) {
-            var dayData = STATS.sun_rad_last_6_days[i];
+        for (var i = 0; i < stats.sun_rad_last_6_days.length; i++) {
+            var dayData = stats.sun_rad_last_6_days[i];
             var barContainer = document.createElement('div');
             barContainer.className = 'bar-container';
 
@@ -506,9 +583,20 @@ function fetchWindData(callback) {
     var start = end - 24 * 60 * 60;
     var step = 60 * 10; // 10 minutes
 
-    var speedQuery = 'avg_over_time(wind{group="wundeground", instance="home.972.ovh:35007", job="raspi sensors", mode="speed"}[10m])';
-    var gustQuery = 'avg_over_time(wind{group="wundeground", instance="home.972.ovh:35007", job="raspi sensors", mode="gust"}[10m])';
-    var dirQuery = 'avg_over_time(wind_dir{group="wundeground", instance="home.972.ovh:35007", job="raspi sensors"}[10m])';
+    // Get current station for station-aware queries
+    var station = getCurrentStation();
+    if (!station) {
+        console.error('No station available for wind data');
+        callback(null);
+        return;
+    }
+
+    // Use new Wunderground labels with station_id
+    var speedQuery = 'avg_over_time(wind{instance="wunderground.972.ovh:443", job="internet scraping", mode="speed", station_id="' + station.station_id + '"}[10m])';
+    var gustQuery = 'avg_over_time(wind{instance="wunderground.972.ovh:443", job="internet scraping", mode="gust", station_id="' + station.station_id + '"}[10m])';
+    var dirQuery = 'avg_over_time(wind_dir{instance="wunderground.972.ovh:443", job="internet scraping", station_id="' + station.station_id + '"}[10m])';
+
+    console.log('Fetching wind data for station:', station.station_id);
 
     var urls = [
         PROMETHEUS_URL.replace('/query', '/query_range') + '?query=' + encodeURIComponent(speedQuery) + '&start=' + start + '&end=' + end + '&step=' + step,
@@ -687,9 +775,20 @@ function fetchWindDataMonth(callback) {
     var start = end - 30 * 24 * 60 * 60; // 30 days
     var step = 60 * 60; // 1 hour
 
-    var speedQuery = 'avg_over_time(wind{group="wundeground", instance="home.972.ovh:35007", job="raspi sensors", mode="speed"}[1h])';
-    var gustQuery = 'avg_over_time(wind{group="wundeground", instance="home.972.ovh:35007", job="raspi sensors", mode="gust"}[1h])';
-    var dirQuery = 'avg_over_time(wind_dir{group="wundeground", instance="home.972.ovh:35007", job="raspi sensors"}[1h])';
+    // Get current station for station-aware queries
+    var station = getCurrentStation();
+    if (!station) {
+        console.error('No station available for monthly wind data');
+        callback(null);
+        return;
+    }
+
+    // Use new Wunderground labels with station_id
+    var speedQuery = 'avg_over_time(wind{instance="wunderground.972.ovh:443", job="internet scraping", mode="speed", station_id="' + station.station_id + '"}[1h])';
+    var gustQuery = 'avg_over_time(wind{instance="wunderground.972.ovh:443", job="internet scraping", mode="gust", station_id="' + station.station_id + '"}[1h])';
+    var dirQuery = 'avg_over_time(wind_dir{instance="wunderground.972.ovh:443", job="internet scraping", station_id="' + station.station_id + '"}[1h])';
+
+    console.log('Fetching monthly wind data for station:', station.station_id);
 
     var urls = [
         PROMETHEUS_URL.replace('/query', '/query_range') + '?query=' + encodeURIComponent(speedQuery) + '&start=' + start + '&end=' + end + '&step=' + step,
@@ -1477,6 +1576,8 @@ function renderWindRoseChartMonth(processedData) {
 function main() {
     // Initialize station system (no UI, just URL parameter detection)
     loadStationFromSources();
+    updateTitlesWithStation();
+    updateStationSwitcher();
     updateStationSpecificVisibility();
 
     // readUrlAnchor(); // Disabled to keep clean URLs
@@ -1488,6 +1589,11 @@ function main() {
     // updateUrlAnchor(); // Disabled to keep clean URLs
     updateStaticUI();
 
+
+    document.getElementById('station-switcher').addEventListener('click', function() {
+        var otherStation = (currentStation === 'cahors') ? 'vayrac' : 'cahors';
+        switchToStation(otherStation);
+    });
 
     document.getElementById('view-switcher').addEventListener('click', function() {
         if (currentView === 'kindle') {
@@ -1502,6 +1608,7 @@ function main() {
 
     document.getElementById('refresh-button').addEventListener('click', function() {
         updateUI();
+        updateStaticUI(); // Refresh static charts for current station
     });
 
     updateUI();
