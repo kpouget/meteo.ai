@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Services Health Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="health-style.css">
+</head>
+<body>
+    <div id="floating-buttons">
+        <button id="refresh-button" title="Refresh">↻</button>
+        <a href="index.html" title="Back to Weather Dashboard">
+            <button id="back-button">📊</button>
+        </a>
+    </div>
+
+    <div id="health-dashboard" class="view">
+        <div class="header">
+            <h1>Services Health Dashboard</h1>
+            <div id="last-update">Last updated: --</div>
+        </div>
+
+        <!-- Prometheus Services Section (placeholder for future) -->
+        <div class="health-section" id="prometheus-section" style="display: none;">
+            <h2>Prometheus Services</h2>
+            <div class="service-health-container">
+                <!-- Future Prometheus service monitoring will go here -->
+            </div>
+        </div>
+
+        <!-- System Overview -->
+        <div class="health-section">
+            <h2>System Overview</h2>
+            <div class="overview-grid">
+                <div class="overview-item">
+                    <span class="overview-label">Total Services</span>
+                    <span class="overview-value" id="total-services">4</span>
+                </div>
+                <div class="overview-item">
+                    <span class="overview-label">Healthy Services</span>
+                    <span class="overview-value" id="healthy-services">--</span>
+                </div>
+                <div class="overview-item">
+                    <span class="overview-label">Warning Services</span>
+                    <span class="overview-value" id="warning-services">--</span>
+                </div>
+                <div class="overview-item">
+                    <span class="overview-label">Critical Services</span>
+                    <span class="overview-value" id="critical-services">--</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Alert Log Section -->
+        <div class="health-section">
+            <h2>Recent Alerts</h2>
+            <div id="alerts-container">
+                <div class="alert-item">
+                    <span class="alert-time">--</span>
+                    <span class="alert-service">--</span>
+                    <span class="alert-message">Waiting for data...</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Weather Stations Section -->
+        <div class="health-section">
+            <h2>Weather Stations</h2>
+
+            <!-- Vayrac Station -->
+            <div class="station-health" id="vayrac-health">
+                <h3>🏠 Vayrac Station (IVAYRA1)</h3>
+                <div class="health-grid">
+                    <div class="health-item">
+                        <span class="health-label">Status</span>
+                        <span class="health-status" id="vayrac-status">--</span>
+                    </div>
+                    <div class="health-item">
+                        <span class="health-label">Last Fetch</span>
+                        <span class="health-value" id="vayrac-last-fetch">--</span>
+                    </div>
+                    <div class="health-item">
+                        <span class="health-label">Fetch Duration</span>
+                        <span class="health-value" id="vayrac-duration">--</span>
+                    </div>
+                    <div class="health-item">
+                        <span class="health-label">Fetch Rate</span>
+                        <span class="health-value" id="vayrac-success-rate">--</span>
+                    </div>
+                    <div class="health-item">
+                        <span class="health-label">Station Data Age</span>
+                        <span class="health-value" id="vayrac-data-update">--</span>
+                    </div>
+                    <div class="health-item">
+                        <span class="health-label">Current Temperature</span>
+                        <span class="health-value" id="vayrac-current-temperature">--</span>
+                    </div>
+                    <div class="health-item">
+                        <span class="health-label">Data Age</span>
+                        <span class="health-value" id="vayrac-data-age">--</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cahors Station -->
+            <div class="station-health" id="cahors-health">
+                <h3>🌡️ Cahors Station (ICAHOR23)</h3>
+                <div class="health-grid">
+                    <div class="health-item">
+                        <span class="health-label">Status</span>
+                        <span class="health-status" id="cahors-status">--</span>
+                    </div>
+                    <div class="health-item">
+                        <span class="health-label">Last Fetch</span>
+                        <span class="health-value" id="cahors-last-fetch">--</span>
+                    </div>
+                    <div class="health-item">
+                        <span class="health-label">Fetch Duration</span>
+                        <span class="health-value" id="cahors-duration">--</span>
+                    </div>
+                    <div class="health-item">
+                        <span class="health-label">Fetch Rate</span>
+                        <span class="health-value" id="cahors-success-rate">--</span>
+                    </div>
+                    <div class="health-item">
+                        <span class="health-label">Station Data Age</span>
+                        <span class="health-value" id="cahors-data-update">--</span>
+                    </div>
+                    <div class="health-item">
+                        <span class="health-label">Current Temperature</span>
+                        <span class="health-value" id="cahors-current-temperature">--</span>
+                    </div>
+                    <div class="health-item">
+                        <span class="health-label">Data Age</span>
+                        <span class="health-value" id="cahors-data-age">--</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- River Flow Section -->
+        <div class="health-section">
+            <h2>River Flow Monitoring</h2>
+
+            <!-- Lot River -->
+            <div class="station-health" id="lot-health">
+                <h3>🌊 Lot River</h3>
+                <div class="health-grid">
+                    <div class="health-item">
+                        <span class="health-label">Status</span>
+                        <span class="health-status" id="lot-status">--</span>
+                    </div>
+                    <div class="health-item">
+                        <span class="health-label">Last Fetch</span>
+                        <span class="health-value" id="lot-last-fetch">--</span>
+                    </div>
+                    <div class="health-item">
+                        <span class="health-label">Fetch Duration</span>
+                        <span class="health-value" id="lot-duration">--</span>
+                    </div>
+                    <div class="health-item">
+                        <span class="health-label">Fetch Rate</span>
+                        <span class="health-value" id="lot-success-rate">--</span>
+                    </div>
+                    <div class="health-item">
+                        <span class="health-label">Flow Updated</span>
+                        <span class="health-value" id="lot-flow-change">--</span>
+                    </div>
+                    <div class="health-item">
+                        <span class="health-label">Current Flow</span>
+                        <span class="health-value" id="lot-river-flow">--</span>
+                    </div>
+                    <div class="health-item">
+                        <span class="health-label">Water Level</span>
+                        <span class="health-value" id="lot-river-height">--</span>
+                    </div>
+                    <div class="health-item">
+                        <span class="health-label">Data Age</span>
+                        <span class="health-value" id="lot-data-age">--</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dordogne River -->
+            <div class="station-health" id="dordogne-health">
+                <h3>🌊 Dordogne River</h3>
+                <div class="health-grid">
+                    <div class="health-item">
+                        <span class="health-label">Status</span>
+                        <span class="health-status" id="dordogne-status">--</span>
+                    </div>
+                    <div class="health-item">
+                        <span class="health-label">Last Fetch</span>
+                        <span class="health-value" id="dordogne-last-fetch">--</span>
+                    </div>
+                    <div class="health-item">
+                        <span class="health-label">Fetch Duration</span>
+                        <span class="health-value" id="dordogne-duration">--</span>
+                    </div>
+                    <div class="health-item">
+                        <span class="health-label">Fetch Rate</span>
+                        <span class="health-value" id="dordogne-success-rate">--</span>
+                    </div>
+                    <div class="health-item">
+                        <span class="health-label">Flow Updated</span>
+                        <span class="health-value" id="dordogne-flow-change">--</span>
+                    </div>
+                    <div class="health-item">
+                        <span class="health-label">Current Flow</span>
+                        <span class="health-value" id="dordogne-river-flow">--</span>
+                    </div>
+                    <div class="health-item">
+                        <span class="health-label">Water Level</span>
+                        <span class="health-value" id="dordogne-river-height">--</span>
+                    </div>
+                    <div class="health-item">
+                        <span class="health-label">Data Age</span>
+                        <span class="health-value" id="dordogne-data-age">--</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Health monitoring scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="health-script.js?v=20250103v16"></script>
+</body>
+</html>

@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Services Health Dashboard (Demo Mode)</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="health-style.css">
+</head>
+<body>
+    <div id="floating-buttons">
+        <button id="refresh-button" title="Refresh">↻</button>
+        <a href="index.html" title="Back to Weather Dashboard">
+            <button id="back-button">📊</button>
+        </a>
+        <a href="health.html" title="Real Health Dashboard">
+            <button id="real-button">🔧</button>
+        </a>
+    </div>
+
+    <div id="health-dashboard" class="view">
+        <div class="header">
+            <h1>Services Health Dashboard (DEMO MODE)</h1>
+            <div id="last-update">Demo data - showing mock health status</div>
+        </div>
+
+        <!-- Weather Stations Section -->
+        <div class="health-section">
+            <h2>Weather Stations</h2>
+
+            <!-- Vayrac Station -->
+            <div class="station-health healthy" id="vayrac-health">
+                <h3>🏠 Vayrac Station (IVAYRA1)</h3>
+                <div class="health-grid">
+                    <div class="health-item">
+                        <span class="health-label">Status</span>
+                        <span class="health-status healthy">HEALTHY</span>
+                    </div>
+                    <div class="health-item">
+                        <span class="health-label">Last Fetch</span>
+                        <span class="health-value">2m ago</span>
+                    </div>
+                    <div class="health-item">
+                        <span class="health-label">Fetch Duration</span>
+                        <span class="health-value">1.23s</span>
+                    </div>
+                    <div class="health-item">
+                        <span class="health-label">Fetch Rate</span>
+                        <span class="health-value">60/hour</span>
+                    </div>
+                    <div class="health-item">
+                        <span class="health-label">Station Data Age</span>
+                        <span class="health-value">5m 30s</span>
+                    </div>
+                    <div class="health-item">
+                        <span class="health-label">Current Temperature</span>
+                        <span class="health-value">18.3°C</span>
+                    </div>
+                    <div class="health-item">
+                        <span class="health-label">Data Age</span>
+                        <span class="health-value fresh">135s</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cahors Station -->
+            <div class="station-health warning" id="cahors-health">
+                <h3>🌡️ Cahors Station (ICAHOR23)</h3>
+                <div class="health-grid">
+                    <div class="health-item">
+                        <span class="health-label">Status</span>
+                        <span class="health-status warning">WARNING</span>
+                    </div>
+                    <div class="health-item">
+                        <span class="health-label">Last Fetch</span>
+                        <span class="health-value">2m ago</span>
+                    </div>
+                    <div class="health-item">
+                        <span class="health-label">Fetch Duration</span>
+                        <span class="health-value">1.56s</span>
+                    </div>
+                    <div class="health-item">
+                        <span class="health-label">Fetch Rate</span>
+                        <span class="health-value">58/hour</span>
+                    </div>
+                    <div class="health-item">
+                        <span class="health-label">Station Data Age</span>
+                        <span class="health-value">7m 15s</span>
+                    </div>
+                    <div class="health-item">
+                        <span class="health-label">Current Temperature</span>
+                        <span class="health-value">21.7°C</span>
+                    </div>
+                    <div class="health-item">
+                        <span class="health-label">Data Age</span>
+                        <span class="health-value stale">120s</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- River Flow Section -->
+        <div class="health-section">
+            <h2>River Flow Monitoring</h2>
+
+            <!-- Lot River -->
+            <div class="station-health healthy" id="lot-health">
+                <h3>🌊 Lot River</h3>
+                <div class="health-grid">
+                    <div class="health-item">
+                        <span class="health-label">Status</span>
+                        <span class="health-status healthy">HEALTHY</span>
+                    </div>
+                    <div class="health-item">
+                        <span class="health-label">Last Fetch</span>
+                        <span class="health-value">3m ago</span>
+                    </div>
+                    <div class="health-item">
+                        <span class="health-label">Fetch Duration</span>
+                        <span class="health-value">2.11s</span>
+                    </div>
+                    <div class="health-item">
+                        <span class="health-label">Fetch Rate</span>
+                        <span class="health-value">12/hour</span>
+                    </div>
+                    <div class="health-item">
+                        <span class="health-label">Flow Updated</span>
+                        <span class="health-value">12m ago</span>
+                    </div>
+                    <div class="health-item">
+                        <span class="health-label">Current Flow</span>
+                        <span class="health-value">15.68 m³/s</span>
+                    </div>
+                    <div class="health-item">
+                        <span class="health-label">Water Level</span>
+                        <span class="health-value">2.45 m</span>
+                    </div>
+                    <div class="health-item">
+                        <span class="health-label">Data Age</span>
+                        <span class="health-value fresh">201s</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dordogne River -->
+            <div class="station-health critical" id="dordogne-health">
+                <h3>🌊 Dordogne River</h3>
+                <div class="health-grid">
+                    <div class="health-item">
+                        <span class="health-label">Status</span>
+                        <span class="health-status critical">CRITICAL</span>
+                    </div>
+                    <div class="health-item">
+                        <span class="health-label">Last Fetch</span>
+                        <span class="health-value">45m ago</span>
+                    </div>
+                    <div class="health-item">
+                        <span class="health-label">Fetch Duration</span>
+                        <span class="health-value">Timeout</span>
+                    </div>
+                    <div class="health-item">
+                        <span class="health-label">Fetch Rate</span>
+                        <span class="health-value">0/hour</span>
+                    </div>
+                    <div class="health-item">
+                        <span class="health-label">Flow Updated</span>
+                        <span class="health-value">1h ago</span>
+                    </div>
+                    <div class="health-item">
+                        <span class="health-label">Current Flow</span>
+                        <span class="health-value">No data</span>
+                    </div>
+                    <div class="health-item">
+                        <span class="health-label">Water Level</span>
+                        <span class="health-value">No data</span>
+                    </div>
+                    <div class="health-item">
+                        <span class="health-label">Data Age</span>
+                        <span class="health-value old">2712s</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- System Overview -->
+        <div class="health-section">
+            <h2>System Overview</h2>
+            <div class="overview-grid">
+                <div class="overview-item">
+                    <span class="overview-label">Total Services</span>
+                    <span class="overview-value">4</span>
+                </div>
+                <div class="overview-item healthy">
+                    <span class="overview-label">Healthy Services</span>
+                    <span class="overview-value">2</span>
+                </div>
+                <div class="overview-item warning">
+                    <span class="overview-label">Warning Services</span>
+                    <span class="overview-value">1</span>
+                </div>
+                <div class="overview-item critical">
+                    <span class="overview-label">Critical Services</span>
+                    <span class="overview-value">1</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Alert Log Section -->
+        <div class="health-section">
+            <h2>Recent Alerts</h2>
+            <div id="alerts-container">
+                <div class="alert-item critical">
+                    <span class="alert-time">14:32:15</span>
+                    <span class="alert-service">river-dordogne</span>
+                    <span class="alert-message">Dordogne: CRITICAL - data fetch very old (45m), flow unchanged for 6h 20m</span>
+                </div>
+                <div class="alert-item warning">
+                    <span class="alert-time">14:28:42</span>
+                    <span class="alert-service">weather-cahors</span>
+                    <span class="alert-message">Cahors: WARNING - station data stale (7m 15s)</span>
+                </div>
+                <div class="alert-item warning">
+                    <span class="alert-time">14:25:11</span>
+                    <span class="alert-service">weather-vayrac</span>
+                    <span class="alert-message">Vayrac: WARNING - data fetch stale (6m 30s)</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Simple demo mode script
+        document.getElementById('refresh-button').addEventListener('click', function() {
+            alert('This is demo mode. Click the 🔧 button to access the real health dashboard.');
+        });
+
+        // Update timestamp every second
+        setInterval(() => {
+            document.getElementById('last-update').textContent =
+                'Demo data - Last update: ' + new Date().toLocaleTimeString();
+        }, 1000);
+    </script>
+</body>
+</html>
