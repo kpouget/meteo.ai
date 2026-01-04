@@ -47,6 +47,10 @@ The health dashboard provides real-time monitoring of:
 - **successful_requests_total{river_name="..."}**: Total successful requests
 - **flow_last_change{river_name="..."}**: When flow rate last changed
 
+Each river section includes a direct link to the official Vigicrue monitoring page:
+- **Lot River**: Station O823153002 (https://www.vigicrues.gouv.fr/station/O823153002)
+- **Dordogne River**: Station P207002002 (https://www.vigicrues.gouv.fr/station/P207002002)
+
 ## Health Status Logic
 
 ### Status Levels

@@ -398,3 +398,18 @@
     color: inherit;
 }
 
+/* Vigicrue links in river section headers */
+.station-health h3 a {
+    color: #3498db;
+    text-decoration: none;
+    font-weight: normal;
+    opacity: 0.8;
+    transition: all 0.2s ease;
+}
+
+.station-health h3 a:hover {
+    opacity: 1;
+    color: #2980b9;
+    text-decoration: underline;
+}
+
