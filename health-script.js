@@ -23,11 +23,21 @@ const HEALTH_METRICS = {
     rivers: {
         lot: {
             river_name: 'Lot',
-            display_name: 'Lot'
+            station: 'Cahors',
+            station_id: 'O823153002',
+            display_name: 'Lot (Cahors)'
         },
         dordogne: {
             river_name: 'Dordogne',
-            display_name: 'Dordogne'
+            station: 'Souillac',
+            station_id: 'P230001001',
+            display_name: 'Dordogne (Souillac)'
+        },
+        dordogne_carennac: {
+            river_name: 'Dordogne',
+            station: 'Carennac',
+            station_id: 'P207002002',
+            display_name: 'Dordogne (Carennac)'
         }
     }
 };
@@ -90,7 +100,9 @@ async function checkHealthMetricsAvailable() {
         'river_last_fetch_time',
         'river_last_fetch_duration',
         'river_successful_requests_total',
-        'river_data_last_change'
+        'river_data_last_change',
+        'river_flow',
+        'river_height'
     ];
 
     for (const metric of testQueries) {
@@ -141,7 +153,7 @@ function updateLastUpdateTime() {
 function showLoadingStatus() {
     // Update all status elements to show "LOADING"
     const statusElements = [
-        'vayrac-status', 'cahors-status', 'lot-status', 'dordogne-status'
+        'vayrac-status', 'cahors-status', 'lot-status', 'dordogne-status', 'dordogne_carennac-status'
     ];
 
     statusElements.forEach(id => {
@@ -247,12 +259,12 @@ async function fetchRiverStationHealth(riverKey, river) {
 
         // Fetch river health metrics
         const queries = [
-            { name: 'last_fetch_time', query: `river_last_fetch_time{name="${river.river_name}"}` },
-            { name: 'last_fetch_duration', query: `river_last_fetch_duration{name="${river.river_name}"}` },
-            { name: 'requests_rate_per_hour', query: `rate(river_successful_requests_total{name="${river.river_name}"}[30m]) * 3600` },
-            { name: 'flow_last_change', query: `river_data_last_change{name="${river.river_name}"}` },
-            { name: 'river_flow', query: `river_flow{name="${river.river_name}"}` },
-            { name: 'river_height', query: `river_height{name="${river.river_name}"}` }
+            { name: 'last_fetch_time', query: `river_last_fetch_time{river="${river.river_name}",station="${river.station}"}` },
+            { name: 'last_fetch_duration', query: `river_last_fetch_duration{river="${river.river_name}",station="${river.station}"}` },
+            { name: 'requests_rate_per_hour', query: `rate(river_successful_requests_total{river="${river.river_name}",station="${river.station}"}[30m]) * 3600` },
+            { name: 'flow_last_change', query: `river_data_last_change{river="${river.river_name}",station="${river.station}"}` },
+            { name: 'river_flow', query: `river_flow{river="${river.river_name}",station="${river.station}"}` },
+            { name: 'river_height', query: `river_height{river="${river.river_name}",station="${river.station}"}` }
         ];
 
         for (const metric of queries) {
@@ -268,10 +280,10 @@ async function fetchRiverStationHealth(riverKey, river) {
         // Calculate health status
         const health = calculateRiverHealth(metrics);
         health.queries = {
-            last_fetch_time: generatePrometheusQuery('river_last_fetch_time', { name: river.river_name }),
-            last_fetch_duration: generatePrometheusQuery('river_last_fetch_duration', { name: river.river_name }),
-            requests_rate_per_hour: `rate(river_successful_requests_total{name="${river.river_name}"}[30m]) * 3600`,
-            flow_last_change: generatePrometheusQuery('river_data_last_change', { name: river.river_name })
+            last_fetch_time: generatePrometheusQuery('river_last_fetch_time', { river: river.river_name, station: river.station }),
+            last_fetch_duration: generatePrometheusQuery('river_last_fetch_duration', { river: river.river_name, station: river.station }),
+            requests_rate_per_hour: `rate(river_successful_requests_total{river="${river.river_name}",station="${river.station}"}[30m]) * 3600`,
+            flow_last_change: generatePrometheusQuery('river_data_last_change', { river: river.river_name, station: river.station })
         };
 
         healthData.rivers[riverKey] = health;
@@ -489,9 +501,9 @@ function updateRiverStationUI(riverKey, health) {
     updateElementWithLink(`${prefix}-flow-change`, health.calculated?.flowChange || 'Error',
                          health.queries?.flow_last_change);
     updateElementWithLink(`${prefix}-river-flow`, health.calculated?.riverFlow || 'Error',
-                         generatePrometheusQuery('river_flow', { name: HEALTH_METRICS.rivers[riverKey]?.river_name }));
+                         generatePrometheusQuery('river_flow', { river: HEALTH_METRICS.rivers[riverKey]?.river_name, station: HEALTH_METRICS.rivers[riverKey]?.station }));
     updateElementWithLink(`${prefix}-river-height`, health.calculated?.riverHeight || 'Error',
-                         generatePrometheusQuery('river_height', { name: HEALTH_METRICS.rivers[riverKey]?.river_name }));
+                         generatePrometheusQuery('river_height', { river: HEALTH_METRICS.rivers[riverKey]?.river_name, station: HEALTH_METRICS.rivers[riverKey]?.station }));
     updateElement(`${prefix}-data-age`, health.calculated?.dataAgeFormatted || 'Error');
 }
 

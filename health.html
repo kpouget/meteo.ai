@@ -35,7 +35,7 @@
             <div class="overview-grid">
                 <div class="overview-item">
                     <span class="overview-label">Total Services</span>
-                    <span class="overview-value" id="total-services">4</span>
+                    <span class="overview-value" id="total-services">5</span>
                 </div>
                 <div class="overview-item">
                     <span class="overview-label">Healthy Services</span>
@@ -70,7 +70,9 @@
 
             <!-- Vayrac Station -->
             <div class="station-health" id="vayrac-health">
-                <h3>🏠 Vayrac Station (IVAYRA1)</h3>
+                <h3>🏠 Vayrac Station (IVAYRA1)
+                    <a href="https://www.wunderground.com/dashboard/pws/IVAYRA1" target="_blank" title="View on Wunderground" style="font-size: 0.8em; margin-left: 10px; text-decoration: none;">🌤️ Wunderground</a>
+                </h3>
                 <div class="health-grid">
                     <div class="health-item">
                         <span class="health-label">Status</span>
@@ -105,7 +107,9 @@
 
             <!-- Cahors Station -->
             <div class="station-health" id="cahors-health">
-                <h3>🌡️ Cahors Station (ICAHOR23)</h3>
+                <h3>🌡️ Cahors Station (ICAHOR23)
+                    <a href="https://www.wunderground.com/dashboard/pws/ICAHOR23" target="_blank" title="View on Wunderground" style="font-size: 0.8em; margin-left: 10px; text-decoration: none;">🌤️ Wunderground</a>
+                </h3>
                 <div class="health-grid">
                     <div class="health-item">
                         <span class="health-label">Status</span>
@@ -145,7 +149,7 @@
 
             <!-- Lot River -->
             <div class="station-health" id="lot-health">
-                <h3>🌊 Lot River
+                <h3>🌊 Lot River (Cahors)
                     <a href="https://www.vigicrues.gouv.fr/station/O823153002" target="_blank" title="View on Vigicrue" style="font-size: 0.8em; margin-left: 10px; text-decoration: none;">📊 Vigicrue</a>
                 </h3>
                 <div class="health-grid">
@@ -186,8 +190,8 @@
 
             <!-- Dordogne River -->
             <div class="station-health" id="dordogne-health">
-                <h3>🌊 Dordogne River
-                    <a href="https://www.vigicrues.gouv.fr/station/P207002002" target="_blank" title="View on Vigicrue" style="font-size: 0.8em; margin-left: 10px; text-decoration: none;">📊 Vigicrue</a>
+                <h3>🌊 Dordogne River (Souillac)
+                    <a href="https://www.vigicrues.gouv.fr/station/P230001001" target="_blank" title="View on Vigicrue" style="font-size: 0.8em; margin-left: 10px; text-decoration: none;">📊 Vigicrue</a>
                 </h3>
                 <div class="health-grid">
                     <div class="health-item">
@@ -224,11 +228,52 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Dordogne River Carennac -->
+            <div class="station-health" id="dordogne_carennac-health">
+                <h3>🌊 Dordogne River (Carennac)
+                    <a href="https://www.vigicrues.gouv.fr/station/P207002002" target="_blank" title="View on Vigicrue" style="font-size: 0.8em; margin-left: 10px; text-decoration: none;">📊 Vigicrue</a>
+                </h3>
+                <div class="health-grid">
+                    <div class="health-item">
+                        <span class="health-label">Status</span>
+                        <span class="health-status" id="dordogne_carennac-status">--</span>
+                    </div>
+                    <div class="health-item">
+                        <span class="health-label">Last Fetch</span>
+                        <span class="health-value" id="dordogne_carennac-last-fetch">--</span>
+                    </div>
+                    <div class="health-item">
+                        <span class="health-label">Fetch Duration</span>
+                        <span class="health-value" id="dordogne_carennac-duration">--</span>
+                    </div>
+                    <div class="health-item">
+                        <span class="health-label">Fetch Rate</span>
+                        <span class="health-value" id="dordogne_carennac-success-rate">--</span>
+                    </div>
+                    <div class="health-item">
+                        <span class="health-label">Flow Updated</span>
+                        <span class="health-value" id="dordogne_carennac-flow-change">--</span>
+                    </div>
+                    <div class="health-item">
+                        <span class="health-label">Current Flow</span>
+                        <span class="health-value" id="dordogne_carennac-river-flow">--</span>
+                    </div>
+                    <div class="health-item">
+                        <span class="health-label">Water Level</span>
+                        <span class="health-value" id="dordogne_carennac-river-height">--</span>
+                    </div>
+                    <div class="health-item">
+                        <span class="health-label">Data Age</span>
+                        <span class="health-value" id="dordogne_carennac-data-age">--</span>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
     <!-- Health monitoring scripts -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="health-script.js?v=20250103v17"></script>
+    <script src="health-script.js?v=20250103v21"></script>
 </body>
 </html>

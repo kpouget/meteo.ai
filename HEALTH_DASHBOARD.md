@@ -6,7 +6,7 @@ A comprehensive monitoring dashboard for weather station and river flow exporter
 
 The health dashboard provides real-time monitoring of:
 - **Weather Stations**: Vayrac (IVAYRA1) and Cahors (ICAHOR23)
-- **River Flow**: Lot and Dordogne rivers
+- **River Flow**: Lot (Cahors), Dordogne (Souillac), and Dordogne (Carennac)
 - **System Overview**: Overall service health statistics
 - **Alerts**: Recent service issues and status changes
 
@@ -41,15 +41,40 @@ The health dashboard provides real-time monitoring of:
 - **successful_requests_total{station_id="..."}**: Total successful requests
 - **station_data_age{station_id="..."}**: Age of last data received from station (in seconds)
 
-### River Flow (Lot & Dordogne)
-- **last_fetch_time{river_name="..."}**: When data was last successfully retrieved
-- **last_fetch_duration{river_name="..."}**: How long the last API request took
-- **successful_requests_total{river_name="..."}**: Total successful requests
-- **flow_last_change{river_name="..."}**: When flow rate last changed
+**Monitored Stations:**
+- **Vayrac Station (IVAYRA1)**: https://www.wunderground.com/dashboard/pws/IVAYRA1
+- **Cahors Station (ICAHOR23)**: https://www.wunderground.com/dashboard/pws/ICAHOR23
 
-Each river section includes a direct link to the official Vigicrue monitoring page:
-- **Lot River**: Station O823153002 (https://www.vigicrues.gouv.fr/station/O823153002)
-- **Dordogne River**: Station P207002002 (https://www.vigicrues.gouv.fr/station/P207002002)
+Each weather station includes a direct link to the Wunderground dashboard.
+
+### River Flow (Lot & Dordogne)
+- **river_last_fetch_time{river="...",station="..."}**: When data was last successfully retrieved
+- **river_last_fetch_duration{river="...",station="..."}**: How long the last API request took
+- **river_successful_requests_total{river="...",station="..."}**: Total successful requests
+- **river_data_last_change{river="...",station="..."}**: When flow/height data last changed
+- **river_flow{river="...",station="...",station_id="..."}**: Current flow rate (m³/s)
+- **river_height{river="...",station="...",station_id="..."}**: Current water level (m)
+
+**Monitored Stations:**
+- **Lot River (Cahors)**: Station O823153002 (https://www.vigicrues.gouv.fr/station/O823153002)
+- **Dordogne River (Souillac)**: Station P230001001 (https://www.vigicrues.gouv.fr/station/P230001001)
+- **Dordogne River (Carennac)**: Station P207002002 (https://www.vigicrues.gouv.fr/station/P207002002)
+
+Each river section includes a direct link to the official Vigicrue monitoring page.
+
+## External Data Sources
+
+The dashboard provides quick access to official data sources for cross-validation:
+
+**Weather Stations:**
+- Direct links to Wunderground personal weather station dashboards
+- Real-time weather data, historical graphs, and current conditions
+- Useful for validating temperature readings and station status
+
+**River Monitoring:**
+- Direct links to Vigicrue official government monitoring stations
+- Official flow rates, water levels, and flood alerts
+- Authoritative source for river data validation
 
 ## Health Status Logic
 
@@ -96,7 +121,7 @@ Each service shows:
 - **Data Age**: How old the current data is
 
 #### System Overview
-- **Total Services**: Number of monitored services (4)
+- **Total Services**: Number of monitored services (5)
 - **Healthy Services**: Services in good state
 - **Warning Services**: Services with stale data
 - **Critical Services**: Services with very old data
@@ -156,10 +181,16 @@ successful_requests_total{station_id="IVAYRA1"} 1440
 station_data_age{station_id="IVAYRA1"} 330
 
 # River flow metrics
-last_fetch_time{river_name="Lot"} 1704067200
-last_fetch_duration{river_name="Lot"} 1.87
-successful_requests_total{river_name="Lot"} 288
-flow_last_change{river_name="Lot"} 1704066900
+river_last_fetch_time{river="Lot",station="Cahors"} 1704067200
+river_last_fetch_duration{river="Lot",station="Cahors"} 1.87
+river_successful_requests_total{river="Lot",station="Cahors"} 288
+river_data_last_change{river="Lot",station="Cahors"} 1704066900
+river_flow{river="Lot",station="Cahors",station_id="O823153002"} 317.5
+river_height{river="Lot",station="Cahors",station_id="O823153002"} 2.45
+
+# Dordogne stations
+river_flow{river="Dordogne",station="Souillac",station_id="P230001001"} 266.0
+river_flow{river="Dordogne",station="Carennac",station_id="P207002002"} 216.1
 ```
 
 ## Future Enhancements

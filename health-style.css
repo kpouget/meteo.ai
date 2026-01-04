@@ -398,7 +398,7 @@
     color: inherit;
 }
 
-/* Vigicrue links in river section headers */
+/* External links in station section headers (Vigicrue, Wunderground) */
 .station-health h3 a {
     color: #3498db;
     text-decoration: none;

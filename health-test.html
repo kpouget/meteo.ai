@@ -30,7 +30,9 @@
 
             <!-- Vayrac Station -->
             <div class="station-health healthy" id="vayrac-health">
-                <h3>🏠 Vayrac Station (IVAYRA1)</h3>
+                <h3>🏠 Vayrac Station (IVAYRA1)
+                    <a href="https://www.wunderground.com/dashboard/pws/IVAYRA1" target="_blank" title="View on Wunderground" style="font-size: 0.8em; margin-left: 10px; text-decoration: none;">🌤️ Wunderground</a>
+                </h3>
                 <div class="health-grid">
                     <div class="health-item">
                         <span class="health-label">Status</span>
@@ -65,7 +67,9 @@
 
             <!-- Cahors Station -->
             <div class="station-health warning" id="cahors-health">
-                <h3>🌡️ Cahors Station (ICAHOR23)</h3>
+                <h3>🌡️ Cahors Station (ICAHOR23)
+                    <a href="https://www.wunderground.com/dashboard/pws/ICAHOR23" target="_blank" title="View on Wunderground" style="font-size: 0.8em; margin-left: 10px; text-decoration: none;">🌤️ Wunderground</a>
+                </h3>
                 <div class="health-grid">
                     <div class="health-item">
                         <span class="health-label">Status</span>
@@ -105,7 +109,7 @@
 
             <!-- Lot River -->
             <div class="station-health healthy" id="lot-health">
-                <h3>🌊 Lot River
+                <h3>🌊 Lot River (Cahors)
                     <a href="https://www.vigicrues.gouv.fr/station/O823153002" target="_blank" title="View on Vigicrue" style="font-size: 0.8em; margin-left: 10px; text-decoration: none;">📊 Vigicrue</a>
                 </h3>
                 <div class="health-grid">
@@ -146,8 +150,8 @@
 
             <!-- Dordogne River -->
             <div class="station-health critical" id="dordogne-health">
-                <h3>🌊 Dordogne River
-                    <a href="https://www.vigicrues.gouv.fr/station/P207002002" target="_blank" title="View on Vigicrue" style="font-size: 0.8em; margin-left: 10px; text-decoration: none;">📊 Vigicrue</a>
+                <h3>🌊 Dordogne River (Souillac)
+                    <a href="https://www.vigicrues.gouv.fr/station/P230001001" target="_blank" title="View on Vigicrue" style="font-size: 0.8em; margin-left: 10px; text-decoration: none;">📊 Vigicrue</a>
                 </h3>
                 <div class="health-grid">
                     <div class="health-item">
@@ -184,6 +188,47 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Dordogne River Carennac -->
+            <div class="station-health warning" id="dordogne_carennac-health">
+                <h3>🌊 Dordogne River (Carennac)
+                    <a href="https://www.vigicrues.gouv.fr/station/P207002002" target="_blank" title="View on Vigicrue" style="font-size: 0.8em; margin-left: 10px; text-decoration: none;">📊 Vigicrue</a>
+                </h3>
+                <div class="health-grid">
+                    <div class="health-item">
+                        <span class="health-label">Status</span>
+                        <span class="health-status warning">WARNING</span>
+                    </div>
+                    <div class="health-item">
+                        <span class="health-label">Last Fetch</span>
+                        <span class="health-value">8m ago</span>
+                    </div>
+                    <div class="health-item">
+                        <span class="health-label">Fetch Duration</span>
+                        <span class="health-value">2.87s</span>
+                    </div>
+                    <div class="health-item">
+                        <span class="health-label">Fetch Rate</span>
+                        <span class="health-value">12/hour</span>
+                    </div>
+                    <div class="health-item">
+                        <span class="health-label">Flow Updated</span>
+                        <span class="health-value">6h ago</span>
+                    </div>
+                    <div class="health-item">
+                        <span class="health-label">Current Flow</span>
+                        <span class="health-value">216.1 m³/s</span>
+                    </div>
+                    <div class="health-item">
+                        <span class="health-label">Water Level</span>
+                        <span class="health-value">3.12 m</span>
+                    </div>
+                    <div class="health-item">
+                        <span class="health-label">Data Age</span>
+                        <span class="health-value stale">480s</span>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <!-- System Overview -->
@@ -192,7 +237,7 @@
             <div class="overview-grid">
                 <div class="overview-item">
                     <span class="overview-label">Total Services</span>
-                    <span class="overview-value">4</span>
+                    <span class="overview-value">5</span>
                 </div>
                 <div class="overview-item healthy">
                     <span class="overview-label">Healthy Services</span>
@@ -200,7 +245,7 @@
                 </div>
                 <div class="overview-item warning">
                     <span class="overview-label">Warning Services</span>
-                    <span class="overview-value">1</span>
+                    <span class="overview-value">2</span>
                 </div>
                 <div class="overview-item critical">
                     <span class="overview-label">Critical Services</span>
@@ -222,6 +267,11 @@
                     <span class="alert-time">14:28:42</span>
                     <span class="alert-service">weather-cahors</span>
                     <span class="alert-message">Cahors: WARNING - station data stale (7m 15s)</span>
+                </div>
+                <div class="alert-item warning">
+                    <span class="alert-time">14:27:33</span>
+                    <span class="alert-service">river-dordogne_carennac</span>
+                    <span class="alert-message">Dordogne (Carennac): WARNING - flow not updated for 6h</span>
                 </div>
                 <div class="alert-item warning">
                     <span class="alert-time">14:25:11</span>
