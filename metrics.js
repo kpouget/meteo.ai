@@ -189,9 +189,8 @@ var METRICS = {
     "river_lot": {
         "query": "avg_over_time(river_flow{LABELS}[10m])",
         "labels": {
-            "instance": "riverflow.972.ovh:443",
-            "job": "internet scraping",
-            "name": "Lot"
+            "river": "Lot",
+            "station": "Cahors"
         },
         "unit": "m&sup3;/s",
         "range": "7d"
@@ -199,9 +198,8 @@ var METRICS = {
     "river_dordogne": {
         "query": "avg_over_time(river_flow{LABELS}[10m])",
         "labels": {
-            "instance": "riverflow.972.ovh:443",
-            "job": "internet scraping",
-            "name": "Dordogne"
+            "river": "Dordogne",
+            "station": "Carennac"
         },
         "unit": "m&sup3;/s",
         "range": "7d"
