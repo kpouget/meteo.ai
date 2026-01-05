@@ -412,6 +412,84 @@ function getStatsForCurrentStation() {
     return null;
 }
 
+function fetch24hTemperatureStats(callback) {
+    var station = getCurrentStation();
+    if (!station) {
+        callback(null);
+        return;
+    }
+
+    // Query for 24-hour min and max temperature
+    var baseLabels = {
+        "instance": "wunderground.972.ovh:443",
+        "job": "internet scraping",
+        "mode": "actual",
+        "station_id": station.station_id
+    };
+
+    var minQuery = processQuery('min_over_time(temperature{LABELS}[24h])', baseLabels);
+    var maxQuery = processQuery('max_over_time(temperature{LABELS}[24h])', baseLabels);
+
+    var urls = [
+        PROMETHEUS_URL + '?query=' + encodeURIComponent(minQuery),
+        PROMETHEUS_URL + '?query=' + encodeURIComponent(maxQuery)
+    ];
+
+    var results = [];
+    var completedRequests = 0;
+
+    var handleResponse = function(index, xhr) {
+        if (xhr.readyState === 4) {
+            if (xhr.status === 200) {
+                try {
+                    var data = JSON.parse(xhr.responseText);
+                    if (data.status === 'success' && data.data.result.length > 0) {
+                        results[index] = parseFloat(data.data.result[0].value[1]);
+                    } else {
+                        results[index] = null;
+                    }
+                } catch (error) {
+                    console.error('Error parsing 24h temperature data:', error);
+                    results[index] = null;
+                }
+            } else {
+                console.error('Error fetching 24h temperature data:', xhr.status, xhr.statusText);
+                results[index] = null;
+            }
+            completedRequests++;
+            if (completedRequests === urls.length) {
+                if (results[0] !== null && results[1] !== null) {
+                    callback({
+                        min24h: results[0],
+                        max24h: results[1]
+                    });
+                } else {
+                    callback(null);
+                }
+            }
+        }
+    };
+
+    for (var i = 0; i < urls.length; i++) {
+        (function(index) {
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', urls[index], true);
+            xhr.onreadystatechange = function() {
+                handleResponse(index, xhr);
+            };
+            xhr.onerror = function() {
+                console.error('Network error fetching 24h temperature data');
+                results[index] = null;
+                completedRequests++;
+                if (completedRequests === urls.length) {
+                    callback(null);
+                }
+            };
+            xhr.send();
+        })(i);
+    }
+}
+
 function updateStaticUI() {
     var stats = getStatsForCurrentStation();
     if (!stats) {
@@ -451,23 +529,59 @@ function updateStaticUI() {
             } else { // For subtitle metrics
                 var subtitleElement = desktopElement.querySelector('.subtitle');
                 if (subtitleElement) {
-                    var subtitleText = '';
-                    if (stat.max !== undefined) {
-                        if (stat.min !== undefined && Math.abs(stat.min) >= 1) {
-                            // Show range when min absolute value is >= 1 (works for negative temps)
-                            subtitleText = stat.min + '..' + stat.max;
-                        } else if (stat.min !== undefined) {
-                            // Show range for small positive values or when min is very close to 0
-                            subtitleText = stat.min + '..' + stat.max;
-                        } else {
-                            // Show only max when min is undefined
-                            subtitleText = '' + stat.max;
+                    if (metric === 'temperature_ext') {
+                        // Special handling for temperature_ext with 24h data
+                        fetch24hTemperatureStats(function(temp24h) {
+                            var subtitleText = '';
+                            if (stat.max !== undefined) {
+                                var finalMin, finalMax;
+
+                                if (temp24h) {
+                                    // Use min(STATS.temp.min, temp[24h]) and max(STATS.temp.max, temp[24h])
+                                    finalMin = Math.min(stat.min, temp24h.min24h);
+                                    finalMax = Math.max(stat.max, temp24h.max24h);
+                                } else {
+                                    // Fallback to stats values if 24h fetch fails
+                                    finalMin = stat.min;
+                                    finalMax = stat.max;
+                                }
+
+                                if (finalMin !== undefined && Math.abs(finalMin) >= 1) {
+                                    // Show range when min absolute value is >= 1 (works for negative temps)
+                                    subtitleText = Math.round(finalMin) + '..' + Math.round(finalMax);
+                                } else if (finalMin !== undefined) {
+                                    // Show range for small positive values or when min is very close to 0
+                                    subtitleText = Math.round(finalMin) + '..' + Math.round(finalMax);
+                                } else {
+                                    // Show only max when min is undefined
+                                    subtitleText = '' + Math.round(finalMax);
+                                }
+                                if (stat.unit) {
+                                    subtitleText += ' ' + stat.unit + ' (24h+7j)';
+                                }
+                            }
+                            subtitleElement.textContent = subtitleText;
+                        });
+                    } else {
+                        // Regular subtitle handling for non-temperature metrics
+                        var subtitleText = '';
+                        if (stat.max !== undefined) {
+                            if (stat.min !== undefined && Math.abs(stat.min) >= 1) {
+                                // Show range when min absolute value is >= 1 (works for negative temps)
+                                subtitleText = stat.min + '..' + stat.max;
+                            } else if (stat.min !== undefined) {
+                                // Show range for small positive values or when min is very close to 0
+                                subtitleText = stat.min + '..' + stat.max;
+                            } else {
+                                // Show only max when min is undefined
+                                subtitleText = '' + stat.max;
+                            }
+                            if (stat.unit) {
+                                subtitleText += ' ' + stat.unit + ' (7j)';
+                            }
                         }
-                        if (stat.unit) {
-                            subtitleText += ' ' + stat.unit + ' (7j)';
-                        }
+                        subtitleElement.textContent = subtitleText;
                     }
-                    subtitleElement.textContent = subtitleText;
                 }
             }
         }
