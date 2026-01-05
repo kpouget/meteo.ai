@@ -528,22 +528,23 @@ function updateStaticUI() {
 
             } else { // For subtitle metrics
                 var subtitleElement = desktopElement.querySelector('.subtitle');
-                if (subtitleElement) {
-                    if (metric === 'temperature_ext') {
-                        // Special handling for temperature_ext with 24h data
+                if (subtitleElement && metric === 'temperature_ext') {
+                    // Special handling for temperature_ext with 24h data
+                    // Capture the element in closure scope to avoid async reference issues
+                    (function(tempElement, tempStat) {
                         fetch24hTemperatureStats(function(temp24h) {
                             var subtitleText = '';
-                            if (stat.max !== undefined) {
+                            if (tempStat.max !== undefined) {
                                 var finalMin, finalMax;
 
                                 if (temp24h) {
                                     // Use min(STATS.temp.min, temp[24h]) and max(STATS.temp.max, temp[24h])
-                                    finalMin = Math.min(stat.min, temp24h.min24h);
-                                    finalMax = Math.max(stat.max, temp24h.max24h);
+                                    finalMin = Math.min(tempStat.min, temp24h.min24h);
+                                    finalMax = Math.max(tempStat.max, temp24h.max24h);
                                 } else {
                                     // Fallback to stats values if 24h fetch fails
-                                    finalMin = stat.min;
-                                    finalMax = stat.max;
+                                    finalMin = tempStat.min;
+                                    finalMax = tempStat.max;
                                 }
 
                                 if (finalMin !== undefined && Math.abs(finalMin) >= 1) {
@@ -556,32 +557,32 @@ function updateStaticUI() {
                                     // Show only max when min is undefined
                                     subtitleText = '' + Math.round(finalMax);
                                 }
-                                if (stat.unit) {
-                                    subtitleText += ' ' + stat.unit + ' (24h+7j)';
+                                if (tempStat.unit) {
+                                    subtitleText += ' ' + tempStat.unit + ' (24h+7j)';
                                 }
                             }
-                            subtitleElement.textContent = subtitleText;
+                            tempElement.textContent = subtitleText;
                         });
-                    } else {
-                        // Regular subtitle handling for non-temperature metrics
-                        var subtitleText = '';
-                        if (stat.max !== undefined) {
-                            if (stat.min !== undefined && Math.abs(stat.min) >= 1) {
-                                // Show range when min absolute value is >= 1 (works for negative temps)
-                                subtitleText = stat.min + '..' + stat.max;
-                            } else if (stat.min !== undefined) {
-                                // Show range for small positive values or when min is very close to 0
-                                subtitleText = stat.min + '..' + stat.max;
-                            } else {
-                                // Show only max when min is undefined
-                                subtitleText = '' + stat.max;
-                            }
-                            if (stat.unit) {
-                                subtitleText += ' ' + stat.unit + ' (7j)';
-                            }
+                    })(subtitleElement, stat);
+                } else if (subtitleElement) {
+                    // Regular subtitle handling for non-temperature metrics
+                    var subtitleText = '';
+                    if (stat.max !== undefined) {
+                        if (stat.min !== undefined && Math.abs(stat.min) >= 1) {
+                            // Show range when min absolute value is >= 1 (works for negative temps)
+                            subtitleText = stat.min + '..' + stat.max;
+                        } else if (stat.min !== undefined) {
+                            // Show range for small positive values or when min is very close to 0
+                            subtitleText = stat.min + '..' + stat.max;
+                        } else {
+                            // Show only max when min is undefined
+                            subtitleText = '' + stat.max;
                         }
-                        subtitleElement.textContent = subtitleText;
+                        if (stat.unit) {
+                            subtitleText += ' ' + stat.unit + ' (7j)';
+                        }
                     }
+                    subtitleElement.textContent = subtitleText;
                 }
             }
         }
