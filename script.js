@@ -1220,8 +1220,14 @@ function fetchRiversData(callback) {
         riversConfig = [
             { riverName: 'Dordogne', stationName: 'Carennac', displayName: 'dordogne' }
         ];
+    } else if (currentStation === 'cahors') {
+        // For Cahors station, show both rivers with Dordogne at Souillac
+        riversConfig = [
+            { riverName: 'Lot', stationName: 'Cahors', displayName: 'lot' },
+            { riverName: 'Dordogne', stationName: 'Souillac', displayName: 'dordogne' }
+        ];
     } else {
-        // For other stations, show both rivers
+        // For other stations, show both rivers with Dordogne at Carennac
         riversConfig = [
             { riverName: 'Lot', stationName: 'Cahors', displayName: 'lot' },
             { riverName: 'Dordogne', stationName: 'Carennac', displayName: 'dordogne' }
