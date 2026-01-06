@@ -18,6 +18,30 @@ const HEALTH_METRICS = {
         cahors: {
             station_id: 'ICAHOR23',
             display_name: 'Cahors'
+        },
+        coublevie: {
+            station_id: 'ICOUBL3',
+            display_name: 'Coublevie'
+        },
+        revel: {
+            station_id: 'IREVEL54',
+            display_name: 'Revel'
+        },
+        pamplona: {
+            station_id: 'IPAMPL52',
+            display_name: 'Pamplona'
+        },
+        mandeli: {
+            station_id: 'IMANDELI41',
+            display_name: 'Mandeli'
+        },
+        eastboston: {
+            station_id: 'KMAEASTB68',
+            display_name: 'East Boston'
+        },
+        tokyo: {
+            station_id: 'ITOKYO63',
+            display_name: 'Tokyo'
         }
     },
     rivers: {
@@ -153,7 +177,9 @@ function updateLastUpdateTime() {
 function showLoadingStatus() {
     // Update all status elements to show "LOADING"
     const statusElements = [
-        'vayrac-status', 'cahors-status', 'lot-status', 'dordogne-status', 'dordogne_carennac-status'
+        'vayrac-status', 'cahors-status', 'coublevie-status', 'revel-status',
+        'pamplona-status', 'mandeli-status', 'eastboston-status', 'tokyo-status',
+        'lot-status', 'dordogne-status', 'dordogne_carennac-status'
     ];
 
     statusElements.forEach(id => {
