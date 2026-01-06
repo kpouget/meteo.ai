@@ -11,6 +11,7 @@ var PROMETHEUS_URL = 'https://prometheus.972.ovh/api/v1/query';
 
 // Chart instances for cleanup
 var chartInstances = {
+    temperature: null,
     pressure: null,
     rivers: null,
     pm: null
@@ -318,6 +319,12 @@ function updateUI() {
     }
 
     // Refresh the linear charts
+    fetchTemperatureData(function(temperatureData) {
+        if (temperatureData) {
+            renderTemperatureChart(temperatureData);
+        }
+    });
+
     fetchPressureData(function(pressureData) {
         if (pressureData) {
             renderPressureChart(pressureData);
@@ -1049,6 +1056,58 @@ function updateWindSummaryUIMonth(topCategories) {
     });
 }
 
+function fetchTemperatureData(callback) {
+    var end = new Date().getTime() / 1000;
+    var start = end - 48 * 60 * 60; // 48 hours
+    var step = 60 * 30; // 30 minutes
+
+    // Get temperature query from station-aware METRICS
+    var resolvedMetric = getMetricForStation('temperature_ext');
+    if (!resolvedMetric) {
+        callback(null);
+        return;
+    }
+    var temperatureQuery = processQuery(resolvedMetric.query, resolvedMetric.labels);
+
+    var url = PROMETHEUS_URL.replace('/query', '/query_range') + '?query=' + encodeURIComponent(temperatureQuery) + '&start=' + start + '&end=' + end + '&step=' + step;
+
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', url, true);
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState === 4) {
+            if (xhr.status === 200) {
+                try {
+                    var data = JSON.parse(xhr.responseText);
+                    if (data.status === 'success' && data.data.result.length > 0) {
+                        var values = data.data.result[0].values;
+                        var temperatureData = values.map(function(point) {
+                            return {
+                                time: point[0] * 1000, // Convert to milliseconds
+                                temperature: parseFloat(point[1])
+                            };
+                        });
+                        callback(temperatureData);
+                    } else {
+                        console.error('Error in Prometheus response for temperature data:', data);
+                        callback(null);
+                    }
+                } catch (error) {
+                    console.error('Error parsing response for temperature data:', error);
+                    callback(null);
+                }
+            } else {
+                console.error('Error fetching temperature data:', xhr.status, xhr.statusText);
+                callback(null);
+            }
+        }
+    };
+    xhr.onerror = function() {
+        console.error('Network error fetching temperature data. Check for CORS issues.');
+        callback(null);
+    };
+    xhr.send();
+}
+
 function fetchPressureData(callback) {
     var end = new Date().getTime() / 1000;
     var start = end - 48 * 60 * 60; // 48 hours
@@ -1530,6 +1589,89 @@ function getPressureColor(trend, intensity) {
                 background: 'rgba(46, 134, 171, ' + bgAlpha + ')'
             };
     }
+}
+
+function renderTemperatureChart(temperatureData) {
+    // Destroy existing chart if it exists
+    if (chartInstances.temperature) {
+        chartInstances.temperature.destroy();
+        chartInstances.temperature = null;
+    }
+
+    var canvas = document.getElementById('temperature-chart');
+    var ctx = canvas.getContext('2d');
+
+    var labels = temperatureData.map(function(point) {
+        var date = new Date(point.time);
+        return date.toLocaleDateString('fr-FR', { weekday: 'short', hour: '2-digit', minute: '2-digit' });
+    });
+
+    var temperatureValues = temperatureData.map(function(point) {
+        return point.temperature;
+    });
+
+    chartInstances.temperature = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Température (°C)',
+                data: temperatureValues,
+                borderColor: '#FF6B35',
+                backgroundColor: 'rgba(255, 107, 53, 0.1)',
+                borderWidth: 2,
+                fill: true,
+                tension: 0.3,
+                pointRadius: 0,
+                pointHoverRadius: 4,
+                pointHitRadius: 10
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                title: {
+                    display: false
+                },
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                x: {
+                    display: true,
+                    ticks: {
+                        maxTicksLimit: 4,
+                        font: {
+                            size: 10
+                        }
+                    }
+                },
+                y: {
+                    display: true,
+                    title: {
+                        display: false
+                    },
+                    ticks: {
+                        font: {
+                            size: 10
+                        }
+                    }
+                }
+            },
+            interaction: {
+                intersect: false,
+                mode: 'index'
+            }
+        }
+    });
+
+    canvas.addEventListener('click', function() {
+        var container = document.getElementById('temperature-chart-container');
+        container.classList.toggle('fullscreen');
+        chartInstances.temperature.resize();
+    });
 }
 
 function renderPressureChart(pressureData) {
@@ -2065,6 +2207,12 @@ function main() {
             var processedData = processWindData(windData);
             renderWindRoseChartMonth(processedData);
             updateWindSummaryUIMonth(processedData.topCategories);
+        }
+    });
+
+    fetchTemperatureData(function(temperatureData) {
+        if (temperatureData) {
+            renderTemperatureChart(temperatureData);
         }
     });
 
