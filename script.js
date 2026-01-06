@@ -36,6 +36,12 @@ function getMetricForStation(metricKey) {
         resolvedMetric.labels.station_id = station.station_id;
     }
 
+    // For Vayrac station, modify river_dordogne to use height instead of flow
+    if (metricKey === 'river_dordogne' && currentStation === 'vayrac') {
+        resolvedMetric.query = resolvedMetric.query.replace('river_flow', 'river_height');
+        resolvedMetric.unit = 'm';
+    }
+
     return resolvedMetric;
 }
 
@@ -57,6 +63,11 @@ function isMetricAvailableForStation(metricKey) {
     // For internal temperatures, only available for Cahors
     if (metricKey === 'temperature_int' || metricKey === 'temperature_e1_chauffage') {
         return currentStation === 'cahors';
+    }
+
+    // For Lot river, not available for Vayrac station
+    if (metricKey === 'river_lot') {
+        return currentStation !== 'vayrac';
     }
 
     return true;
@@ -117,6 +128,20 @@ function updateStationSpecificVisibility() {
     var maisonGroup = document.getElementById('maison-group');
     if (maisonGroup) {
         maisonGroup.style.display = (currentStation === 'cahors') ? 'block' : 'none';
+    }
+
+    // Hide/show river elements based on station (not needed anymore since we made river_lot unavailable for vayrac)
+    // Keeping this as backup in case CSS needs override
+
+    // Update Dordogne river label based on station
+    var dordogneRiverElement = document.getElementById('desktop-river-dordogne');
+    if (dordogneRiverElement) {
+        var labelElement = dordogneRiverElement.querySelector('.label');
+        if (labelElement && currentStation === 'vayrac') {
+            labelElement.textContent = 'Dordogne (Carennac)';
+        } else if (labelElement) {
+            labelElement.textContent = 'Dordogne';
+        }
     }
 
     // Hide/show metrics not available for current station
@@ -247,7 +272,10 @@ function updateUI() {
                         var unit = resolvedMetric.unit || '';
                         formattedValue = numericValue + unit + '<span class="dew-point-text">' + textValue + '</span>';
                     } else {
-                        if (metric.indexOf('rain_') === 0 || metric.indexOf('wind_') === 0 || metric.indexOf('river_') === 0 || metric === 'uv_idx' || metric.indexOf('pm') === 0 || metric.indexOf('temperature_') === 0 || metric.indexOf('humidity_') === 0 || metric === 'sun_rad') {
+                        // Special formatting for Dordogne height on Vayrac (2 decimal places)
+                        if (metric === 'river_dordogne' && currentStation === 'vayrac') {
+                            formattedValue = parseFloat(value).toFixed(2);
+                        } else if (metric.indexOf('rain_') === 0 || metric.indexOf('wind_') === 0 || metric.indexOf('river_') === 0 || metric === 'uv_idx' || metric.indexOf('pm') === 0 || metric.indexOf('temperature_') === 0 || metric.indexOf('humidity_') === 0 || metric === 'sun_rad') {
                             formattedValue = parseFloat(value).toFixed(0);
                         } else if (metric === 'pressure') {
                             formattedValue = parseFloat(value).toFixed(0);
@@ -567,7 +595,26 @@ function updateStaticUI() {
                 } else if (subtitleElement) {
                     // Regular subtitle handling for non-temperature metrics
                     var subtitleText = '';
-                    if (stat.max !== undefined) {
+
+                    // Special handling for Vayrac river metrics - show height instead of flow
+                    if (metric.indexOf('river_') === 0 && currentStation === 'vayrac') {
+                        var heightStatsKey = metric + '_height'; // river_dordogne -> river_dordogne_height
+                        var stats = getStatsForCurrentStation();
+                        var heightStats = stats ? stats[heightStatsKey] : null;
+
+                        if (heightStats && heightStats.min !== undefined && heightStats.max !== undefined) {
+                            // Format with 2 decimal places for height
+                            var minHeight = parseFloat(heightStats.min).toFixed(2);
+                            var maxHeight = parseFloat(heightStats.max).toFixed(2);
+                            subtitleText = minHeight + '..' + maxHeight;
+                            if (heightStats.unit) {
+                                subtitleText += ' ' + heightStats.unit + ' (7j)';
+                            }
+                        }
+                    }
+
+                    // Fallback to regular stat handling if not a river or no height data
+                    if (!subtitleText && stat.max !== undefined) {
                         if (stat.min !== undefined && Math.abs(stat.min) >= 1) {
                             // Show range when min absolute value is >= 1 (works for negative temps)
                             subtitleText = stat.min + '..' + stat.max;
@@ -582,6 +629,7 @@ function updateStaticUI() {
                             subtitleText += ' ' + stat.unit + ' (7j)';
                         }
                     }
+
                     subtitleElement.textContent = subtitleText;
                 }
             }
@@ -1053,97 +1101,147 @@ function fetchPressureData(callback) {
     xhr.send();
 }
 
-function fetchRiversData(callback) {
+// Generic function to fetch river data for any river/station combination
+function fetchRiverData(riverName, stationName, metricType, timeRange, callback) {
     var end = new Date().getTime() / 1000;
-    var start = end - 48 * 60 * 60; // 48 hours
+    var start = end - timeRange * 60 * 60; // timeRange in hours
     var step = 60 * 30; // 30 minutes
 
-    // Get river queries from station-aware METRICS
-    var lotMetric = getMetricForStation('river_lot');
-    var dordogneMetric = getMetricForStation('river_dordogne');
+    // Build query for the specific river and station
+    var metric = metricType || 'river_flow'; // default to flow, can also be 'river_height'
+    var query = `avg_over_time(${metric}{river="${riverName}",station="${stationName}"}[10m])`;
 
-    if (!lotMetric || !dordogneMetric) {
-        callback(null);
-        return;
-    }
+    var url = PROMETHEUS_URL.replace('/query', '/query_range') +
+        '?query=' + encodeURIComponent(query) +
+        '&start=' + start +
+        '&end=' + end +
+        '&step=' + step;
 
-    var lotQuery = processQuery(lotMetric.query, lotMetric.labels);
-    var dordogneQuery = processQuery(dordogneMetric.query, dordogneMetric.labels);
-
-    var urls = [
-        PROMETHEUS_URL.replace('/query', '/query_range') + '?query=' + encodeURIComponent(lotQuery) + '&start=' + start + '&end=' + end + '&step=' + step,
-        PROMETHEUS_URL.replace('/query', '/query_range') + '?query=' + encodeURIComponent(dordogneQuery) + '&start=' + start + '&end=' + end + '&step=' + step
-    ];
-
-    var results = [];
-    var completedRequests = 0;
-
-    var handleResponse = function(index, xhr) {
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', url, true);
+    xhr.onreadystatechange = function() {
         if (xhr.readyState === 4) {
             if (xhr.status === 200) {
                 try {
                     var data = JSON.parse(xhr.responseText);
                     if (data.status === 'success' && data.data.result.length > 0) {
-                        results[index] = data;
+                        var values = data.data.result[0].values;
+                        var processed = [];
+                        for (var i = 0; i < values.length; i++) {
+                            var point = {
+                                timestamp: values[i][0] * 1000,
+                                value: parseFloat(values[i][1])
+                            };
+                            point[riverName.toLowerCase()] = point.value; // Add river-specific property
+                            processed.push(point);
+                        }
+                        callback(processed, null);
                     } else {
-                        console.error('Error in Prometheus response for river data:', data);
-                        results[index] = null;
+                        console.error(`No data for ${riverName} at ${stationName}:`, data);
+                        callback(null, `No data available for ${riverName} at ${stationName}`);
                     }
                 } catch (error) {
-                    console.error('Error parsing response for river data:', error);
-                    results[index] = null;
+                    console.error(`Error parsing ${riverName} data:`, error);
+                    callback(null, error.message);
                 }
             } else {
-                console.error('Error fetching river data:', xhr.status, xhr.statusText);
-                results[index] = null;
-            }
-            completedRequests++;
-            if (completedRequests === urls.length) {
-                if (results[0] && results[1]) {
-                    var lotValues = results[0].data.result[0].values;
-                    var dordogneValues = results[1].data.result[0].values;
-
-                    var riversData = {
-                        lot: lotValues.map(function(point) {
-                            return {
-                                time: point[0] * 1000, // Convert to milliseconds
-                                flow: parseFloat(point[1])
-                            };
-                        }),
-                        dordogne: dordogneValues.map(function(point) {
-                            return {
-                                time: point[0] * 1000, // Convert to milliseconds
-                                flow: parseFloat(point[1])
-                            };
-                        })
-                    };
-                    callback(riversData);
-                } else {
-                    callback(null);
-                }
+                console.error(`Error fetching ${riverName} data:`, xhr.status, xhr.statusText);
+                callback(null, `HTTP ${xhr.status}: ${xhr.statusText}`);
             }
         }
     };
+    xhr.send();
+}
 
-    for (var i = 0; i < urls.length; i++) {
-        (function(index) {
-            var xhr = new XMLHttpRequest();
-            xhr.open('GET', urls[index], true);
-            xhr.onreadystatechange = function() {
-                handleResponse(index, xhr);
-            };
-            xhr.onerror = function() {
-                console.error('Network error fetching river data. Check for CORS issues.');
+function fetchRiversData(callback) {
+    // Define rivers based on current station
+    var riversConfig = [];
+
+    if (currentStation === 'vayrac') {
+        riversConfig = [
+            { riverName: 'Dordogne', stationName: 'Carennac', displayName: 'dordogne' }
+        ];
+    } else {
+        // For other stations, show both rivers
+        riversConfig = [
+            { riverName: 'Lot', stationName: 'Cahors', displayName: 'lot' },
+            { riverName: 'Dordogne', stationName: 'Carennac', displayName: 'dordogne' }
+        ];
+    }
+
+    var results = [];
+    var completedRequests = 0;
+    var errors = [];
+
+    // Fetch data for each configured river
+    riversConfig.forEach(function(riverConfig, index) {
+        // For Vayrac, use river height instead of flow for Dordogne
+        var metricType = 'river_flow'; // default
+        if (currentStation === 'vayrac' && riverConfig.riverName === 'Dordogne') {
+            metricType = 'river_height';
+        }
+
+        fetchRiverData(riverConfig.riverName, riverConfig.stationName, metricType, 48, function(data, error) {
+            if (data) {
+                results[index] = {
+                    data: data,
+                    riverName: riverConfig.riverName,
+                    displayName: riverConfig.displayName
+                };
+            } else {
+                errors.push(`${riverConfig.riverName}: ${error}`);
                 results[index] = null;
-                completedRequests++;
-                if (completedRequests === urls.length) {
+            }
+
+            completedRequests++;
+            if (completedRequests === riversConfig.length) {
+                // Process results for compatibility with existing chart code
+                if (results.some(r => r !== null)) {
+                    var processed = combineRiverResults(results, riversConfig);
+                    callback(processed);
+                } else {
+                    console.error('No river data available:', errors);
                     callback(null);
                 }
-            };
-            xhr.send();
-        })(i);
-    }
+            }
+        });
+    });
 }
+
+// Helper function to combine multiple river results into the expected format
+function combineRiverResults(results, riversConfig) {
+    var processed = [];
+
+    // Find the longest dataset to use as the base timeline
+    var maxLength = 0;
+    var baseData = null;
+    for (var i = 0; i < results.length; i++) {
+        if (results[i] && results[i].data.length > maxLength) {
+            maxLength = results[i].data.length;
+            baseData = results[i].data;
+        }
+    }
+
+    if (!baseData) return [];
+
+    // Create combined data points
+    for (var i = 0; i < baseData.length; i++) {
+        var point = { timestamp: baseData[i].timestamp };
+
+        // Add data from each river
+        for (var j = 0; j < results.length; j++) {
+            if (results[j] && results[j].data[i]) {
+                var riverData = results[j].data[i];
+                point[results[j].displayName] = riverData.value;
+            }
+        }
+
+        processed.push(point);
+    }
+
+    return processed;
+}
+
 
 function fetchSunRadDistribution(callback) {
     var end = new Date().getTime() / 1000;
@@ -1543,49 +1641,89 @@ function renderRiversChart(riversData) {
     var canvas = document.getElementById('rivers-chart');
     var ctx = canvas.getContext('2d');
 
+    // Handle new data format: array of points with timestamp and river values
+    if (!riversData || riversData.length === 0) {
+        console.error('No river data to display');
+        return;
+    }
 
-    var labels = riversData.lot.map(function(point) {
-        var date = new Date(point.time);
+    // Generate labels from timestamps
+    var labels = riversData.map(function(point) {
+        var date = new Date(point.timestamp);
         return date.toLocaleDateString('fr-FR', { weekday: 'short', hour: '2-digit', minute: '2-digit' });
     });
 
-    var lotValues = riversData.lot.map(function(point) {
-        return point.flow;
-    });
+    // Create datasets based on available rivers
+    var datasets = [];
 
-    var dordogneValues = riversData.dordogne.map(function(point) {
-        return point.flow;
-    });
+    // Add Lot river data if available
+    if (riversData[0].lot !== undefined) {
+        console.log('Adding Lot river data for station:', currentStation);
+        var lotValues = riversData.map(function(point) {
+            return point.lot;
+        });
+        datasets.push({
+            label: 'Lot (m³/s)',
+            data: lotValues,
+            borderColor: '#1E88E5',
+            backgroundColor: 'rgba(30, 136, 229, 0.1)',
+            borderWidth: 2,
+            fill: false,
+            tension: 0.3,
+            pointRadius: 0,
+            pointHoverRadius: 4,
+            pointHitRadius: 10,
+            yAxisID: 'y-left'
+        });
+    }
+
+    // Add Dordogne river data if available
+    if (riversData[0].dordogne !== undefined) {
+        console.log('Adding Dordogne river data for station:', currentStation);
+        var dordogneValues = riversData.map(function(point) {
+            return point.dordogne;
+        });
+
+        // Determine label, unit, and colors based on station
+        var dordogneLabel, dordogneUnit, dordogneBorderColor, dordogneBackgroundColor;
+        if (currentStation === 'vayrac') {
+            dordogneLabel = 'Niveau de la Dordogne';
+            dordogneUnit = 'm';
+            dordogneBorderColor = '#1E88E5'; // Blue like Lot
+            dordogneBackgroundColor = 'rgba(30, 136, 229, 0.1)'; // Blue with transparency
+        } else {
+            dordogneLabel = 'Dordogne (m³/s)';
+            dordogneUnit = 'm³/s';
+            dordogneBorderColor = '#D32F2F'; // Red for other stations
+            dordogneBackgroundColor = 'rgba(211, 47, 47, 0.1)'; // Red with transparency
+        }
+
+        // For Vayrac, always use left axis since it's the only river
+        // For other stations, use right axis if Lot is already present
+        console.log('Dordogne chart - currentStation:', currentStation, 'datasets.length:', datasets.length);
+        var axisId = (currentStation === 'vayrac') ? 'y-left' : (datasets.length === 0 ? 'y-left' : 'y-right');
+        console.log('Dordogne assigned to axis:', axisId);
+
+        datasets.push({
+            label: dordogneLabel,
+            data: dordogneValues,
+            borderColor: dordogneBorderColor,
+            backgroundColor: dordogneBackgroundColor,
+            borderWidth: 2,
+            fill: false,
+            tension: 0.3,
+            pointRadius: 0,
+            pointHoverRadius: 4,
+            pointHitRadius: 10,
+            yAxisID: axisId
+        });
+    }
 
     chartInstances.rivers = new Chart(ctx, {
         type: 'line',
         data: {
             labels: labels,
-            datasets: [{
-                label: 'Lot (m³/s)',
-                data: lotValues,
-                borderColor: '#1E88E5',
-                backgroundColor: 'rgba(30, 136, 229, 0.1)',
-                borderWidth: 2,
-                fill: false,
-                tension: 0.3,
-                pointRadius: 0,
-                pointHoverRadius: 4,
-                pointHitRadius: 10,
-                yAxisID: 'y-left'
-            }, {
-                label: 'Dordogne (m³/s)',
-                data: dordogneValues,
-                borderColor: '#D32F2F',
-                backgroundColor: 'rgba(211, 47, 47, 0.1)',
-                borderWidth: 2,
-                fill: false,
-                tension: 0.3,
-                pointRadius: 0,
-                pointHoverRadius: 4,
-                pointHitRadius: 10,
-                yAxisID: 'y-right'
-            }]
+            datasets: datasets
         },
         options: {
             responsive: true,
@@ -1605,61 +1743,102 @@ function renderRiversChart(riversData) {
                     }
                 }
             },
-            scales: {
-                x: {
-                    display: true,
-                    ticks: {
-                        maxTicksLimit: 4,
-                        font: {
-                            size: 10
+            scales: (function() {
+                var scales = {
+                    x: {
+                        display: true,
+                        ticks: {
+                            maxTicksLimit: 4,
+                            font: {
+                                size: 10
+                            }
                         }
                     }
-                },
-                'y-left': {
-                    type: 'linear',
-                    display: true,
-                    position: 'left',
-                    title: {
+                };
+
+                // Configure axes based on available datasets and station
+                if (currentStation === 'vayrac') {
+                    // For Vayrac: only Dordogne height on left axis
+                    scales['y-left'] = {
+                        type: 'linear',
                         display: true,
-                        text: 'Lot (m³/s)',
-                        font: {
-                            size: 10
+                        position: 'left',
+                        title: {
+                            display: true,
+                            text: 'Dordogne (m)',
+                            font: {
+                                size: 10
+                            },
+                            color: '#1E88E5'
                         },
-                        color: '#1E88E5'
-                    },
-                    ticks: {
-                        font: {
-                            size: 10
+                        ticks: {
+                            font: {
+                                size: 10
+                            },
+                            color: '#1E88E5'
                         },
-                        color: '#1E88E5'
-                    },
-                    grid: {
-                        drawOnChartArea: false
+                        grid: {
+                            drawOnChartArea: true
+                        }
+                    };
+                } else {
+                    // For other stations: dual axis if both rivers available
+                    var hasLot = datasets.some(function(d) { return d.label.indexOf('Lot') !== -1; });
+                    var hasDordogne = datasets.some(function(d) { return d.label.indexOf('Dordogne') !== -1; });
+
+                    if (hasLot) {
+                        scales['y-left'] = {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: 'Lot (m³/s)',
+                                font: {
+                                    size: 10
+                                },
+                                color: '#1E88E5'
+                            },
+                            ticks: {
+                                font: {
+                                    size: 10
+                                },
+                                color: '#1E88E5'
+                            },
+                            grid: {
+                                drawOnChartArea: false
+                            }
+                        };
                     }
-                },
-                'y-right': {
-                    type: 'linear',
-                    display: true,
-                    position: 'right',
-                    title: {
-                        display: true,
-                        text: 'Dordogne (m³/s)',
-                        font: {
-                            size: 10
-                        },
-                        color: '#D32F2F'
-                    },
-                    ticks: {
-                        font: {
-                            size: 10
-                        },
-                        color: '#D32F2F'
-                    },
-                    grid: {
-                        drawOnChartArea: false
+
+                    if (hasDordogne) {
+                        scales['y-right'] = {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: {
+                                display: true,
+                                text: 'Dordogne (m³/s)',
+                                font: {
+                                    size: 10
+                                },
+                                color: '#D32F2F'
+                            },
+                            ticks: {
+                                font: {
+                                    size: 10
+                                },
+                                color: '#D32F2F'
+                            },
+                            grid: {
+                                drawOnChartArea: false
+                            }
+                        };
                     }
                 }
-            },
+
+                return scales;
+            })(),
             interaction: {
                 intersect: false,
                 mode: 'index'

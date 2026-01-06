@@ -41,16 +41,20 @@ METRICS_TO_QUERY = {
         "has_historical": ["cahors"]
     },
     "river_lot": {
-        "query_template": 'river_flow{{instance="riverflow.972.ovh:443", job="internet scraping", name="Lot"}}',
-        "historical_query": 'river_flow{name="Lot"}',
-        "unit": "m³/s",
-        "has_historical": ["cahors", "vayrac"]
+        "query_template": 'river_flow{{river="Lot", station="Cahors"}}',
+        "unit": "m³/s"
     },
     "river_dordogne": {
-        "query_template": 'river_flow{{instance="riverflow.972.ovh:443", job="internet scraping", name="Dordogne"}}',
-        "historical_query": 'river_flow{name="Dordogne"}',
-        "unit": "m³/s",
-        "has_historical": ["cahors", "vayrac"]
+        "query_template": 'river_flow{{river="Dordogne", station="Carennac"}}',
+        "unit": "m³/s"
+    },
+    "river_lot_height": {
+        "query_template": 'river_height{{river="Lot", station="Cahors"}}',
+        "unit": "m"
+    },
+    "river_dordogne_height": {
+        "query_template": 'river_height{{river="Dordogne", station="Carennac"}}',
+        "unit": "m"
     },
     "sun_rad": {
         "query_template": 'sun_rad{{instance="wunderground.972.ovh:443", job="internet scraping", station_id="{station_id}"}}',
