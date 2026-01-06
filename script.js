@@ -599,29 +599,13 @@ function updateStaticUI() {
                             tempElement.textContent = subtitleText;
                         });
                     })(subtitleElement, stat);
-                } else if (subtitleElement) {
-                    // Regular subtitle handling for non-temperature metrics
+                } else if (subtitleElement && metric.indexOf('river_') !== 0) {
+                    // Regular subtitle handling for non-temperature and non-river metrics
+                    // River metrics are now handled by updateRiverSubtitles()
                     var subtitleText = '';
 
-                    // Special handling for Vayrac river metrics - show height instead of flow
-                    if (metric.indexOf('river_') === 0 && currentStation === 'vayrac') {
-                        var heightStatsKey = metric + '_height'; // river_dordogne -> river_dordogne_height
-                        var stats = getStatsForCurrentStation();
-                        var heightStats = stats ? stats[heightStatsKey] : null;
-
-                        if (heightStats && heightStats.min !== undefined && heightStats.max !== undefined) {
-                            // Format with 2 decimal places for height
-                            var minHeight = parseFloat(heightStats.min).toFixed(2);
-                            var maxHeight = parseFloat(heightStats.max).toFixed(2);
-                            subtitleText = minHeight + '..' + maxHeight;
-                            if (heightStats.unit) {
-                                subtitleText += ' ' + heightStats.unit + ' (7j)';
-                            }
-                        }
-                    }
-
-                    // Fallback to regular stat handling if not a river or no height data
-                    if (!subtitleText && stat.max !== undefined) {
+                    // Regular stat handling for non-river metrics
+                    if (stat.max !== undefined) {
                         if (stat.min !== undefined && Math.abs(stat.min) >= 1) {
                             // Show range when min absolute value is >= 1 (works for negative temps)
                             subtitleText = stat.min + '..' + stat.max;
@@ -1235,42 +1219,57 @@ function fetchRiversData(callback) {
     }
 
     var results = [];
+    var totalRequests = riversConfig.length * 2; // Both flow and height for each river
     var completedRequests = 0;
     var errors = [];
 
-    // Fetch data for each configured river
+    // Fetch both flow and height data for each configured river
     riversConfig.forEach(function(riverConfig, index) {
-        // For Vayrac, use river height instead of flow for Dordogne
-        var metricType = 'river_flow'; // default
-        if (currentStation === 'vayrac' && riverConfig.riverName === 'Dordogne') {
-            metricType = 'river_height';
-        }
+        results[index] = {
+            riverName: riverConfig.riverName,
+            stationName: riverConfig.stationName,
+            displayName: riverConfig.displayName,
+            flowData: null,
+            heightData: null
+        };
 
-        fetchRiverData(riverConfig.riverName, riverConfig.stationName, metricType, 48, function(data, error) {
+        // Fetch flow data
+        fetchRiverData(riverConfig.riverName, riverConfig.stationName, 'river_flow', 48, function(data, error) {
             if (data) {
-                results[index] = {
-                    data: data,
-                    riverName: riverConfig.riverName,
-                    displayName: riverConfig.displayName
-                };
+                results[index].flowData = data;
             } else {
-                errors.push(`${riverConfig.riverName}: ${error}`);
-                results[index] = null;
+                errors.push(`${riverConfig.riverName} flow: ${error}`);
             }
 
             completedRequests++;
-            if (completedRequests === riversConfig.length) {
-                // Process results for compatibility with existing chart code
-                if (results.some(r => r !== null)) {
-                    var processed = combineRiverResults(results, riversConfig);
-                    callback(processed);
-                } else {
-                    console.error('No river data available:', errors);
-                    callback(null);
-                }
+            checkCompletion();
+        });
+
+        // Fetch height data
+        fetchRiverData(riverConfig.riverName, riverConfig.stationName, 'river_height', 48, function(data, error) {
+            if (data) {
+                results[index].heightData = data;
+            } else {
+                errors.push(`${riverConfig.riverName} height: ${error}`);
             }
+
+            completedRequests++;
+            checkCompletion();
         });
     });
+
+    function checkCompletion() {
+        if (completedRequests === totalRequests) {
+            // Process results for compatibility with existing chart code
+            if (results.some(r => r.flowData !== null || r.heightData !== null)) {
+                var processed = combineRiverResults(results, riversConfig);
+                callback(processed);
+            } else {
+                console.error('No river data available:', errors);
+                callback(null);
+            }
+        }
+    }
 }
 
 // Helper function to combine multiple river results into the expected format
@@ -1281,9 +1280,12 @@ function combineRiverResults(results, riversConfig) {
     var maxLength = 0;
     var baseData = null;
     for (var i = 0; i < results.length; i++) {
-        if (results[i] && results[i].data.length > maxLength) {
-            maxLength = results[i].data.length;
-            baseData = results[i].data;
+        if (results[i]) {
+            var primaryData = getPrimaryDataForRiver(results[i]);
+            if (primaryData && primaryData.length > maxLength) {
+                maxLength = primaryData.length;
+                baseData = primaryData;
+            }
         }
     }
 
@@ -1295,9 +1297,28 @@ function combineRiverResults(results, riversConfig) {
 
         // Add data from each river
         for (var j = 0; j < results.length; j++) {
-            if (results[j] && results[j].data[i]) {
-                var riverData = results[j].data[i];
-                point[results[j].displayName] = riverData.value;
+            if (results[j]) {
+                var riverResult = results[j];
+                var primaryData = getPrimaryDataForRiver(riverResult);
+                var secondaryData = getSecondaryDataForRiver(riverResult);
+
+                // Add primary metric (for chart display)
+                if (primaryData && primaryData[i]) {
+                    point[riverResult.displayName] = primaryData[i].value;
+                }
+
+                // Add secondary metric (for subtitle display)
+                if (secondaryData && secondaryData[i]) {
+                    point[riverResult.displayName + '_secondary'] = secondaryData[i].value;
+                }
+
+                // Store metric types for UI display
+                if (i === 0) { // Only on first iteration
+                    point[riverResult.displayName + '_primary_type'] = getPrimaryMetricType(riverResult);
+                    point[riverResult.displayName + '_secondary_type'] = getSecondaryMetricType(riverResult);
+                    point[riverResult.displayName + '_primary_unit'] = getPrimaryUnit(riverResult);
+                    point[riverResult.displayName + '_secondary_unit'] = getSecondaryUnit(riverResult);
+                }
             }
         }
 
@@ -1305,6 +1326,57 @@ function combineRiverResults(results, riversConfig) {
     }
 
     return processed;
+}
+
+// Helper functions to determine primary/secondary metrics based on station
+function getPrimaryDataForRiver(riverResult) {
+    // For Vayrac Dordogne, primary is height; for others, primary is flow
+    if (currentStation === 'vayrac' && riverResult.riverName === 'Dordogne') {
+        return riverResult.heightData;
+    } else {
+        return riverResult.flowData;
+    }
+}
+
+function getSecondaryDataForRiver(riverResult) {
+    // For Vayrac Dordogne, secondary is flow; for others, secondary is height
+    if (currentStation === 'vayrac' && riverResult.riverName === 'Dordogne') {
+        return riverResult.flowData;
+    } else {
+        return riverResult.heightData;
+    }
+}
+
+function getPrimaryMetricType(riverResult) {
+    if (currentStation === 'vayrac' && riverResult.riverName === 'Dordogne') {
+        return 'height';
+    } else {
+        return 'flow';
+    }
+}
+
+function getSecondaryMetricType(riverResult) {
+    if (currentStation === 'vayrac' && riverResult.riverName === 'Dordogne') {
+        return 'flow';
+    } else {
+        return 'height';
+    }
+}
+
+function getPrimaryUnit(riverResult) {
+    if (currentStation === 'vayrac' && riverResult.riverName === 'Dordogne') {
+        return 'm';
+    } else {
+        return 'm³/s';
+    }
+}
+
+function getSecondaryUnit(riverResult) {
+    if (currentStation === 'vayrac' && riverResult.riverName === 'Dordogne') {
+        return 'm³/s';
+    } else {
+        return 'm';
+    }
 }
 
 
@@ -1999,6 +2071,107 @@ function renderRiversChart(riversData) {
         container.classList.toggle('fullscreen');
         chartInstances.rivers.resize();
     });
+
+    // Update river subtitles with both metrics
+    updateRiverSubtitles(riversData);
+}
+
+function updateRiverSubtitles(riversData) {
+    if (!riversData || riversData.length === 0) return;
+
+    // Get the first data point to extract metadata and current values
+    var firstPoint = riversData[0];
+    var stats = getStatsForCurrentStation();
+
+    // Update Lot river subtitle (if available)
+    if (firstPoint.lot !== undefined) {
+        var lotElement = document.getElementById('desktop-river-lot');
+        if (lotElement) {
+            var labelElement = lotElement.querySelector('.label');
+            var subtitleElement = lotElement.querySelector('.subtitle');
+
+            if (labelElement && subtitleElement) {
+                // Current secondary metric (height)
+                var secondaryValue = firstPoint.lot_secondary ? firstPoint.lot_secondary.toFixed(2) + ' m' : '';
+
+                // Update label to include secondary metric
+                if (secondaryValue) {
+                    labelElement.innerHTML = 'Lot<br><span style="font-size: 0.8em; color: #888; font-weight: normal;">' + secondaryValue + '</span>';
+                } else {
+                    labelElement.textContent = 'Lot';
+                }
+
+                // Min/max for primary metric (flow) - only in subtitle
+                var flowStats = stats ? stats['river_lot'] : null;
+                if (flowStats && flowStats.min !== undefined && flowStats.max !== undefined) {
+                    subtitleElement.textContent = flowStats.min + '..' + flowStats.max + ' m³/s (7j)';
+                } else {
+                    subtitleElement.textContent = '--';
+                }
+            }
+        }
+    }
+
+    // Update Dordogne river subtitle (if available)
+    if (firstPoint.dordogne !== undefined) {
+        var dordogneElement = document.getElementById('desktop-river-dordogne');
+        if (dordogneElement) {
+            var labelElement = dordogneElement.querySelector('.label');
+            var subtitleElement = dordogneElement.querySelector('.subtitle');
+
+            if (labelElement && subtitleElement) {
+                var primaryType = firstPoint.dordogne_primary_type;
+                var secondaryType = firstPoint.dordogne_secondary_type;
+                var primaryUnit = firstPoint.dordogne_primary_unit;
+                var secondaryUnit = firstPoint.dordogne_secondary_unit;
+
+                // Current secondary metric
+                var secondaryValue = '';
+                if (firstPoint.dordogne_secondary !== undefined) {
+                    if (secondaryType === 'height') {
+                        secondaryValue = firstPoint.dordogne_secondary.toFixed(2) + ' ' + secondaryUnit;
+                    } else {
+                        secondaryValue = firstPoint.dordogne_secondary.toFixed(0) + ' ' + secondaryUnit;
+                    }
+                }
+
+                // Update label to include secondary metric
+                var baseLabelText = 'Dordogne';
+                if (currentStation === 'vayrac') {
+                    baseLabelText = 'Dordogne (Carennac)';
+                }
+
+                if (secondaryValue) {
+                    labelElement.innerHTML = baseLabelText + '<br><span style="font-size: 0.8em; color: #888; font-weight: normal;">' + secondaryValue + '</span>';
+                } else {
+                    labelElement.textContent = baseLabelText;
+                }
+
+                // Min/max for primary metric - only in subtitle
+                var primaryStatsKey;
+                if (currentStation === 'vayrac') {
+                    // For Vayrac, primary is height
+                    primaryStatsKey = 'river_dordogne_height';
+                } else {
+                    // For other stations, primary is flow
+                    primaryStatsKey = 'river_dordogne';
+                }
+
+                var primaryStats = stats ? stats[primaryStatsKey] : null;
+                if (primaryStats && primaryStats.min !== undefined && primaryStats.max !== undefined) {
+                    if (primaryType === 'height') {
+                        var minHeight = parseFloat(primaryStats.min).toFixed(2);
+                        var maxHeight = parseFloat(primaryStats.max).toFixed(2);
+                        subtitleElement.textContent = minHeight + '..' + maxHeight + ' ' + primaryUnit + ' (7j)';
+                    } else {
+                        subtitleElement.textContent = primaryStats.min + '..' + primaryStats.max + ' ' + primaryUnit + ' (7j)';
+                    }
+                } else {
+                    subtitleElement.textContent = '--';
+                }
+            }
+        }
+    }
 }
 
 function renderPMChart(pmData) {
