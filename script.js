@@ -614,6 +614,20 @@ function updateStaticUI() {
                     // Special handling for temperature_ext with 24h data
                     // Capture the element in closure scope to avoid async reference issues
                     (function(tempElement, tempStat) {
+                        // Check if current station actually has stats for temperature_ext
+                        var shouldShowSubtitle = true;
+                        if (typeof STATION_STATS !== 'undefined' && currentStation) {
+                            var stationStats = STATION_STATS[currentStation];
+                            if (!stationStats || !stationStats[metric]) {
+                                shouldShowSubtitle = false;
+                            }
+                        }
+
+                        if (!shouldShowSubtitle) {
+                            tempElement.textContent = '';
+                            return;
+                        }
+
                         fetch24hTemperatureStats(function(temp24h) {
                             var subtitleText = '';
                             if (tempStat.max !== undefined) {
@@ -651,8 +665,26 @@ function updateStaticUI() {
                     // River metrics are now handled by updateRiverSubtitles()
                     var subtitleText = '';
 
+                    // Check if this metric should have stats for the current station
+                    var station = getCurrentStation();
+                    var shouldShowSubtitle = true;
+
+                    // Check feature availability for PM sensors
+                    if (metric.indexOf('pm') === 0 && !station.features.pm_sensors) {
+                        shouldShowSubtitle = false;
+                    }
+
+                    // Check if current station actually has stats for this metric
+                    // (not just falling back to default cahors stats)
+                    if (shouldShowSubtitle && typeof STATION_STATS !== 'undefined' && currentStation) {
+                        var stationStats = STATION_STATS[currentStation];
+                        if (!stationStats || !stationStats[metric]) {
+                            shouldShowSubtitle = false;
+                        }
+                    }
+
                     // Regular stat handling for non-river metrics
-                    if (stat.max !== undefined) {
+                    if (shouldShowSubtitle && stat.max !== undefined) {
                         if (stat.min !== undefined && Math.abs(stat.min) >= 1) {
                             // Show range when min absolute value is >= 1 (works for negative temps)
                             subtitleText = stat.min + '..' + stat.max;

@@ -17,12 +17,42 @@ STATIONS = {
     "cahors": {
         "name": "Cahors",
         "station_id": "ICAHOR23",
-        "features": {"pm_sensors": True}
+        "features": {"pm_sensors": True, "rivers": True}
     },
     "vayrac": {
         "name": "Vayrac",
         "station_id": "IVAYRA1",
-        "features": {"pm_sensors": False}
+        "features": {"pm_sensors": False, "rivers": True}
+    },
+    "coublevie": {
+        "name": "Coublevie",
+        "station_id": "ICOUBL3",
+        "features": {"pm_sensors": False, "rivers": False}
+    },
+    "revel": {
+        "name": "Revel",
+        "station_id": "IREVEL54",
+        "features": {"pm_sensors": False, "rivers": False}
+    },
+    "pamplona": {
+        "name": "Pamplune",
+        "station_id": "IPAMPL52",
+        "features": {"pm_sensors": False, "rivers": False}
+    },
+    "mandeli": {
+        "name": "Mandelieu",
+        "station_id": "IMANDELI41",
+        "features": {"pm_sensors": False, "rivers": False}
+    },
+    "eastboston": {
+        "name": "Boston",
+        "station_id": "KMAEASTB68",
+        "features": {"pm_sensors": False, "rivers": False}
+    },
+    "tokyo": {
+        "name": "Tokyo",
+        "station_id": "ITOKYO63",
+        "features": {"pm_sensors": False, "rivers": False}
     }
 }
 
@@ -42,19 +72,23 @@ METRICS_TO_QUERY = {
     },
     "river_lot": {
         "query_template": 'river_flow{{river="Lot", station="Cahors"}}',
-        "unit": "m³/s"
+        "unit": "m³/s",
+        "available_for": ["cahors", "vayrac"]
     },
     "river_dordogne": {
         "query_template": 'river_flow{{river="Dordogne", station="Carennac"}}',
-        "unit": "m³/s"
+        "unit": "m³/s",
+        "available_for": ["cahors", "vayrac"]
     },
     "river_lot_height": {
         "query_template": 'river_height{{river="Lot", station="Cahors"}}',
-        "unit": "m"
+        "unit": "m",
+        "available_for": ["cahors", "vayrac"]
     },
     "river_dordogne_height": {
         "query_template": 'river_height{{river="Dordogne", station="Carennac"}}',
-        "unit": "m"
+        "unit": "m",
+        "available_for": ["cahors", "vayrac"]
     },
     "sun_rad": {
         "query_template": 'sun_rad{{instance="wunderground.972.ovh:443", job="internet scraping", station_id="{station_id}"}}',
