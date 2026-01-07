@@ -122,6 +122,15 @@ html, body {
     text-align: center;
 }
 
+#desktop-view h1 a {
+    color: inherit;
+    font-family: inherit;
+    font-weight: inherit;
+    font-size: inherit;
+    text-decoration: underline;
+    text-decoration-color: black;
+}
+
 .grid-container {
     display: flex;
     flex-direction: column;
