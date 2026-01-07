@@ -227,28 +227,41 @@ def generate_station_data(prom, station_name, station_config):
 
         print(f"Querying rain total for '{month_name}' on {station_config['name']}...")
 
-        # Try current data first
-        current_query = f'increase(rain{{instance="wunderground.972.ovh:443", job="internet scraping", mode="total", station_id="{station_config["station_id"]}"}}[{range_seconds}s])'
-        value = None
-
-        try:
-            result = prom.custom_query(query=current_query, params={'time': end_of_month.timestamp()})
-            value = round(float(result[0]['value'][1])) if result else None
-            if value is not None:
-                print(f"  - Current data: {value}")
-        except Exception as e:
-            print(f"  - Error with current data: {e}")
-
-        # Try historical data if current failed and historical is available for this station
-        if value is None and has_historical_data("rain_total_month", station_name):
+        # Use dual-source query approach to properly combine current and historical data
+        def monthly_rain_query(query):
             try:
-                historical_query = f'increase(rain{{group="wundeground", instance="home.972.ovh:35007", job="raspi sensors", mode="total"}}[{range_seconds}s])'
-                result = prom.custom_query(query=historical_query, params={'time': end_of_month.timestamp()})
-                value = round(float(result[0]['value'][1])) if result else None
-                if value is not None:
-                    print(f"  - Historical data: {value}")
-            except Exception as e:
-                print(f"  - Error with historical data: {e}")
+                result = prom.custom_query(query=query, params={'time': end_of_month.timestamp()})
+                return round(float(result[0]['value'][1])) if result else None
+            except:
+                return None
+
+        # Create a temporary metric config for this monthly query
+        monthly_metric_config = {
+            "query_template": f'increase(rain{{instance="wunderground.972.ovh:443", job="internet scraping", mode="total", station_id="{station_config["station_id"]}"}}[{range_seconds}s])',
+            "historical_query": f'increase(rain{{group="wundeground", instance="home.972.ovh:35007", job="raspi sensors", mode="total"}}[{range_seconds}s])'
+        }
+
+        # Get current query
+        current_query = monthly_metric_config["query_template"]
+        historical_query = monthly_metric_config["historical_query"] if has_historical_data("rain_total_month", station_name) else None
+
+        current_value = monthly_rain_query(current_query)
+        historical_value = monthly_rain_query(historical_query) if historical_query else None
+
+        # Choose the best value: prefer non-zero values, then current over historical
+        value = None
+        if current_value is not None and current_value > 0:
+            value = current_value
+            print(f"  - Using current data: {value}")
+        elif historical_value is not None and historical_value > 0:
+            value = historical_value
+            print(f"  - Using historical data: {value}")
+        elif current_value is not None:
+            value = current_value
+            print(f"  - Using current data (zero): {value}")
+        elif historical_value is not None:
+            value = historical_value
+            print(f"  - Using historical data (zero): {value}")
 
         if value is not None:
             rain_last_6_months.append({
@@ -270,28 +283,35 @@ def generate_station_data(prom, station_name, station_config):
 
         print(f"Querying rain total for '{day_name}' on {station_config['name']}...")
 
-        # Try current data first
-        current_query = f'increase(rain{{instance="wunderground.972.ovh:443", job="internet scraping", mode="total", station_id="{station_config["station_id"]}"}}[24h])'
-        value = None
-
-        try:
-            result = prom.custom_query(query=current_query, params={'time': end_of_day.timestamp()})
-            value = round(float(result[0]['value'][1])) if result else None
-            if value is not None:
-                print(f"  - Current data: {value}")
-        except Exception as e:
-            print(f"  - Error with current data: {e}")
-
-        # Try historical data if current failed and historical is available for this station
-        if value is None and has_historical_data("rain_total_week", station_name):
+        # Use dual-source query approach to properly combine current and historical data
+        def daily_rain_query(query):
             try:
-                historical_query = f'increase(rain{{group="wundeground", instance="home.972.ovh:35007", job="raspi sensors", mode="total"}}[24h])'
-                result = prom.custom_query(query=historical_query, params={'time': end_of_day.timestamp()})
-                value = round(float(result[0]['value'][1])) if result else None
-                if value is not None:
-                    print(f"  - Historical data: {value}")
-            except Exception as e:
-                print(f"  - Error with historical data: {e}")
+                result = prom.custom_query(query=query, params={'time': end_of_day.timestamp()})
+                return round(float(result[0]['value'][1])) if result else None
+            except:
+                return None
+
+        # Get current and historical queries
+        current_query = f'increase(rain{{instance="wunderground.972.ovh:443", job="internet scraping", mode="total", station_id="{station_config["station_id"]}"}}[24h])'
+        historical_query = f'increase(rain{{group="wundeground", instance="home.972.ovh:35007", job="raspi sensors", mode="total"}}[24h])' if has_historical_data("rain_total_week", station_name) else None
+
+        current_value = daily_rain_query(current_query)
+        historical_value = daily_rain_query(historical_query) if historical_query else None
+
+        # Choose the best value: prefer non-zero values, then current over historical
+        value = None
+        if current_value is not None and current_value > 0:
+            value = current_value
+            print(f"  - Using current data: {value}")
+        elif historical_value is not None and historical_value > 0:
+            value = historical_value
+            print(f"  - Using historical data: {value}")
+        elif current_value is not None:
+            value = current_value
+            print(f"  - Using current data (zero): {value}")
+        elif historical_value is not None:
+            value = historical_value
+            print(f"  - Using historical data (zero): {value}")
 
         if value is not None:
             rain_last_6_days.append({
