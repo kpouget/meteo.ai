@@ -132,6 +132,24 @@ function updateStationDropdown() {
             dropdown.appendChild(option);
         }
     }
+
+    // Add separator
+    var longestNameLength = 0;
+    for (var stationId in STATIONS) {
+        if (STATIONS[stationId].name.length > longestNameLength) {
+            longestNameLength = STATIONS[stationId].name.length;
+        }
+    }
+    var separatorOption = document.createElement('option');
+    separatorOption.disabled = true;
+    separatorOption.textContent = '-'.repeat(longestNameLength);
+    dropdown.appendChild(separatorOption);
+
+    // Add health dashboard option
+    var healthOption = document.createElement('option');
+    healthOption.value = 'health';
+    healthOption.textContent = 'Health 📊';
+    dropdown.appendChild(healthOption);
 }
 
 function switchToStation(stationName) {
@@ -2355,7 +2373,10 @@ function main() {
     // Station dropdown event handler
     document.getElementById('station-dropdown').addEventListener('change', function() {
         var selectedStation = this.value;
-        if (selectedStation) {
+        if (selectedStation === 'health') {
+            // Navigate to health dashboard
+            window.location.href = 'health.html';
+        } else if (selectedStation) {
             switchToStation(selectedStation);
         }
     });
