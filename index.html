@@ -9,91 +9,14 @@
 <body>
     <div id="floating-buttons">
         <span id="current-station" title="Station actuelle" style="display: none;">--</span>
-        <button id="view-switcher">Kindle</button>
-        <button id="refresh-button" title="Refresh">↻</button>
         <select id="station-dropdown" title="Changer de station">
             <option value="">Station</option>
         </select>
+        <button id="refresh-button" title="Refresh">↻</button>
     </div>
 
-    <div id="kindle-view" class="view">
-        <div id="kindle-page-1" class="page">
-            <div class="data-point" id="temperature-ext">
-                <span class="label">Temp. extérieur</span>
-                <span class="value">--</span>
-            </div>
-            <div class="data-point" id="humidity-ext">
-                <span class="label">Hum. extérieur</span>
-                <span class="value">--</span>
-            </div>
-            <div class="data-point" id="temperature-int">
-                <span class="label">Temp. intérieur</span>
-                <span class="value">--</span>
-            </div>
-            <div class="data-point" id="temperature-e1-chauffage">
-                <span class="label">Temp. E1 Chauffage</span>
-                <span class="value">--</span>
-            </div>
-            <div class="data-point" id="dew-point">
-                <span class="label">Point de rosée</span>
-                <span class="value">--</span>
-            </div>
-        </div>
-        <div id="kindle-page-2" class="page" style="display: none;">
-            <div class="data-point" id="rain-rate">
-                <span class="label">Force de la pluie</span>
-                <span class="value">--</span>
-            </div>
-        </div>
-        <div id="kindle-page-5" class="page" style="display: none;">
-            <div class="data-point" id="rain-total-day">
-                <span class="label">Pluie sur 24h</span>
-                <span class="value">--</span>
-            </div>
-            <div class="data-point" id="rain-total-week">
-                <span class="label">Pluie sur 1 semaine</span>
-                <span class="value">--</span>
-            </div>
-            <div class="data-point" id="rain-total-month">
-                <span class="label">Pluie sur 1 mois</span>
-                <span class="value">--</span>
-            </div>
-        </div>
-        <div id="kindle-page-3" class="page" style="display: none;">
-            <div class="data-point" id="wind-speed">
-                <span class="label">Vitesse du vent</span>
-                <span class="value">--</span>
-            </div>
-            <div class="data-point" id="wind-gust">
-                <span class="label">Vitesse des bourrasques</span>
-                <span class="value">--</span>
-            </div>
-            <div class="data-point" id="wind-dir">
-                <span class="label">Direction du vent</span>
-                <span class="value">--</span>
-            </div>
-        </div>
-        <div id="kindle-page-4" class="page" style="display: none;">
-            <div class="data-point" id="sun-rad">
-                <span class="label">Radiation solaire</span>
-                <span class="value">--</span>
-            </div>
-            <div class="data-point" id="uv-idx">
-                <span class="label">Index UV</span>
-                <span class="value">--</span>
-            </div>
-            <div class="data-point" id="pressure">
-                <span class="label">Pression</span>
-                <span class="value">--</span>
-            </div>
-        </div>
-        <div class="navigation">
-            <button id="prev-page">Prev</button>
-            <button id="next-page">Next</button>
-        </div>
-    </div>
 
-    <div id="desktop-view" class="view">
+    <div id="desktop-view">
         <h1 id="main-title">Weather Data</h1>
         <div class="grid-container">
             <div class="group">

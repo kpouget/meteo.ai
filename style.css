@@ -5,9 +5,6 @@ html, body {
     padding: 0;
 }
 
-.view {
-    display: none;
-}
 
 #floating-buttons {
     position: fixed;
@@ -50,65 +47,6 @@ html, body {
     min-width: 120px;
 }
 
-/* Kindle View */
-#kindle-view {
-    background-color: #fff;
-    color: #000;
-    height: 100%;
-    width: 100%;
-    overflow: hidden;
-    position: absolute;
-    top: 0;
-    left: 0;
-}
-
-
-#kindle-view .page {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    height: 100%;
-    width: 100%;
-    border: 1px solid black;
-    box-sizing: border-box;
-}
-
-#kindle-view .data-point {
-    text-align: center;
-    margin: 20px;
-}
-
-#kindle-view .label {
-    font-size: 2em;
-    display: block;
-}
-
-#kindle-view .value {
-    font-size: 4em;
-    font-weight: bold;
-}
-
-.navigation {
-    display: none;
-}
-
-#kindle-view .navigation {
-    display: block;
-    position: absolute;
-    bottom: 0;
-    width: 100%;
-}
-
-#kindle-view .navigation button {
-    font-size: 2em;
-    padding: 20px;
-    width: 50%;
-    border: 1px solid black;
-    background-color: white;
-    float: left;
-    box-sizing: border-box;
-}
 
 /* Desktop View */
 #desktop-view {

@@ -195,12 +195,8 @@ function updateStationSpecificVisibility() {
     // Hide/show metrics not available for current station
     for (var metricKey in METRICS) {
         var isAvailable = isMetricAvailableForStation(metricKey);
-        var kindleElement = document.getElementById(metricKey.replace(/_/g, '-'));
         var desktopElement = document.getElementById('desktop-' + metricKey.replace(/_/g, '-'));
 
-        if (kindleElement) {
-            kindleElement.style.display = isAvailable ? 'block' : 'none';
-        }
         if (desktopElement) {
             desktopElement.style.display = isAvailable ? 'block' : 'none';
         }
@@ -242,18 +238,10 @@ function humiditeRessentie(dewPoint) {
   }
 }
 
-var currentPage = 1;
-var currentView = isKindle() ? 'kindle' : 'desktop';
-var kindleTimer;
-
 function degreesToCardinal(deg) {
     var cardinals = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'];
     var index = Math.round(deg / 22.5) % 16;
     return cardinals[index];
-}
-
-function isKindle() {
-    return /Kindle|Silk/i.test(navigator.userAgent);
 }
 
 function fetchMetric(metricName, callback) {
@@ -335,11 +323,6 @@ function updateUI() {
                         }
                     }
 
-                    var kindleElement = document.getElementById(metric.replace(/_/g, '-'));
-                    if (kindleElement) {
-                        var valueElement = kindleElement.querySelector('.value');
-                        valueElement.innerHTML = formattedValue;
-                    }
                     var desktopElement = document.getElementById('desktop-' + metric.replace(/_/g, '-'));
                     if (desktopElement) {
                         var valueElement = desktopElement.querySelector('.value');
@@ -399,86 +382,6 @@ function updateUI() {
     });
 }
 
-function updateUrlAnchor() {
-    var hash = 'view=' + currentView;
-    if (currentView === 'kindle') {
-        hash += '&page=' + currentPage;
-    }
-    window.location.hash = hash;
-}
-
-function setupKindleView() {
-    document.getElementById('kindle-view').style.display = 'block';
-    document.getElementById('desktop-view').style.display = 'none';
-    document.getElementById('view-switcher').textContent = '⌨';
-    var totalPages = 5;
-
-    for (var i = 1; i <= totalPages; i++) {
-        document.getElementById('kindle-page-' + i).style.display = 'none';
-    }
-    document.getElementById('kindle-page-' + currentPage).style.display = 'block';
-
-
-    var nextPage = function() {
-        document.getElementById('kindle-page-' + currentPage).style.display = 'none';
-        currentPage = (currentPage % totalPages) + 1;
-        document.getElementById('kindle-page-' + currentPage).style.display = 'block';
-        // updateUrlAnchor(); // Disabled to keep clean URLs
-    };
-
-    var prevPage = function() {
-        document.getElementById('kindle-page-' + currentPage).style.display = 'none';
-        currentPage = (currentPage - 2 + totalPages) % totalPages + 1;
-        document.getElementById('kindle-page-' + currentPage).style.display = 'block';
-        // updateUrlAnchor(); // Disabled to keep clean URLs
-    };
-
-    var resetTimer = function() {
-        clearInterval(kindleTimer);
-        kindleTimer = setInterval(nextPage, 10000);
-    };
-
-    document.getElementById('next-page').addEventListener('click', function() {
-        nextPage();
-        resetTimer();
-    });
-    document.getElementById('prev-page').addEventListener('click', function() {
-        prevPage();
-        resetTimer();
-    });
-
-    resetTimer();
-}
-
-function setupDesktopView() {
-    document.getElementById('desktop-view').style.display = 'block';
-    var kindleView = document.getElementById('kindle-view');
-    kindleView.style.display = 'none';
-    document.getElementById('view-switcher').textContent = '⌨';
-    clearInterval(kindleTimer);
-}
-
-function readUrlAnchor() {
-    var hash = window.location.hash.substring(1);
-    var params = {};
-    var parts = hash.split('&');
-    for (var i = 0; i < parts.length; i++) {
-        var keyValue = parts[i].split('=');
-        if (keyValue.length === 2) {
-            params[keyValue[0]] = keyValue[1];
-        }
-    }
-
-    var view = params['view'];
-    var page = params['page'];
-
-    if (view) {
-        currentView = view;
-    }
-    if (page) {
-        currentPage = parseInt(page, 10);
-    }
-}
 
 function getStatsForCurrentStation() {
     // Use station-aware stats if available, fallback to STATS for backward compatibility
@@ -602,11 +505,6 @@ function updateStaticUI() {
             if (stat.value !== undefined) { // For single-value metrics like rain
                 var formattedValue = stat.value.toFixed(0) + ' ' + (stat.unit || '');
                 desktopElement.querySelector('.value').textContent = formattedValue;
-
-                var kindleElement = document.getElementById(metric.replace(/_/g, '-'));
-                if (kindleElement) {
-                    kindleElement.querySelector('.value').innerHTML = formattedValue;
-                }
 
             } else { // For subtitle metrics
                 var subtitleElement = desktopElement.querySelector('.subtitle');
@@ -2451,13 +2349,6 @@ function main() {
     updateStationDropdown();
     updateStationSpecificVisibility();
 
-    // readUrlAnchor(); // Disabled to keep clean URLs
-    if (currentView === 'kindle') {
-        setupKindleView();
-    } else {
-        setupDesktopView();
-    }
-    // updateUrlAnchor(); // Disabled to keep clean URLs
     updateStaticUI();
 
 
@@ -2467,17 +2358,6 @@ function main() {
         if (selectedStation) {
             switchToStation(selectedStation);
         }
-    });
-
-    document.getElementById('view-switcher').addEventListener('click', function() {
-        if (currentView === 'kindle') {
-            currentView = 'desktop';
-            setupDesktopView();
-        } else {
-            currentView = 'kindle';
-            setupKindleView();
-        }
-        // updateUrlAnchor(); // Disabled to keep clean URLs
     });
 
     document.getElementById('refresh-button').addEventListener('click', function() {
