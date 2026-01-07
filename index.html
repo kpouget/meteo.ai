@@ -8,10 +8,14 @@
 </head>
 <body>
     <div id="floating-buttons">
-        <button id="station-switcher" title="Changer de station">Cahors</button>
+        <span id="current-station" title="Station actuelle" style="display: none;">--</span>
         <button id="view-switcher">Kindle</button>
         <button id="refresh-button" title="Refresh">↻</button>
+        <select id="station-dropdown" title="Changer de station">
+            <option value="">Station</option>
+        </select>
     </div>
+
     <div id="kindle-view" class="view">
         <div id="kindle-page-1" class="page">
             <div class="data-point" id="temperature-ext">
@@ -191,32 +195,36 @@
                 <div id="sun-rad-distribution-container"></div>
             </div>
             <div class="group">
-                <h3>Vigilance météo</h3>
-                <div class="grid-items-container">
-                    <div class="grid-item" id="vigi-meteo">
-                        <iframe src="https://vigilance.meteofrance.fr/fr/widget-vigilance/vigilance-departement/46" width="302" height="122" frameborder="0"></iframe>
+                <div id="vigilance-section">
+                    <h3>Vigilance météo</h3>
+                    <div class="grid-items-container">
+                        <div class="grid-item" id="vigi-meteo">
+                            <iframe src="https://vigilance.meteofrance.fr/fr/widget-vigilance/vigilance-departement/46" width="302" height="122" frameborder="0"></iframe>
+                        </div>
                     </div>
                 </div>
-                <h3>Niveau des Rivières</h3>
-                <div class="grid-items-container">
-                    <div class="grid-item" id="desktop-river-lot">
-                        <a id="lot-vigicrues-link" href="#" target="_blank" rel="noopener noreferrer">
-                            <span class="label">Lot</span>
-                            <span class="value">--</span>
-                            <span class="subtitle">--</span>
-                        </a>
+                <div id="rivers-section">
+                    <h3>Niveau des Rivières</h3>
+                    <div class="grid-items-container">
+                        <div class="grid-item" id="desktop-river-lot">
+                            <a id="lot-vigicrues-link" href="#" target="_blank" rel="noopener noreferrer">
+                                <span class="label">Lot</span>
+                                <span class="value">--</span>
+                                <span class="subtitle">--</span>
+                            </a>
+                        </div>
+                        <div class="grid-item" id="desktop-river-dordogne">
+                            <a id="dordogne-vigicrues-link" href="#" target="_blank" rel="noopener noreferrer">
+                                <span class="label">Dordogne</span>
+                                <span class="value">--</span>
+                                <span class="subtitle">--</span>
+                            </a>
+                        </div>
                     </div>
-                    <div class="grid-item" id="desktop-river-dordogne">
-                        <a id="dordogne-vigicrues-link" href="#" target="_blank" rel="noopener noreferrer">
-                            <span class="label">Dordogne</span>
-                            <span class="value">--</span>
-                            <span class="subtitle">--</span>
-                        </a>
+                    <div id="rivers-chart-container" style="height: 200px; margin-top: 10px;">
+                        <h3 style="margin: 0 0 10px 0; font-size: 14px;">Évolution des rivières (48h)</h3>
+                        <canvas id="rivers-chart" style="height: 160px; width: 100%;"></canvas>
                     </div>
-                </div>
-                <div id="rivers-chart-container" style="height: 200px; margin-top: 10px;">
-                    <h3 style="margin: 0 0 10px 0; font-size: 14px;">Évolution des rivières (48h)</h3>
-                    <canvas id="rivers-chart" style="height: 160px; width: 100%;"></canvas>
                 </div>
             </div>
             <div class="group" id="maison-group">
@@ -257,9 +265,9 @@
             </div>
         </div>
     </div>
-    <script src="stations.js?v=20241229"></script>
+    <script src="stations.js?v=20250107c"></script>
     <script src="metrics.js?v=20250105a"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="script.js?v=20250106z"></script>
+    <script src="script.js?v=20250107m"></script>
 </body>
 </html>

@@ -4,7 +4,8 @@ var STATIONS = {
         "station_id": "ICAHOR23",
         "default": true,
         "features": {
-            "pm_sensors": true
+            "pm_sensors": true,
+            "rivers": true
         }
     },
     "vayrac": {
@@ -12,7 +13,62 @@ var STATIONS = {
         "station_id": "IVAYRA1",
         "default": false,
         "features": {
-            "pm_sensors": false
+            "pm_sensors": false,
+            "rivers": true
+        }
+    },
+    "coublevie": {
+        "name": "Coublevie",
+        "station_id": "ICOUBL3",
+        "default": false,
+        "features": {
+            "pm_sensors": false,
+            "rivers": false
+        }
+    },
+    "revel": {
+        "name": "Revel",
+        "station_id": "IREVEL54",
+        "default": false,
+        "features": {
+            "pm_sensors": false,
+            "rivers": false
+        }
+    },
+    "pamplona": {
+        "name": "Pamplune",
+        "station_id": "IPAMPL52",
+        "default": false,
+        "features": {
+            "pm_sensors": false,
+            "rivers": false
+        }
+    },
+    "mandeli": {
+        "name": "Mandelieu",
+        "station_id": "IMANDELI41",
+        "default": false,
+        "features": {
+            "pm_sensors": false,
+            "rivers": false
+        }
+    },
+    "eastboston": {
+        "name": "Boston",
+        "station_id": "KMAEASTB68",
+        "default": false,
+        "features": {
+            "pm_sensors": false,
+            "rivers": false
+        }
+    },
+    "tokyo": {
+        "name": "Tokyo",
+        "station_id": "ITOKYO63",
+        "default": false,
+        "features": {
+            "pm_sensors": false,
+            "rivers": false
         }
     }
 };

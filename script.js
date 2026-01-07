@@ -96,22 +96,41 @@ function updateTitlesWithStation() {
             pageTitle.textContent = stationTitle;
         }
 
-        // Update main H1
+        // Update main H1 with Weather Underground link
         var mainTitle = document.getElementById('main-title');
         if (mainTitle) {
-            mainTitle.textContent = stationTitle;
+            var wundergroundUrl = 'https://www.wunderground.com/dashboard/pws/' + station.station_id;
+            mainTitle.innerHTML = 'Données météo de <a href="' + wundergroundUrl + '" target="_blank" rel="noopener noreferrer">' + station.name + '</a>';
         }
     }
 }
 
-function updateStationSwitcher() {
+function updateCurrentStationDisplay() {
     var station = getCurrentStation();
-    var stationSwitcher = document.getElementById('station-switcher');
-    if (stationSwitcher && station) {
-        // Show current station and indicate what clicking will switch to
-        var otherStationName = (currentStation === 'cahors') ? 'Vayrac' : 'Cahors';
-        stationSwitcher.textContent = otherStationName;
-        stationSwitcher.title = 'Basculer vers ' + otherStationName;
+    var currentStationElement = document.getElementById('current-station');
+    if (currentStationElement && station) {
+        currentStationElement.textContent = station.name;
+        currentStationElement.title = 'Station actuelle: ' + station.name;
+        currentStationElement.style.display = 'block';
+    }
+}
+
+function updateStationDropdown() {
+    var dropdown = document.getElementById('station-dropdown');
+    if (!dropdown) return;
+
+    // Clear existing options except the first placeholder
+    dropdown.innerHTML = '<option value="">Station</option>';
+
+    // Add options for all stations except the current one
+    for (var stationId in STATIONS) {
+        if (stationId !== currentStation) {
+            var station = STATIONS[stationId];
+            var option = document.createElement('option');
+            option.value = stationId;
+            option.textContent = station.name;
+            dropdown.appendChild(option);
+        }
     }
 }
 
@@ -128,12 +147,26 @@ function switchToStation(stationName) {
     window.location.href = currentUrl.toString();
 }
 
+
 function updateStationSpecificVisibility() {
     // Hide/show PM chart container based on station features
     var station = getCurrentStation();
     var pmChartContainer = document.getElementById('pm-chart-container');
     if (pmChartContainer) {
         pmChartContainer.style.display = station.features.pm_sensors ? 'block' : 'none';
+    }
+
+    // Hide/show rivers section based on station features
+    var riversSection = document.getElementById('rivers-section');
+    if (riversSection) {
+        riversSection.style.display = station.features.rivers ? 'block' : 'none';
+    }
+
+    // Hide/show vigilance météo section (only for Cahors and Vayrac - French local weather alerts)
+    var vigilanceSection = document.getElementById('vigilance-section');
+    if (vigilanceSection) {
+        var showVigilance = (currentStation === 'cahors' || currentStation === 'vayrac');
+        vigilanceSection.style.display = showVigilance ? 'block' : 'none';
     }
 
     // Hide/show Maison group based on station (only for Cahors)
@@ -2382,7 +2415,8 @@ function main() {
     // Initialize station system (no UI, just URL parameter detection)
     loadStationFromSources();
     updateTitlesWithStation();
-    updateStationSwitcher();
+    updateCurrentStationDisplay();
+    updateStationDropdown();
     updateStationSpecificVisibility();
 
     // readUrlAnchor(); // Disabled to keep clean URLs
@@ -2395,9 +2429,12 @@ function main() {
     updateStaticUI();
 
 
-    document.getElementById('station-switcher').addEventListener('click', function() {
-        var otherStation = (currentStation === 'cahors') ? 'vayrac' : 'cahors';
-        switchToStation(otherStation);
+    // Station dropdown event handler
+    document.getElementById('station-dropdown').addEventListener('change', function() {
+        var selectedStation = this.value;
+        if (selectedStation) {
+            switchToStation(selectedStation);
+        }
     });
 
     document.getElementById('view-switcher').addEventListener('click', function() {
