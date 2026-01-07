@@ -9,6 +9,17 @@ function loadStatsAndRunMain() {
 
 var PROMETHEUS_URL = 'https://prometheus.972.ovh/api/v1/query';
 
+// Vigicrues station ID mapping
+var VIGICRUES_STATIONS = {
+    'Lot': {
+        'Cahors': 'O823153002'
+    },
+    'Dordogne': {
+        'Souillac': 'P230001001',
+        'Carennac': 'P207002001'
+    }
+};
+
 // Chart instances for cleanup
 var chartInstances = {
     temperature: null,
@@ -144,6 +155,9 @@ function updateStationSpecificVisibility() {
             labelElement.textContent = 'Dordogne';
         }
     }
+
+    // Update vigicrues links based on current station
+    updateVigicruesLinks();
 
     // Hide/show metrics not available for current station
     for (var metricKey in METRICS) {
@@ -2074,6 +2088,38 @@ function renderRiversChart(riversData) {
 
     // Update river subtitles with both metrics
     updateRiverSubtitles(riversData);
+
+    // Update vigicrues links based on current station and rivers
+    updateVigicruesLinks();
+}
+
+function updateVigicruesLinks() {
+    // Update Lot river link
+    var lotLink = document.getElementById('lot-vigicrues-link');
+    if (lotLink) {
+        var stationId = VIGICRUES_STATIONS['Lot']['Cahors'];
+        if (stationId) {
+            lotLink.href = 'https://www.vigicrues.gouv.fr/station/' + stationId;
+        }
+    }
+
+    // Update Dordogne river link based on current station
+    var dordogneLink = document.getElementById('dordogne-vigicrues-link');
+    if (dordogneLink) {
+        var dordogneStationName;
+        if (currentStation === 'vayrac') {
+            dordogneStationName = 'Carennac';
+        } else if (currentStation === 'cahors') {
+            dordogneStationName = 'Souillac';
+        } else {
+            dordogneStationName = 'Carennac'; // default
+        }
+
+        var stationId = VIGICRUES_STATIONS['Dordogne'][dordogneStationName];
+        if (stationId) {
+            dordogneLink.href = 'https://www.vigicrues.gouv.fr/station/' + stationId;
+        }
+    }
 }
 
 function updateRiverSubtitles(riversData) {
