@@ -916,21 +916,54 @@ function processWindData(windData) {
         return item.percentage >= 10;
     });
 
+    // Manually filter datasets to avoid identical cumulative ones
+    var allDatasets = speedBins.map(function(s, i) {
+        return {
+            label: i < speedBins.length - 1 ? '< ' + speedBins[i+1] + ' km/h' : '>= ' + s + ' km/h',
+            data: cumulativeData.map(function(d) { return d[i]; }),
+            backgroundColor: 'rgba(' + Math.floor(Math.random() * 255) + ',' + Math.floor(Math.random() * 255) + ',' + Math.floor(Math.random() * 255) + ', 0.5)',
+            borderColor: '#000',
+            borderWidth: 1
+        };
+    });
+
+    var filteredDatasets = [];
+    var lastKeptDataset = null;
+
+    for (var i = 0; i < allDatasets.length; i++) {
+        var dataset = allDatasets[i];
+
+        console.log('Checking dataset:', dataset.label, 'Data:', dataset.data);
+
+        // Only include datasets that have at least one non-zero data point
+        if (!dataset.data.some(function(value) { return value > 0; })) {
+            console.log('Skipping - no non-zero data');
+            continue;
+        }
+
+        // Check if this dataset is identical to the last kept one
+        if (lastKeptDataset) {
+            var identical = dataset.data.every(function(value, index) {
+                return value === lastKeptDataset.data[index];
+            });
+            console.log('Comparing to last kept:', lastKeptDataset.label, 'Identical?', identical);
+            if (identical) {
+                console.log('Skipping - identical to previous');
+                continue; // Skip identical cumulative buckets
+            }
+        }
+
+        console.log('Keeping dataset:', dataset.label);
+        filteredDatasets.push(dataset);
+        lastKeptDataset = dataset;
+    }
+
+    console.log('Final filtered datasets:', filteredDatasets.length, filteredDatasets.map(function(d) { return d.label; }));
+
     return {
         chartData: {
             labels: directionLabels,
-            datasets: speedBins.map(function(s, i) {
-                return {
-                    label: i < speedBins.length - 1 ? '< ' + speedBins[i+1] + ' km/h' : '>= ' + s + ' km/h',
-                    data: cumulativeData.map(function(d) { return d[i]; }),
-                    backgroundColor: 'rgba(' + Math.floor(Math.random() * 255) + ',' + Math.floor(Math.random() * 255) + ',' + Math.floor(Math.random() * 255) + ', 0.5)',
-                    borderColor: '#000',
-                    borderWidth: 1
-                };
-            }).filter(function(dataset) {
-                // Only include datasets that have at least one non-zero data point
-                return dataset.data.some(function(value) { return value > 0; });
-            })
+            datasets: filteredDatasets
         },
         topCategories: filteredData
     };
@@ -939,14 +972,25 @@ function processWindData(windData) {
 function updateWindSummaryUI(topCategories) {
     var container = document.getElementById('desktop-wind-summary');
     container.innerHTML = '';
-    topCategories.forEach(function(cat) {
+    topCategories.slice(0, 3).forEach(function(cat) {
         var item = document.createElement('div');
         item.className = 'grid-item';
 
         // Calculate font size proportional to percentage (12px to 24px range)
         var fontSize = Math.max(12, Math.min(24, 12 + (cat.percentage - 10) * 0.4));
 
-        item.innerHTML = '<span class="label">' + cat.direction + '</span><span class="value" style="font-size: ' + fontSize + 'px;">' + cat.speed + '</span><span class="subtitle">' + cat.percentage.toFixed(0) + ' %</span>';
+        // Check if this direction has winds faster than 10km/h and make speed title bigger
+        var hasFastWinds = false;
+        if (cat.speed.includes('< ')) {
+            var speedValue = parseInt(cat.speed.match(/< (\d+)/)[1]);
+            hasFastWinds = speedValue > 10;
+        } else if (cat.speed.includes('>= ')) {
+            hasFastWinds = true; // >= 50 km/h is definitely > 10
+        }
+
+        var speedFontSize = hasFastWinds ? fontSize * 1.3 : fontSize;
+
+        item.innerHTML = '<span class="label">' + cat.direction + '</span><span class="value" style="font-size: ' + speedFontSize + 'px;">' + cat.speed + '</span><span class="subtitle">' + cat.percentage.toFixed(0) + ' %</span>';
         container.appendChild(item);
     });
 }
@@ -954,7 +998,13 @@ function updateWindSummaryUI(topCategories) {
 function renderWindRoseChart(processedData) {
     var canvas = document.getElementById('wind-chart');
     var ctx = canvas.getContext('2d');
-    var chart = new Chart(ctx, {
+
+    // Destroy existing chart if it exists
+    if (chartInstances.wind) {
+        chartInstances.wind.destroy();
+    }
+
+    chartInstances.wind = new Chart(ctx, {
         type: 'polarArea',
         data: processedData.chartData,
         options: {
@@ -1074,14 +1124,25 @@ function fetchWindDataMonth(callback) {
 function updateWindSummaryUIMonth(topCategories) {
     var container = document.getElementById('desktop-wind-summary-month');
     container.innerHTML = '';
-    topCategories.forEach(function(cat) {
+    topCategories.slice(0, 3).forEach(function(cat) {
         var item = document.createElement('div');
         item.className = 'grid-item';
 
         // Calculate font size proportional to percentage (12px to 24px range)
         var fontSize = Math.max(12, Math.min(24, 12 + (cat.percentage - 10) * 0.4));
 
-        item.innerHTML = '<span class="label">' + cat.direction + '</span><span class="value" style="font-size: ' + fontSize + 'px;">' + cat.speed + '</span><span class="subtitle">' + cat.percentage.toFixed(0) + ' %</span>';
+        // Check if this direction has winds faster than 10km/h and make speed title bigger
+        var hasFastWinds = false;
+        if (cat.speed.includes('< ')) {
+            var speedValue = parseInt(cat.speed.match(/< (\d+)/)[1]);
+            hasFastWinds = speedValue > 10;
+        } else if (cat.speed.includes('>= ')) {
+            hasFastWinds = true; // >= 50 km/h is definitely > 10
+        }
+
+        var speedFontSize = hasFastWinds ? fontSize * 1.3 : fontSize;
+
+        item.innerHTML = '<span class="label">' + cat.direction + '</span><span class="value" style="font-size: ' + speedFontSize + 'px;">' + cat.speed + '</span><span class="subtitle">' + cat.percentage.toFixed(0) + ' %</span>';
         container.appendChild(item);
     });
 }
@@ -2386,7 +2447,13 @@ function renderPMChart(pmData) {
 function renderWindRoseChartMonth(processedData) {
     var canvas = document.getElementById('wind-chart-month');
     var ctx = canvas.getContext('2d');
-    var chart = new Chart(ctx, {
+
+    // Destroy existing chart if it exists
+    if (chartInstances.windMonth) {
+        chartInstances.windMonth.destroy();
+    }
+
+    chartInstances.windMonth = new Chart(ctx, {
         type: 'polarArea',
         data: processedData.chartData,
         options: {
