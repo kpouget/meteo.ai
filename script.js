@@ -845,17 +845,65 @@ function processWindData(windData) {
         data[dirIndex][speedIndex]++;
     });
 
-    var flatData = [];
+    // Create cumulative data for chart display
+    var cumulativeData = new Array(directionBins).fill(0).map(function() { return new Array(speedBins.length).fill(0); });
     for (var i = 0; i < data.length; i++) {
         for (var j = 0; j < data[i].length; j++) {
-            if (data[i][j] > 0) {
+            // Each cumulative bucket includes all lower speed buckets, except the highest bucket
+            for (var k = j; k < speedBins.length - 1; k++) {
+                cumulativeData[i][k] += data[i][j];
+            }
+        }
+        // Highest bucket (>= 50) is not cumulative, only shows actual high winds
+        cumulativeData[i][speedBins.length - 1] = data[i][speedBins.length - 1];
+    }
+
+    // Create summary data showing smallest meaningful cumulative bucket for each direction
+    var flatData = [];
+    for (var i = 0; i < cumulativeData.length; i++) {
+        // Calculate total winds for this direction (excluding >= 50 for now)
+        var totalExcludingHigh = 0;
+        for (var k = 0; k < data[i].length - 1; k++) {
+            totalExcludingHigh += data[i][k];
+        }
+
+        if (totalExcludingHigh > 0) {
+            // Find the smallest cumulative bucket that captures all winds < 50 for this direction
+            var bestBucket = -1;
+            for (var j = 0; j < cumulativeData[i].length - 1; j++) { // Skip >= 50 bucket
+                if (cumulativeData[i][j] >= totalExcludingHigh) {
+                    bestBucket = j;
+                    break;
+                }
+            }
+
+            if (bestBucket === -1) {
+                bestBucket = speedBins.length - 2; // < 50 km/h bucket
+            }
+
+            var displayCount = cumulativeData[i][bestBucket];
+            var displayPercentage = (displayCount / totalMeasures * 100);
+
+            // Only show if significant
+            if (displayPercentage >= 1) {
                 flatData.push({
-                    count: data[i][j],
-                    percentage: (data[i][j] / totalMeasures * 100),
+                    count: displayCount,
+                    percentage: displayPercentage,
                     direction: directionLabels[i],
-                    speed: j === 0 ? '< ' + speedBins[1] + ' km/h' : speedBins[j] + ' - ' + (speedBins[j+1] || '> ' + speedBins[j]) + ' km/h'
+                    speed: '< ' + speedBins[bestBucket + 1] + ' km/h'
                 });
             }
+        }
+
+        // Also check if there are significant >= 50 winds to show separately
+        var highWinds = data[i][data[i].length - 1];
+        if (highWinds > 0 && (highWinds / totalMeasures * 100) >= 1) {
+            flatData.push({
+                count: highWinds,
+                percentage: (highWinds / totalMeasures * 100),
+                direction: directionLabels[i],
+                speed: '>= ' + speedBins[speedBins.length - 1] + ' km/h'
+            });
         }
     }
 
@@ -873,12 +921,15 @@ function processWindData(windData) {
             labels: directionLabels,
             datasets: speedBins.map(function(s, i) {
                 return {
-                    label: i === 0 ? '< ' + speedBins[1] + ' km/h' : s + ' - ' + (speedBins[i+1] || '> ' + s) + ' km/h',
-                    data: data.map(function(d) { return d[i]; }),
+                    label: i < speedBins.length - 1 ? '< ' + speedBins[i+1] + ' km/h' : '>= ' + s + ' km/h',
+                    data: cumulativeData.map(function(d) { return d[i]; }),
                     backgroundColor: 'rgba(' + Math.floor(Math.random() * 255) + ',' + Math.floor(Math.random() * 255) + ',' + Math.floor(Math.random() * 255) + ', 0.5)',
                     borderColor: '#000',
                     borderWidth: 1
                 };
+            }).filter(function(dataset) {
+                // Only include datasets that have at least one non-zero data point
+                return dataset.data.some(function(value) { return value > 0; });
             })
         },
         topCategories: filteredData
