@@ -873,7 +873,7 @@ function processWindData(windData) {
             labels: directionLabels,
             datasets: speedBins.map(function(s, i) {
                 return {
-                    label: i === 0 ? '< ' + s + ' km/h' : s + ' - ' + (speedBins[i+1] || '> ' + s) + ' km/h',
+                    label: i === 0 ? '< ' + speedBins[1] + ' km/h' : s + ' - ' + (speedBins[i+1] || '> ' + s) + ' km/h',
                     data: data.map(function(d) { return d[i]; }),
                     backgroundColor: 'rgba(' + Math.floor(Math.random() * 255) + ',' + Math.floor(Math.random() * 255) + ',' + Math.floor(Math.random() * 255) + ', 0.5)',
                     borderColor: '#000',
