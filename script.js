@@ -26,7 +26,8 @@ var chartInstances = {
     pressure: null,
     rivers: null,
     pm: null,
-    sunRadBuckets: null
+    sunRadBuckets: null,
+    sunRadWeeklyBuckets: null
 };
 
 // Station-aware functions
@@ -1500,6 +1501,150 @@ function updateNightDurationUI(bucketData) {
     }
 }
 
+function fetchSunRadWeeklyBuckets(callback) {
+    // Get weekly sun radiation bucket data from station stats
+    var stats = getStatsForCurrentStation();
+    if (stats && stats.sun_rad_weekly_buckets) {
+        callback(stats.sun_rad_weekly_buckets);
+    } else {
+        callback(null);
+    }
+}
+
+function renderSunRadWeeklyBucketsChart(weeklyData) {
+    if (!weeklyData || weeklyData.length === 0) return;
+
+    // Prepare data for stacked line chart
+    var labels = weeklyData.map(function(d) {
+        var startDate = new Date(d.week_start);
+        return startDate.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' });
+    });
+
+    // Define bucket order and colors (same as daily chart)
+    var bucketOrder = ['Nuit', '< 40', '< 200', '< 500', '≥ 500'];
+    var bucketColors = {
+        'Nuit': 'rgba(169, 169, 169, 0.7)',    // Gray
+        '< 40': 'rgba(255, 206, 84, 0.7)',     // Yellow
+        '< 200': 'rgba(255, 159, 64, 0.7)',    // Orange
+        '< 500': 'rgba(255, 99, 132, 0.7)',    // Red
+        '≥ 500': 'rgba(153, 102, 255, 0.7)'    // Purple
+    };
+
+    // Create datasets for each bucket
+    var datasets = bucketOrder.map(function(bucketLabel, index) {
+        var rawData = weeklyData.map(function(d) { return d.buckets[bucketLabel] || 0; });
+
+        return {
+            label: bucketLabel === 'Nuit' ? bucketLabel : bucketLabel + ' W/m²',
+            data: rawData,
+            backgroundColor: bucketColors[bucketLabel],
+            borderColor: bucketColors[bucketLabel].replace('0.7', '1'),
+            borderWidth: 1,
+            fill: true,
+            stack: 'positive',
+            hidden: bucketLabel === 'Nuit' // Hide the first bucket by default
+        };
+    });
+
+    // Create chart container
+    var container = document.getElementById('sun-rad-weekly-buckets-container');
+    if (!container) return;
+
+    container.innerHTML = '<h3 style="margin: 0 0 10px 0; font-size: 14px;">Intensité du rayonnement solaire (moyenne journalière par semaine)</h3><canvas id="sun-rad-weekly-buckets-chart" style="height: 300px; width: 100%;"></canvas>';
+    container.style.height = '340px';
+    container.style.margin = '10px 0';
+
+    var canvas = document.getElementById('sun-rad-weekly-buckets-chart');
+    var ctx = canvas.getContext('2d');
+
+    // Destroy existing chart if it exists
+    if (chartInstances.sunRadWeeklyBuckets) {
+        chartInstances.sunRadWeeklyBuckets.destroy();
+    }
+
+    chartInstances.sunRadWeeklyBuckets = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: datasets
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        font: { size: 10 },
+                        usePointStyle: true,
+                        pointStyle: 'rect'
+                    }
+                },
+                tooltip: {
+                    mode: 'index',
+                    intersect: false,
+                    callbacks: {
+                        title: function(tooltipItems) {
+                            if (tooltipItems.length > 0) {
+                                var weekIndex = tooltipItems[0].dataIndex;
+                                var weekData = weeklyData[weekIndex];
+                                if (weekData) {
+                                    return 'Semaine du ' + new Date(weekData.week_start).toLocaleDateString('fr-FR');
+                                }
+                            }
+                            return '';
+                        },
+                        label: function(context) {
+                            // Get the raw bucket value
+                            var weekIndex = context.dataIndex;
+                            var datasetLabel = context.dataset.label;
+                            var bucketLabel = datasetLabel === 'Nuit' ? 'Nuit' : datasetLabel.replace(' W/m²', '');
+                            if (weeklyData[weekIndex]) {
+                                var rawValue = weeklyData[weekIndex].buckets[bucketLabel] || 0;
+                                return datasetLabel + ': ' + rawValue.toFixed(2) + 'h';
+                            }
+                            return datasetLabel + ': 0h';
+                        },
+                        footer: function(tooltipItems) {
+                            if (tooltipItems.length > 0) {
+                                var weekIndex = tooltipItems[0].dataIndex;
+                                if (weeklyData[weekIndex]) {
+                                    // Sum the bucket values for daily average
+                                    var dailyTotal = 0;
+                                    bucketOrder.forEach(function(bucketLabel) {
+                                        dailyTotal += weeklyData[weekIndex].buckets[bucketLabel] || 0;
+                                    });
+                                    return 'Moyenne/jour: ' + dailyTotal.toFixed(2) + 'h';
+                                }
+                            }
+                            return 'Moyenne/jour: --h';
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    title: { display: true, text: 'Semaines' }
+                },
+                y: {
+                    title: { display: true, text: 'Heures' },
+                    stacked: true,
+                    min: 0,
+                    ticks: {
+                        callback: function(value) {
+                            return value + 'h';
+                        }
+                    }
+                }
+            },
+            elements: {
+                point: { radius: 2, hoverRadius: 4 },
+                line: { tension: 0.1 }
+            }
+        }
+    });
+}
+
 function renderSunRadBucketsChart(bucketData) {
     if (!bucketData || bucketData.length === 0) return;
 
@@ -1540,8 +1685,8 @@ function renderSunRadBucketsChart(bucketData) {
     if (!container) return;
 
     container.innerHTML = '<h3 style="margin: 0 0 10px 0; font-size: 14px;">Intensité du rayonnement solaire (7 derniers jours)</h3><canvas id="sun-rad-buckets-chart" style="height: 300px; width: 100%;"></canvas>';
-    container.style.height = '340px';
-    container.style.margin = '10px 0';
+    container.style.height = '370px';
+    container.style.margin = '10px 0 25px 0';
 
     var canvas = document.getElementById('sun-rad-buckets-chart');
     var ctx = canvas.getContext('2d');
@@ -1581,7 +1726,7 @@ function renderSunRadBucketsChart(bucketData) {
                             var bucketLabel = datasetLabel === 'Nuit' ? 'Nuit' : datasetLabel.replace(' W/m²', '');
                             if (bucketData[reversedIndex]) {
                                 var rawValue = bucketData[reversedIndex].buckets[bucketLabel] || 0;
-                                return datasetLabel + ': ' + rawValue + 'h';
+                                return datasetLabel + ': ' + rawValue.toFixed(2) + 'h';
                             }
                             return datasetLabel + ': 0h';
                         },
@@ -1595,7 +1740,7 @@ function renderSunRadBucketsChart(bucketData) {
                                     bucketOrder.forEach(function(bucketLabel) {
                                         dayTotal += bucketData[reversedIndex].buckets[bucketLabel] || 0;
                                     });
-                                    return 'Total: ' + dayTotal + 'h';
+                                    return 'Total: ' + dayTotal.toFixed(2) + 'h';
                                 }
                             }
                             return 'Total: --h';
@@ -2568,6 +2713,12 @@ function main() {
         if (bucketData) {
             renderSunRadBucketsChart(bucketData);
             updateNightDurationUI(bucketData);
+        }
+    });
+
+    fetchSunRadWeeklyBuckets(function(weeklyData) {
+        if (weeklyData) {
+            renderSunRadWeeklyBucketsChart(weeklyData);
         }
     });
 }

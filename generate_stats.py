@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 
 import json
+import os
 from prometheus_api_client import PrometheusConnect
-from datetime import datetime
+from datetime import datetime, date
 from dateutil.relativedelta import relativedelta
 from calendar import monthrange
 from datetime import timedelta
@@ -11,6 +12,7 @@ import locale
 # Configuration
 PROMETHEUS_URL = "https://prometheus.972.ovh"
 OUTPUT_JS_FILE = "stats.js"
+WEEKLY_DATA_DIR = "weekly_data"
 
 # Station configuration
 STATIONS = {
@@ -207,6 +209,245 @@ def query_metric_with_historical(prom, metric_name, station_name, station_config
     else:
         print(f"  - No data available")
         return None
+
+def get_sunday_week_bounds(target_date):
+    """Get the Sunday-to-Sunday week bounds for a given date."""
+    # Find the Sunday of the week containing target_date
+    days_since_sunday = target_date.weekday() + 1 if target_date.weekday() != 6 else 0
+    week_start = target_date - timedelta(days=days_since_sunday)
+
+    # Convert to datetime if needed for end time calculation
+    if isinstance(week_start, date) and not isinstance(week_start, datetime):
+        week_start_dt = datetime.combine(week_start, datetime.min.time())
+    else:
+        week_start_dt = week_start
+
+    week_end = week_start_dt + timedelta(days=6, hours=23, minutes=59, seconds=59)
+    return week_start, week_end
+
+def get_week_identifier(target_date):
+    """Get a week identifier string (e.g., '2024-W01') for a given date."""
+    week_start, _ = get_sunday_week_bounds(target_date)
+    # Use ISO year and calculate week number from Sunday
+    year = week_start.year
+    day_of_year = week_start.timetuple().tm_yday
+    week_num = ((day_of_year - 1) // 7) + 1
+    return f"{year}-W{week_num:02d}"
+
+def get_weekly_data_filename(station_name):
+    """Get the filename for storing weekly data for a station."""
+    return os.path.join(WEEKLY_DATA_DIR, f"{station_name}_weekly_buckets.json")
+
+def load_existing_weekly_data(station_name):
+    """Load existing weekly data from file."""
+    filename = get_weekly_data_filename(station_name)
+    if os.path.exists(filename):
+        try:
+            with open(filename, 'r') as f:
+                return json.load(f)
+        except Exception as e:
+            print(f"Error loading weekly data: {e}")
+    return {}
+
+def save_weekly_data(station_name, weekly_data):
+    """Save weekly data to file."""
+    os.makedirs(WEEKLY_DATA_DIR, exist_ok=True)
+    filename = get_weekly_data_filename(station_name)
+    try:
+        with open(filename, 'w') as f:
+            json.dump(weekly_data, f, indent=2)
+        print(f"Saved weekly data to {filename}")
+    except Exception as e:
+        print(f"Error saving weekly data: {e}")
+
+def collect_weekly_sun_radiation_data(prom, station_name, station_config):
+    """Collect weekly sun radiation data with incremental updates."""
+    if not is_metric_available_for_station("sun_rad", station_name):
+        print(f"Sun radiation not available for {station_name}")
+        return {}
+
+    print(f"\n=== Collecting weekly sun radiation data for {station_config['name']} ===")
+
+    # Load existing data
+    weekly_data = load_existing_weekly_data(station_name)
+
+    # Define intensity buckets in W/m²
+    intensity_buckets = [
+        {"label": "Nuit", "min": 0, "max": 0.5},
+        {"label": "< 40", "min": 0.5, "max": 40},
+        {"label": "< 200", "min": 40, "max": 200},
+        {"label": "< 500", "min": 200, "max": 500},
+        {"label": "≥ 500", "min": 500, "max": float('inf')}
+    ]
+
+    # Determine weeks to collect
+    today = date.today()
+
+    # If no existing data, start from one year ago
+    if not weekly_data:
+        print("No existing weekly data found, initializing from one year ago")
+        start_date = today - timedelta(days=365)
+    else:
+        # Find the latest week in existing data
+        latest_week_id = max(weekly_data.keys()) if weekly_data else None
+        if latest_week_id:
+            # Parse latest week and start from the next week
+            year, week = latest_week_id.split('-W')
+            latest_week_start = datetime.strptime(f"{year} {week} 0", "%Y %W %w").date()
+            start_date = latest_week_start + timedelta(days=7)
+            print(f"Resuming from week after {latest_week_id}")
+        else:
+            start_date = today - timedelta(days=365)
+
+    # Collect data for each complete week
+    current_date = start_date
+    weeks_processed = 0
+
+    while current_date <= today:
+        week_start, week_end = get_sunday_week_bounds(current_date)
+
+        # Skip if this week is not complete yet
+        week_end_date = week_end.date() if hasattr(week_end, 'date') else week_end
+        if week_end_date > today:
+            print(f"Skipping incomplete week starting {week_start.strftime('%Y-%m-%d')}")
+            break
+
+        week_id = get_week_identifier(current_date)
+
+        # Skip if we already have this week
+        if week_id in weekly_data:
+            print(f"Week {week_id} already exists, skipping")
+            current_date += timedelta(days=7)
+            continue
+
+        print(f"Processing week {week_id}: {week_start.strftime('%Y-%m-%d')} to {week_end.strftime('%Y-%m-%d')}")
+
+        # Initialize bucket counters for the week
+        week_bucket_hours = {bucket["label"]: 0 for bucket in intensity_buckets}
+        total_week_hours = 0
+
+        # Query data for each day in the week
+        for day_offset in range(7):
+            day_date = week_start + timedelta(days=day_offset)
+
+            # Ensure we have datetime objects for hour/minute/second operations
+            if isinstance(day_date, date) and not isinstance(day_date, datetime):
+                day_start = datetime.combine(day_date, datetime.min.time())
+                day_end = datetime.combine(day_date, datetime.max.time())
+            else:
+                day_start = day_date.replace(hour=0, minute=0, second=0)
+                day_end = day_date.replace(hour=23, minute=59, second=59)
+
+            # Try current data first
+            current_query = get_query_for_station(METRICS_TO_QUERY['sun_rad'], station_config['station_id'])
+            historical_query = METRICS_TO_QUERY['sun_rad']['historical_query'] if has_historical_data("sun_rad", station_name) else None
+
+            day_bucket_hours = {bucket["label"]: 0 for bucket in intensity_buckets}
+
+            for query_name, query in [("current", current_query), ("historical", historical_query)]:
+                if query is None:
+                    continue
+
+                try:
+                    result = prom.custom_query_range(
+                        query=query,
+                        start_time=day_start,
+                        end_time=day_end,
+                        step="1h"
+                    )
+
+                    if result and result[0]['values']:
+                        for timestamp, value_str in result[0]['values']:
+                            try:
+                                value = float(value_str)
+
+                                # Find which bucket this value falls into
+                                for bucket in intensity_buckets:
+                                    if bucket["min"] <= value < bucket["max"]:
+                                        day_bucket_hours[bucket["label"]] += 1
+                                        break
+                            except (ValueError, TypeError):
+                                continue
+
+                        # If we got data from current source, don't try historical
+                        break
+
+                except Exception as e:
+                    print(f"  - Error querying {query_name} data for {day_date.strftime('%Y-%m-%d')}: {e}")
+                    continue
+
+            # Add day's data to week totals
+            day_total = sum(day_bucket_hours.values())
+            if day_total > 0:
+                # Normalize to 24 hours max if needed
+                if day_total > 24:
+                    scale_factor = 24.0 / day_total
+                    for bucket_label in day_bucket_hours:
+                        day_bucket_hours[bucket_label] = round(day_bucket_hours[bucket_label] * scale_factor)
+                    day_total = 24
+
+                for bucket_label in week_bucket_hours:
+                    week_bucket_hours[bucket_label] += day_bucket_hours[bucket_label]
+                total_week_hours += day_total
+
+        # Store week data only if we have at least 100 hours of data
+        if total_week_hours >= 100:
+            # Normalize to 168 hours/week (7 days * 24 hours)
+            normalization_factor = 168.0 / total_week_hours
+            normalized_buckets = {}
+
+            # First pass: calculate normalized values without rounding
+            raw_normalized = {}
+            for bucket_label, hours in week_bucket_hours.items():
+                raw_normalized[bucket_label] = hours * normalization_factor
+
+            # Second pass: round values and ensure total equals exactly 168
+            total_rounded = 0
+            for bucket_label, raw_value in raw_normalized.items():
+                normalized_buckets[bucket_label] = round(raw_value, 1)
+                total_rounded += normalized_buckets[bucket_label]
+
+            # Adjust the largest bucket to make total exactly 168
+            if total_rounded != 168.0:
+                # Find the bucket with the largest raw value to adjust
+                largest_bucket = max(raw_normalized.keys(), key=lambda k: raw_normalized[k])
+                adjustment = 168.0 - total_rounded
+                normalized_buckets[largest_bucket] = round(normalized_buckets[largest_bucket] + adjustment, 1)
+
+            # Divide by 7 to get daily averages (24h per day instead of 168h per week)
+            daily_average_buckets = {}
+            for bucket_label, hours in normalized_buckets.items():
+                daily_average_buckets[bucket_label] = round(hours / 7.0, 1)
+
+            # Calculate actual total from daily averages (should be ~24)
+            actual_daily_total = sum(daily_average_buckets.values())
+
+            weekly_data[week_id] = {
+                "week_start": week_start.strftime('%Y-%m-%d'),
+                "week_end": week_end.strftime('%Y-%m-%d'),
+                "buckets": daily_average_buckets,
+                "total_hours": total_week_hours,
+                "normalized_hours": actual_daily_total
+            }
+            print(f"  - Week {week_id}: {total_week_hours} hours -> daily avg {actual_daily_total}h, {daily_average_buckets}")
+            weeks_processed += 1
+        elif total_week_hours > 0:
+            print(f"  - Week {week_id}: {total_week_hours} hours (< 100h minimum, skipping)")
+        else:
+            print(f"  - Week {week_id}: No data available")
+
+        current_date += timedelta(days=7)
+
+    print(f"Processed {weeks_processed} new weeks")
+
+    # Save updated data
+    save_weekly_data(station_name, weekly_data)
+
+    # Return last 52 weeks for display
+    sorted_weeks = sorted(weekly_data.keys())
+    recent_weeks = sorted_weeks[-52:] if len(sorted_weeks) > 52 else sorted_weeks
+
+    return {week_id: weekly_data[week_id] for week_id in recent_weeks}
 
 def generate_station_data(prom, station_name, station_config):
     """Generate stats for a specific station."""
@@ -411,6 +652,22 @@ def generate_station_data(prom, station_name, station_config):
                 print(f"  - No sun radiation data available for {day_name}")
 
         stats["sun_rad_buckets"] = sun_rad_buckets
+
+    # Generate weekly sun radiation data
+    weekly_sun_rad_data = collect_weekly_sun_radiation_data(prom, station_name, station_config)
+    if weekly_sun_rad_data:
+        # Convert to list format for JavaScript consumption
+        weekly_list = []
+        for week_id in sorted(weekly_sun_rad_data.keys()):
+            week_data = weekly_sun_rad_data[week_id]
+            weekly_list.append({
+                "week_id": week_id,
+                "week_start": week_data["week_start"],
+                "week_end": week_data["week_end"],
+                "buckets": week_data["buckets"],
+                "total_hours": week_data["normalized_hours"]
+            })
+        stats["sun_rad_weekly_buckets"] = weekly_list
 
     # Generate metrics stats for this station
     for name, details in METRICS_TO_QUERY.items():
