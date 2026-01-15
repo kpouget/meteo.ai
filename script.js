@@ -737,7 +737,7 @@ function updateStaticUI() {
 
 function fetchWindData(callback) {
     var end = new Date().getTime() / 1000;
-    var start = end - 24 * 60 * 60;
+    var start = end - 48 * 60 * 60;
     var step = 60 * 10; // 10 minutes
 
     // Get current station for station-aware queries
@@ -753,7 +753,6 @@ function fetchWindData(callback) {
     var gustQuery = 'avg_over_time(wind{instance="wunderground.972.ovh:443", job="internet scraping", mode="gust", station_id="' + station.station_id + '"}[10m])';
     var dirQuery = 'avg_over_time(wind_dir{instance="wunderground.972.ovh:443", job="internet scraping", station_id="' + station.station_id + '"}[10m])';
 
-    console.log('Fetching wind data for station:', station.station_id);
 
     var urls = [
         PROMETHEUS_URL.replace('/query', '/query_range') + '?query=' + encodeURIComponent(speedQuery) + '&start=' + start + '&end=' + end + '&step=' + step,
@@ -828,13 +827,15 @@ function fetchWindData(callback) {
 }
 
 function processWindData(windData) {
-    var speedBins = [0, 10, 20, 30, 40, 50]; // km/h
+    var speedBins = [0, 5, 10, 20, 30, 40, 50]; // km/h
     var directionLabels = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'];
     var directionBins = directionLabels.length;
     var data = new Array(directionBins).fill(0).map(function() { return new Array(speedBins.length).fill(0); });
-    var totalMeasures = windData.length;
+    var totalMeasures = 0; // Count only processed winds
 
     windData.forEach(function(d) {
+        if (d.speed < 1) return; // Skip winds < 1 km/h
+        totalMeasures++; // Count this wind measurement
         var dirIndex = Math.round(d.direction / (360 / directionBins)) % directionBins;
         var speedIndex = 0;
         for (var i = 1; i < speedBins.length; i++) {
@@ -911,10 +912,20 @@ function processWindData(windData) {
         return b.count - a.count;
     });
 
-    // Filter out entries below 10%
+    // Filter out entries below 10% and hide boxes with only < 5 km/h winds
     var filteredData = flatData.filter(function(item) {
-        return item.percentage >= 10;
+        return item.percentage >= 10 && item.speed !== '< 5 km/h';
     });
+
+    // If no wind boxes are visible, show a fallback message
+    if (filteredData.length === 0) {
+        filteredData = [{
+            count: 0,
+            percentage: 0,
+            direction: '',
+            speed: 'Pas de vent'
+        }];
+    }
 
     // Manually filter datasets to avoid identical cumulative ones
     var allDatasets = speedBins.map(function(s, i) {
@@ -933,11 +944,9 @@ function processWindData(windData) {
     for (var i = 0; i < allDatasets.length; i++) {
         var dataset = allDatasets[i];
 
-        console.log('Checking dataset:', dataset.label, 'Data:', dataset.data);
 
         // Only include datasets that have at least one non-zero data point
         if (!dataset.data.some(function(value) { return value > 0; })) {
-            console.log('Skipping - no non-zero data');
             continue;
         }
 
@@ -946,19 +955,15 @@ function processWindData(windData) {
             var identical = dataset.data.every(function(value, index) {
                 return value === lastKeptDataset.data[index];
             });
-            console.log('Comparing to last kept:', lastKeptDataset.label, 'Identical?', identical);
             if (identical) {
-                console.log('Skipping - identical to previous');
                 continue; // Skip identical cumulative buckets
             }
         }
 
-        console.log('Keeping dataset:', dataset.label);
         filteredDatasets.push(dataset);
         lastKeptDataset = dataset;
     }
 
-    console.log('Final filtered datasets:', filteredDatasets.length, filteredDatasets.map(function(d) { return d.label; }));
 
     return {
         chartData: {
@@ -990,7 +995,12 @@ function updateWindSummaryUI(topCategories) {
 
         var speedFontSize = hasFastWinds ? fontSize * 1.3 : fontSize;
 
-        item.innerHTML = '<span class="label">' + cat.direction + '</span><span class="value" style="font-size: ' + speedFontSize + 'px;">' + cat.speed + '</span><span class="subtitle">' + cat.percentage.toFixed(0) + ' %</span>';
+        // Special handling for fallback "Pas de vent" message
+        if (cat.speed === 'Pas de vent') {
+            item.innerHTML = '<span class="label">' + cat.direction + '</span><span class="value" style="font-size: ' + (fontSize * 1.5) + 'px;">' + cat.speed + '</span><span class="subtitle">&gt; 5km/h</span>';
+        } else {
+            item.innerHTML = '<span class="label">' + cat.direction + '</span><span class="value" style="font-size: ' + speedFontSize + 'px;">' + cat.speed + '</span><span class="subtitle">' + cat.percentage.toFixed(0) + ' %</span>';
+        }
         container.appendChild(item);
     });
 }
@@ -1046,7 +1056,6 @@ function fetchWindDataMonth(callback) {
     var gustQuery = 'avg_over_time(wind{instance="wunderground.972.ovh:443", job="internet scraping", mode="gust", station_id="' + station.station_id + '"}[1h])';
     var dirQuery = 'avg_over_time(wind_dir{instance="wunderground.972.ovh:443", job="internet scraping", station_id="' + station.station_id + '"}[1h])';
 
-    console.log('Fetching monthly wind data for station:', station.station_id);
 
     var urls = [
         PROMETHEUS_URL.replace('/query', '/query_range') + '?query=' + encodeURIComponent(speedQuery) + '&start=' + start + '&end=' + end + '&step=' + step,
@@ -1142,7 +1151,12 @@ function updateWindSummaryUIMonth(topCategories) {
 
         var speedFontSize = hasFastWinds ? fontSize * 1.3 : fontSize;
 
-        item.innerHTML = '<span class="label">' + cat.direction + '</span><span class="value" style="font-size: ' + speedFontSize + 'px;">' + cat.speed + '</span><span class="subtitle">' + cat.percentage.toFixed(0) + ' %</span>';
+        // Special handling for fallback "Pas de vent" message
+        if (cat.speed === 'Pas de vent') {
+            item.innerHTML = '<span class="label">' + cat.direction + '</span><span class="value" style="font-size: ' + (fontSize * 1.5) + 'px;">' + cat.speed + '</span><span class="subtitle">&gt; 5km/h</span>';
+        } else {
+            item.innerHTML = '<span class="label">' + cat.direction + '</span><span class="value" style="font-size: ' + speedFontSize + 'px;">' + cat.speed + '</span><span class="subtitle">' + cat.percentage.toFixed(0) + ' %</span>';
+        }
         container.appendChild(item);
     });
 }
