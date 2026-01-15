@@ -369,6 +369,93 @@ def generate_station_data(prom, station_name, station_config):
 
         stats["sun_rad_last_6_days"] = sun_rad_last_6_days
 
+    # Generate station-specific sun radiation buckets for last 7 days
+    if is_metric_available_for_station("sun_rad", station_name):
+        sun_rad_buckets = []
+        # Define intensity buckets in W/m²
+        intensity_buckets = [
+            {"label": "Nuit", "min": 0, "max": 0.5},
+            {"label": "< 40", "min": 0.5, "max": 40},
+            {"label": "< 200", "min": 40, "max": 200},
+            {"label": "< 500", "min": 200, "max": 500},
+            {"label": "≥ 500", "min": 500, "max": float('inf')}
+        ]
+
+        for i in range(1, 8):  # 7 days for better chart visualization
+            target_day = today - timedelta(days=i)
+            day_name = target_day.strftime("%Y-%m-%d")
+            start_of_day = target_day.replace(hour=0, minute=0, second=0, microsecond=0)
+            end_of_day = target_day.replace(hour=23, minute=59, second=59, microsecond=999999)
+
+            print(f"Querying sun radiation buckets for '{day_name}' on {station_config['name']}...")
+
+            # Initialize bucket counters (hours spent in each bucket)
+            bucket_hours = {bucket["label"]: 0 for bucket in intensity_buckets}
+
+            # Try current data first
+            current_query = get_query_for_station(METRICS_TO_QUERY['sun_rad'], station_config['station_id'])
+            historical_query = METRICS_TO_QUERY['sun_rad']['historical_query'] if has_historical_data("sun_rad", station_name) else None
+
+            for query_name, query in [("current", current_query), ("historical", historical_query)]:
+                if query is None:
+                    continue
+
+                try:
+                    # Query hourly data for the day
+                    range_query = f"{query}[1h:1h]"
+                    result = prom.custom_query_range(
+                        query=query,
+                        start_time=start_of_day,
+                        end_time=end_of_day,
+                        step="1h"
+                    )
+
+                    if result:
+                        print(f"  - Got {len(result[0]['values'])} hourly readings from {query_name} source")
+
+                        for timestamp, value_str in result[0]['values']:
+                            try:
+                                # Convert W/m² value
+                                value = float(value_str)
+
+                                # Find which bucket this value falls into
+                                for bucket in intensity_buckets:
+                                    if bucket["min"] <= value < bucket["max"]:
+                                        bucket_hours[bucket["label"]] += 1
+                                        break
+                            except (ValueError, TypeError):
+                                continue
+
+                        # If we got data from current source, don't try historical
+                        break
+
+                except Exception as e:
+                    print(f"  - Error with {query_name} data: {e}")
+                    continue
+
+            # Only add data if we have some readings for the day
+            total_hours = sum(bucket_hours.values())
+            if total_hours > 0:
+                # Safety check: normalize to 24 hours max if we got too much data
+                if total_hours > 24:
+                    print(f"  - Warning: Got {total_hours}h data, normalizing to 24h")
+                    scale_factor = 24.0 / total_hours
+                    for bucket_label in bucket_hours:
+                        bucket_hours[bucket_label] = round(bucket_hours[bucket_label] * scale_factor)
+                    total_hours = 24
+
+                day_data = {
+                    "day": day_name,
+                    "buckets": bucket_hours,
+                    "total_hours": total_hours
+                }
+                sun_rad_buckets.append(day_data)
+                print(f"  - Bucketed {total_hours} hours: {bucket_hours}")
+            else:
+                print(f"  - No sun radiation data available for {day_name}")
+
+        stats["sun_rad_buckets"] = sun_rad_buckets
+
     # Generate metrics stats for this station
     for name, details in METRICS_TO_QUERY.items():
         if not is_metric_available_for_station(name, station_name):

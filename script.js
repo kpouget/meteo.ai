@@ -25,7 +25,8 @@ var chartInstances = {
     temperature: null,
     pressure: null,
     rivers: null,
-    pm: null
+    pm: null,
+    sunRadBuckets: null
 };
 
 // Station-aware functions
@@ -1554,6 +1555,191 @@ function fetchSunRadDistribution(callback) {
     xhr.send();
 }
 
+function fetchSunRadBuckets(callback) {
+    // Get sun radiation bucket data from station stats
+    var stats = getStatsForCurrentStation();
+    if (stats && stats.sun_rad_buckets) {
+        callback(stats.sun_rad_buckets);
+    } else {
+        callback(null);
+    }
+}
+
+function updateNightDurationUI(bucketData) {
+    var nightDurationElement = document.getElementById('desktop-night-duration');
+    if (!nightDurationElement) return;
+
+    var valueSpan = nightDurationElement.querySelector('.value');
+
+    if (!bucketData || bucketData.length === 0) {
+        valueSpan.textContent = '--';
+        return;
+    }
+
+    // Calculate average night duration over the available days
+    var totalNightHours = 0;
+    var validDays = 0;
+
+    bucketData.forEach(function(dayData) {
+        if (dayData.buckets) {
+            // Support both old and new bucket labels
+            var nightHours = dayData.buckets['Nuit'] || dayData.buckets['≤ 0.5'] || 0;
+            if (nightHours > 0) {
+                totalNightHours += nightHours;
+                validDays++;
+            }
+        }
+    });
+
+    if (validDays > 0) {
+        var averageNightHours = (totalNightHours / validDays).toFixed(1);
+        valueSpan.textContent = averageNightHours + 'h';
+    } else {
+        valueSpan.textContent = '--';
+    }
+}
+
+function renderSunRadBucketsChart(bucketData) {
+    if (!bucketData || bucketData.length === 0) return;
+
+    // Prepare data for stacked line chart
+    var labels = bucketData.map(function(d) {
+        var date = new Date(d.day);
+        return date.toLocaleDateString('fr-FR', { month: 'short', day: 'numeric' });
+    }).reverse(); // Reverse to show oldest to newest
+
+    // Define bucket order and colors
+    var bucketOrder = ['Nuit', '< 40', '< 200', '< 500', '≥ 500'];
+    var bucketColors = {
+        'Nuit': 'rgba(169, 169, 169, 0.7)',    // Gray
+        '< 40': 'rgba(255, 206, 84, 0.7)',     // Yellow
+        '< 200': 'rgba(255, 159, 64, 0.7)',    // Orange
+        '< 500': 'rgba(255, 99, 132, 0.7)',    // Red
+        '≥ 500': 'rgba(153, 102, 255, 0.7)'    // Purple
+    };
+
+    // Create datasets for each bucket
+    var datasets = bucketOrder.map(function(bucketLabel, index) {
+        var rawData = bucketData.map(function(d) { return d.buckets[bucketLabel] || 0; }).reverse();
+
+        return {
+            label: bucketLabel === 'Nuit' ? bucketLabel : bucketLabel + ' W/m²',
+            data: rawData,
+            backgroundColor: bucketColors[bucketLabel],
+            borderColor: bucketColors[bucketLabel].replace('0.7', '1'),
+            borderWidth: 1,
+            fill: true,
+            stack: 'positive',
+            hidden: bucketLabel === 'Nuit' // Hide the first bucket by default
+        };
+    });
+
+    // Create chart container
+    var container = document.getElementById('sun-rad-buckets-container');
+    if (!container) return;
+
+    container.innerHTML = '<h3 style="margin: 0 0 10px 0; font-size: 14px;">Intensité du rayonnement solaire (7 derniers jours)</h3><canvas id="sun-rad-buckets-chart" style="height: 300px; width: 100%;"></canvas>';
+    container.style.height = '340px';
+    container.style.margin = '10px 0';
+
+    var canvas = document.getElementById('sun-rad-buckets-chart');
+    var ctx = canvas.getContext('2d');
+
+    // Destroy existing chart if it exists
+    if (chartInstances.sunRadBuckets) {
+        chartInstances.sunRadBuckets.destroy();
+    }
+
+    chartInstances.sunRadBuckets = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: datasets
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        font: { size: 10 },
+                        usePointStyle: true,
+                        pointStyle: 'rect'
+                    }
+                },
+                tooltip: {
+                    mode: 'index',
+                    intersect: false,
+                    callbacks: {
+                        label: function(context) {
+                            // Get the raw bucket value instead of the stacked value
+                            var dayIndex = context.dataIndex;
+                            var reversedIndex = bucketData.length - 1 - dayIndex;
+                            var datasetLabel = context.dataset.label;
+                            var bucketLabel = datasetLabel === 'Nuit' ? 'Nuit' : datasetLabel.replace(' W/m²', '');
+                            if (bucketData[reversedIndex]) {
+                                var rawValue = bucketData[reversedIndex].buckets[bucketLabel] || 0;
+                                return datasetLabel + ': ' + rawValue + 'h';
+                            }
+                            return datasetLabel + ': 0h';
+                        },
+                        footer: function(tooltipItems) {
+                            if (tooltipItems.length > 0) {
+                                var dayIndex = tooltipItems[0].dataIndex;
+                                var reversedIndex = bucketData.length - 1 - dayIndex; // Account for reversed data
+                                if (bucketData[reversedIndex]) {
+                                    // Sum the raw bucket values for this day
+                                    var dayTotal = 0;
+                                    bucketOrder.forEach(function(bucketLabel) {
+                                        dayTotal += bucketData[reversedIndex].buckets[bucketLabel] || 0;
+                                    });
+                                    return 'Total: ' + dayTotal + 'h';
+                                }
+                            }
+                            return 'Total: --h';
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    title: { display: true, text: 'Jour' }
+                },
+                y: {
+                    title: { display: true, text: 'Heures' },
+                    stacked: true,
+                    min: 0,
+                    grid: {
+                        color: function(context) {
+                            if (context.tick.value === 0) {
+                                return 'rgba(0, 0, 0, 0.5)'; // Darker line at y=0
+                            }
+                            return 'rgba(0, 0, 0, 0.1)'; // Normal grid lines
+                        },
+                        lineWidth: function(context) {
+                            if (context.tick.value === 0) {
+                                return 2; // Thicker line at y=0
+                            }
+                            return 1; // Normal grid lines
+                        }
+                    },
+                    ticks: {
+                        callback: function(value) {
+                            return value + 'h';
+                        }
+                    }
+                }
+            },
+            elements: {
+                point: { radius: 3, hoverRadius: 5 },
+                line: { tension: 0.1 }
+            }
+        }
+    });
+
+}
+
 function processSunRadDistribution(sunRadData) {
     var thresholds = [1, 40, 100, 200, 400, 800];
     var thresholdCounts = {};
@@ -2557,6 +2743,13 @@ function main() {
         if (sunRadData) {
             var distributionData = processSunRadDistribution(sunRadData);
             renderSunRadDistribution(distributionData);
+        }
+    });
+
+    fetchSunRadBuckets(function(bucketData) {
+        if (bucketData) {
+            renderSunRadBucketsChart(bucketData);
+            updateNightDurationUI(bucketData);
         }
     });
 }
