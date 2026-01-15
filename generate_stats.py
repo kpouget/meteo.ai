@@ -324,50 +324,6 @@ def generate_station_data(prom, station_name, station_config):
 
     stats["rain_last_6_days"] = rain_last_6_days
 
-    # Generate station-specific sun radiation for last 6 days
-    if is_metric_available_for_station("sun_rad", station_name):
-        sun_rad_last_6_days = []
-        for i in range(1, 7):
-            target_day = today - timedelta(days=i)
-            day_name = target_day.strftime("%A (%d/%m)")
-            end_of_day = target_day.replace(hour=23, minute=59, second=59, microsecond=999999)
-            unit = "KJ/m²"
-
-            print(f"Querying sun radiation for '{day_name}' on {station_config['name']}...")
-
-            # Try current data first
-            current_query = f"increase({get_query_for_station(METRICS_TO_QUERY['sun_rad'], station_config['station_id'])}[24h])"
-            value = None
-
-            try:
-                result = prom.custom_query(query=current_query, params={'time': end_of_day.timestamp()})
-                value = round(float(result[0]['value'][1]) / 100) / 10 if result else None
-                if value is not None:
-                    print(f"  - Current data: {value}")
-            except Exception as e:
-                print(f"  - Error with current data: {e}")
-
-            # Try historical data if current failed and historical is available for this station
-            if value is None and has_historical_data("sun_rad", station_name):
-                try:
-                    historical_query = "increase(" + METRICS_TO_QUERY['sun_rad']['historical_query'] + "[24h])"
-                    result = prom.custom_query(query=historical_query, params={'time': end_of_day.timestamp()})
-                    value = round(float(result[0]['value'][1]) / 100) / 10 if result else None
-                    if value is not None:
-                        print(f"  - Historical data: {value}")
-                except Exception as e:
-                    print(f"  - Error with historical data: {e}")
-
-            if value is not None:
-                sun_rad_last_6_days.append({
-                    "day": day_name,
-                    "value": value,
-                    "unit": unit
-                })
-            else:
-                print(f"  - Could not retrieve sun radiation data for '{day_name}'.")
-
-        stats["sun_rad_last_6_days"] = sun_rad_last_6_days
 
     # Generate station-specific sun radiation buckets for last 7 days
     if is_metric_available_for_station("sun_rad", station_name):
