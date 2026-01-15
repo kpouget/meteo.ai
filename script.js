@@ -404,14 +404,11 @@ function updateUI() {
 function getStatsForCurrentStation() {
     // Use station-aware stats if available, fallback to STATS for backward compatibility
     if (typeof STATION_STATS !== 'undefined' && currentStation && STATION_STATS[currentStation]) {
-        console.log('Using station-aware stats for:', currentStation);
         return STATION_STATS[currentStation];
     }
     if (typeof STATS !== 'undefined') {
-        console.log('Using backward compatibility STATS');
         return STATS;
     }
-    console.log('No stats available');
     return null;
 }
 
@@ -1517,7 +1514,6 @@ function fetchSunRadDistribution(callback) {
     // Use new Wunderground labels with station_id
     var sunRadQuery = 'avg_over_time(sun_rad{instance="wunderground.972.ovh:443", job="internet scraping", station_id="' + station.station_id + '"}[1h])';
 
-    console.log('Fetching 7-day solar radiation distribution for station:', station.station_id);
 
     var url = PROMETHEUS_URL.replace('/query', '/query_range') + '?query=' + encodeURIComponent(sunRadQuery) + '&start=' + start + '&end=' + end + '&step=' + step;
 
@@ -1999,7 +1995,6 @@ function renderRiversChart(riversData) {
 
     // Add Lot river data if available
     if (riversData[0].lot !== undefined) {
-        console.log('Adding Lot river data for station:', currentStation);
         var lotValues = riversData.map(function(point) {
             return point.lot;
         });
@@ -2020,7 +2015,6 @@ function renderRiversChart(riversData) {
 
     // Add Dordogne river data if available
     if (riversData[0].dordogne !== undefined) {
-        console.log('Adding Dordogne river data for station:', currentStation);
         var dordogneValues = riversData.map(function(point) {
             return point.dordogne;
         });
@@ -2041,9 +2035,7 @@ function renderRiversChart(riversData) {
 
         // For Vayrac, always use left axis since it's the only river
         // For other stations, use right axis if Lot is already present
-        console.log('Dordogne chart - currentStation:', currentStation, 'datasets.length:', datasets.length);
         var axisId = (currentStation === 'vayrac') ? 'y-left' : (datasets.length === 0 ? 'y-left' : 'y-right');
-        console.log('Dordogne assigned to axis:', axisId);
 
         datasets.push({
             label: dordogneLabel,
