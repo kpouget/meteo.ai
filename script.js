@@ -27,7 +27,8 @@ var chartInstances = {
     rivers: null,
     pm: null,
     sunRadBuckets: null,
-    sunRadWeeklyBuckets: null
+    sunRadWeeklyBuckets: null,
+    sunRad48hPie: null
 };
 
 // Station-aware functions
@@ -1467,6 +1468,152 @@ function fetchSunRadBuckets(callback) {
     }
 }
 
+function aggregate48hSunRadData(bucketData) {
+    // Aggregate the last 48 hours (2 days) of sun radiation data
+    if (!bucketData || bucketData.length === 0) return null;
+
+    // Take the last 2 days (48h)
+    var last48hData = bucketData.slice(-2);
+
+    // Initialize aggregated buckets
+    var bucketOrder = ['Nuit', '< 40', '< 200', '< 500', '≥ 500'];
+    var aggregated = {};
+    bucketOrder.forEach(function(bucket) {
+        aggregated[bucket] = 0;
+    });
+
+    // Sum up the hours for each bucket across the last 48h
+    last48hData.forEach(function(dayData) {
+        bucketOrder.forEach(function(bucket) {
+            aggregated[bucket] += dayData.buckets[bucket] || 0;
+        });
+    });
+
+    return aggregated;
+}
+
+function renderSunRad48hPieChart(bucketData) {
+    if (!bucketData || bucketData.length === 0) return;
+
+    // Aggregate last 48h data
+    var aggregatedData = aggregate48hSunRadData(bucketData);
+    if (!aggregatedData) return;
+
+    // Define bucket order and colors (same as existing charts)
+    var bucketOrder = ['Nuit', '< 40', '< 200', '< 500', '≥ 500'];
+    var bucketColors = {
+        'Nuit': 'rgba(169, 169, 169, 0.8)',    // Gray
+        '< 40': 'rgba(255, 206, 84, 0.8)',     // Yellow
+        '< 200': 'rgba(255, 159, 64, 0.8)',    // Orange
+        '< 500': 'rgba(255, 99, 132, 0.8)',    // Red
+        '≥ 500': 'rgba(153, 102, 255, 0.8)'    // Purple
+    };
+
+    // Prepare data for pie chart (exclude buckets with 0 hours)
+    // Divide by 2 to show daily average (24h) instead of 48h total
+    var pieData = [];
+    var pieColors = [];
+    var pieLabels = [];
+
+    bucketOrder.forEach(function(bucket) {
+        var hours = aggregatedData[bucket] / 2; // Convert 48h to 24h average
+        if (hours > 0) {
+            pieData.push(hours);
+            pieColors.push(bucketColors[bucket]);
+            pieLabels.push(bucket === 'Nuit' ? bucket : bucket + ' W/m²');
+        }
+    });
+
+    // Create chart container
+    var container = document.getElementById('sun-rad-48h-pie-container');
+    if (!container) return;
+
+    container.innerHTML = '<h3 style="margin: 0 0 10px 0; font-size: 14px;">Rayonnement solaire (moyenne journalière - 48h)</h3><canvas id="sun-rad-48h-pie-chart" style="height: 250px; width: 100%;"></canvas>';
+    container.style.height = '350px';
+    container.style.margin = '10px 0 30px 0';
+
+    var canvas = document.getElementById('sun-rad-48h-pie-chart');
+    var ctx = canvas.getContext('2d');
+
+    // Destroy existing chart if it exists
+    if (chartInstances.sunRad48hPie) {
+        chartInstances.sunRad48hPie.destroy();
+    }
+
+    chartInstances.sunRad48hPie = new Chart(ctx, {
+        type: 'pie',
+        data: {
+            labels: pieLabels,
+            datasets: [{
+                data: pieData,
+                backgroundColor: pieColors,
+                borderColor: pieColors.map(function(color) {
+                    return color.replace('0.8', '1');
+                }),
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        font: { size: 10 },
+                        usePointStyle: true,
+                        pointStyle: 'circle'
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            var label = context.label || '';
+                            var value = context.parsed;
+                            var total = context.dataset.data.reduce(function(a, b) { return a + b; }, 0);
+                            var percentage = ((value / total) * 100).toFixed(1);
+                            return label + ': ' + value.toFixed(1) + 'h/jour (' + percentage + '%)';
+                        }
+                    }
+                }
+            },
+            onHover: function(event, activeElements) {
+                // Change cursor when hovering over slices
+                event.native.target.style.cursor = activeElements.length > 0 ? 'pointer' : 'default';
+            }
+        },
+        plugins: [{
+            afterDatasetsDraw: function(chart) {
+                var ctx = chart.ctx;
+                chart.data.datasets.forEach(function(dataset, datasetIndex) {
+                    var meta = chart.getDatasetMeta(datasetIndex);
+                    meta.data.forEach(function(element, index) {
+                        // Only show label if slice is large enough
+                        var total = dataset.data.reduce(function(a, b) { return a + b; }, 0);
+                        var percentage = (dataset.data[index] / total) * 100;
+
+                        if (percentage > 8) { // Only show if slice is >8% of total
+                            var position = element.tooltipPosition();
+                            var value = dataset.data[index].toFixed(1);
+
+                            ctx.fillStyle = '#000';
+                            ctx.font = 'bold 11px Arial';
+                            ctx.textAlign = 'center';
+                            ctx.textBaseline = 'middle';
+                            ctx.strokeStyle = '#fff';
+                            ctx.lineWidth = 1;
+
+                            // Draw text with white outline for better visibility
+                            ctx.strokeText(value + 'h', position.x, position.y);
+                            ctx.fillText(value + 'h', position.x, position.y);
+                        }
+                    });
+                });
+            }
+        }]
+    });
+}
+
 function updateNightDurationUI(bucketData) {
     var nightDurationElement = document.getElementById('desktop-night-duration');
     if (!nightDurationElement) return;
@@ -2713,6 +2860,7 @@ function main() {
         if (bucketData) {
             renderSunRadBucketsChart(bucketData);
             updateNightDurationUI(bucketData);
+            renderSunRad48hPieChart(bucketData);
         }
     });
 
