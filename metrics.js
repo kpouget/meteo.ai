@@ -43,6 +43,16 @@ var METRICS = {
         "unit": "mm",
         "range": "30d"
     },
+    "rain_hours_48h": {
+        "query": "max_over_time(rain{LABELS}[10m])",
+        "labels": {
+            "instance": "wunderground.972.ovh:443",
+            "job": "internet scraping",
+            "station_id": "{STATION_ID}"
+        },
+        "unit": "h",
+        "range": "48h"
+    },
     "temperature_ext": {
         "query": "avg_over_time(temperature{LABELS}[10m])",
         "labels": {

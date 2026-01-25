@@ -315,6 +315,11 @@ function updateUI() {
             continue;
         }
 
+        // Skip rain_hours_48h - it needs custom processing, not simple metric fetch
+        if (metric === 'rain_hours_48h') {
+            continue;
+        }
+
         (function(metric) {
             fetchMetric(metric, function(value) {
                 if (value !== null) {
@@ -780,6 +785,176 @@ function fetchWindData(callback) {
             xhr.send();
         })(i);
     }
+}
+
+function fetchRainData48h(callback) {
+    var now = Math.floor(Date.now() / 1000);
+    var start = now - (48 * 60 * 60); // 48 hours ago
+    var end = now;
+    var step = 5 * 60; // 5 minutes
+
+    // Get current station for station-aware queries
+    var station = getCurrentStation();
+    if (!station) {
+        console.error('No station available for rain data');
+        callback(null);
+        return;
+    }
+
+    // Get metric definition and build query
+    var resolvedMetric = getMetricForStation('rain_hours_48h');
+    if (!resolvedMetric) {
+        console.error('Rain hours 48h metric not available for current station');
+        callback(null);
+        return;
+    }
+
+    var rainRateQuery = processQuery(resolvedMetric.query, resolvedMetric.labels);
+    var url = PROMETHEUS_URL.replace('/query', '/query_range') + '?query=' + encodeURIComponent(rainRateQuery) + '&start=' + start + '&end=' + end + '&step=' + step;
+
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', url, true);
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState === 4) {
+            if (xhr.status === 200) {
+                try {
+                    var data = JSON.parse(xhr.responseText);
+                    if (data.data && data.data.result && data.data.result.length > 0) {
+                        var values = data.data.result[0].values;
+                        var rainData = values.map(function(value) {
+                            return {
+                                time: parseInt(value[0]),
+                                rate: parseFloat(value[1]) || 0
+                            };
+                        });
+                        callback(rainData);
+                    } else {
+                        callback([]);
+                    }
+                } catch (e) {
+                    console.error('Error parsing rain data:', e);
+                    callback(null);
+                }
+            } else {
+                console.error('Failed to fetch rain data:', xhr.status);
+                callback(null);
+            }
+        }
+    };
+    xhr.send();
+}
+
+function processRainData48h(rainData) {
+    // Define rain rate buckets in mm/h
+    var rainBuckets = [
+        { label: "No rain", min: 0, max: 0.1 },
+        { label: "Light", min: 0.1, max: 2.5 },
+        { label: "Moderate", min: 2.5, max: 10 },
+        { label: "Heavy", min: 10, max: Infinity }
+    ];
+
+    // Count 5-minute intervals in each bucket
+    var bucketIntervals = {};
+    rainBuckets.forEach(function(bucket) {
+        bucketIntervals[bucket.label] = 0;
+    });
+
+    var totalIntervals = 0;
+
+    rainData.forEach(function(d) {
+        totalIntervals++;
+        var rate = d.rate;
+
+        // Find which bucket this rate falls into
+        for (var i = 0; i < rainBuckets.length; i++) {
+            var bucket = rainBuckets[i];
+            if (rate >= bucket.min && rate < bucket.max) {
+                bucketIntervals[bucket.label]++;
+                break;
+            }
+        }
+    });
+
+    // Convert 5-minute intervals to hours (each interval = 5/60 = 1/12 hour)
+    var bucketHours = {};
+    rainBuckets.forEach(function(bucket) {
+        bucketHours[bucket.label] = bucketIntervals[bucket.label] * (5 / 60);
+    });
+
+    var totalHours = totalIntervals * (5 / 60);
+
+    return {
+        buckets: bucketHours,
+        totalHours: totalHours,
+        bucketLabels: rainBuckets.map(function(b) { return b.label; })
+    };
+}
+
+function updateRainHours48hUI(rainProcessedData) {
+    var element = document.getElementById('desktop-rain-hours-48h');
+    if (!element) return;
+
+    var buckets = rainProcessedData.buckets;
+
+    // Calculate total hours with rain (exclude "No rain" category)
+    var rainHours = 0;
+    rainProcessedData.bucketLabels.forEach(function(label) {
+        if (label !== "No rain") {
+            rainHours += buckets[label];
+        }
+    });
+
+    // Convert decimal hours to hours and minutes format (e.g., "1h40", "25min")
+    var valueText;
+    if (rainHours >= 1) {
+        var hours = Math.floor(rainHours);
+        var minutes = Math.round((rainHours - hours) * 60);
+        if (minutes === 60) {
+            hours++;
+            minutes = 0;
+        }
+        if (minutes === 0) {
+            valueText = hours + 'h';
+        } else {
+            valueText = hours + 'h' + (minutes < 10 ? '0' : '') + minutes;
+        }
+    } else {
+        var minutes = Math.round(rainHours * 60);
+        valueText = minutes + 'min';
+    }
+    element.querySelector('.value').textContent = valueText;
+
+    // Generate subtitle showing dominant rain type or status
+    var subtitleText;
+    if (rainHours === 0) {
+        subtitleText = 'aucune pluie';
+    } else {
+        // Find the dominant rain type (most hours)
+        var dominantType = '';
+        var maxHours = 0;
+
+        ['Light', 'Moderate', 'Heavy'].forEach(function(type) {
+            if (buckets[type] > maxHours) {
+                maxHours = buckets[type];
+                dominantType = type;
+            }
+        });
+
+        // Translate to French (plural)
+        var typeTranslations = {
+            'Light': 'légères',
+            'Moderate': 'modérées',
+            'Heavy': 'fortes'
+        };
+
+        if (maxHours > 0) {
+            subtitleText = 'pluies ' + typeTranslations[dominantType];
+        } else {
+            subtitleText = 'pluies détectées';
+        }
+    }
+
+    element.querySelector('.subtitle').textContent = subtitleText;
 }
 
 function processWindData(windData) {
@@ -2818,68 +2993,80 @@ function main() {
         }
     });
 
+    function refreshAllDynamicData() {
+        fetchWindData(function(windData) {
+            if (windData) {
+                var processedData = processWindData(windData);
+                renderWindRoseChart(processedData);
+                updateWindSummaryUI(processedData.topCategories);
+            }
+        });
+
+        fetchWindDataMonth(function(windData) {
+            if (windData) {
+                var processedData = processWindData(windData);
+                renderWindRoseChartMonth(processedData);
+                updateWindSummaryUIMonth(processedData.topCategories);
+            }
+        });
+
+        fetchRainData48h(function(rainData) {
+            if (rainData) {
+                var processedData = processRainData48h(rainData);
+                updateRainHours48hUI(processedData);
+            }
+        });
+
+        fetchTemperatureData(function(temperatureData) {
+            if (temperatureData) {
+                renderTemperatureChart(temperatureData);
+            }
+        });
+
+        fetchPressureData(function(pressureData) {
+            if (pressureData) {
+                renderPressureChart(pressureData);
+            }
+        });
+
+        fetchRiversData(function(riversData) {
+            if (riversData) {
+                renderRiversChart(riversData);
+            }
+        });
+
+        fetchPMData(function(pmData) {
+            if (pmData) {
+                renderPMChart(pmData);
+            }
+        });
+
+        fetchSunRadBuckets(function(bucketData) {
+            if (bucketData) {
+                renderSunRadBucketsChart(bucketData);
+                updateNightDurationUI(bucketData);
+                renderSunRad48hPieChart(bucketData);
+            }
+        });
+
+        fetchSunRadWeeklyBuckets(function(weeklyData) {
+            if (weeklyData) {
+                renderSunRadWeeklyBucketsChart(weeklyData);
+            }
+        });
+    }
+
     document.getElementById('refresh-button').addEventListener('click', function() {
         updateUI();
         updateStaticUI(); // Refresh static charts for current station
+        refreshAllDynamicData(); // Refresh all dynamic charts and data
     });
 
     updateUI();
     setInterval(updateUI, 60000);
 
-    fetchWindData(function(windData) {
-        if (windData) {
-            var processedData = processWindData(windData);
-            renderWindRoseChart(processedData);
-            updateWindSummaryUI(processedData.topCategories);
-        }
-    });
-
-    fetchWindDataMonth(function(windData) {
-        if (windData) {
-            var processedData = processWindData(windData);
-            renderWindRoseChartMonth(processedData);
-            updateWindSummaryUIMonth(processedData.topCategories);
-        }
-    });
-
-    fetchTemperatureData(function(temperatureData) {
-        if (temperatureData) {
-            renderTemperatureChart(temperatureData);
-        }
-    });
-
-    fetchPressureData(function(pressureData) {
-        if (pressureData) {
-            renderPressureChart(pressureData);
-        }
-    });
-
-    fetchRiversData(function(riversData) {
-        if (riversData) {
-            renderRiversChart(riversData);
-        }
-    });
-
-    fetchPMData(function(pmData) {
-        if (pmData) {
-            renderPMChart(pmData);
-        }
-    });
-
-
-    fetchSunRadBuckets(function(bucketData) {
-        if (bucketData) {
-            renderSunRadBucketsChart(bucketData);
-            updateNightDurationUI(bucketData);
-            renderSunRad48hPieChart(bucketData);
-        }
-    });
-
-    fetchSunRadWeeklyBuckets(function(weeklyData) {
-        if (weeklyData) {
-            renderSunRadWeeklyBucketsChart(weeklyData);
-        }
-    });
+    // Initial load of dynamic data
+    refreshAllDynamicData();
 }
 
 loadStatsAndRunMain();
