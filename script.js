@@ -320,6 +320,11 @@ function updateUI() {
             continue;
         }
 
+        // Skip rain_total_week and rain_total_month - they should come from static data only
+        if (metric === 'rain_total_week' || metric === 'rain_total_month') {
+            continue;
+        }
+
         (function(metric) {
             fetchMetric(metric, function(value) {
                 if (value !== null) {

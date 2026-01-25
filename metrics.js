@@ -21,28 +21,6 @@ var METRICS = {
         "unit": "mm",
         "range": "24h"
     },
-    "rain_total_week": {
-        "query": "increase(rain{LABELS}[7d])",
-        "labels": {
-            "instance": "wunderground.972.ovh:443",
-            "job": "internet scraping",
-            "mode": "total",
-            "station_id": "{STATION_ID}"
-        },
-        "unit": "mm",
-        "range": "7d"
-    },
-    "rain_total_month": {
-        "query": "increase(rain{LABELS}[30d])",
-        "labels": {
-            "instance": "wunderground.972.ovh:443",
-            "job": "internet scraping",
-            "mode": "total",
-            "station_id": "{STATION_ID}"
-        },
-        "unit": "mm",
-        "range": "30d"
-    },
     "rain_hours_48h": {
         "query": "max_over_time(rain{LABELS}[10m])",
         "labels": {
