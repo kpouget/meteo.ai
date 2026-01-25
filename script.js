@@ -883,12 +883,23 @@ function processWindData(windData) {
         }];
     }
 
+    // Fixed color scheme for wind strength indication - distinct colors for visible first buckets
+    var windColors = [
+        'rgba(135, 206, 235, 0.8)',  // 0-5 km/h: Sky blue (calm)
+        'rgba(60, 179, 113, 0.8)',   // 5-10 km/h: Medium sea green (light breeze)
+        'rgba(255, 215, 0, 0.8)',    // 10-20 km/h: Gold (gentle breeze)
+        'rgba(255, 140, 0, 0.8)',    // 20-30 km/h: Dark orange (moderate breeze)
+        'rgba(255, 99, 71, 0.8)',    // 30-40 km/h: Tomato (fresh breeze)
+        'rgba(220, 20, 60, 0.8)',    // 40-50 km/h: Crimson (strong breeze)
+        'rgba(139, 0, 0, 0.8)'       // >=50 km/h: Dark red (gale)
+    ];
+
     // Manually filter datasets to avoid identical cumulative ones
     var allDatasets = speedBins.map(function(s, i) {
         return {
             label: i < speedBins.length - 1 ? '< ' + speedBins[i+1] + ' km/h' : '>= ' + s + ' km/h',
             data: cumulativeData.map(function(d) { return d[i]; }),
-            backgroundColor: 'rgba(' + Math.floor(Math.random() * 255) + ',' + Math.floor(Math.random() * 255) + ',' + Math.floor(Math.random() * 255) + ', 0.5)',
+            backgroundColor: windColors[i],
             borderColor: '#000',
             borderWidth: 1
         };
