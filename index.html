@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title id="page-title">Weather Station</title>
-    <link rel="stylesheet" href="style.css?v=20260107">
+    <link rel="stylesheet" href="style.css?v=20260125u">
 </head>
 <body>
     <div id="floating-buttons">
@@ -13,11 +13,18 @@
             <option value="">Station</option>
         </select>
         <button id="refresh-button" title="Refresh">↻</button>
+        <button id="alerts-debug-toggle" title="Toggle alerts debug">🔍</button>
     </div>
 
 
     <div id="desktop-view">
         <h1 id="main-title">Weather Data</h1>
+
+        <!-- Weather Alerts Container -->
+        <div id="weather-alerts" class="weather-alerts-container" style="display: none;">
+            <!-- Alerts will be dynamically inserted here -->
+        </div>
+
         <div class="grid-container">
             <div class="group">
                 <h2>Air</h2>
@@ -54,6 +61,13 @@
             </div>
             <div class="group">
                 <h2>Vent</h2>
+                <div class="grid-items-container">
+                    <div class="grid-item" id="desktop-wind-speed">
+                        <span class="label">Vitesse du vent</span>
+                        <span class="value">--</span>
+                        <span class="subtitle">actuelle</span>
+                    </div>
+                </div>
                 <h3>sur 48h</h3>
                 <div class="wind-group-container">
                     <div id="wind-chart-container">
@@ -199,9 +213,11 @@
         </div>
     </div>
     <script src="stations.js?v=20250107c"></script>
-    <script src="metrics.js?v=20250105a"></script>
-    <script src="stats.js?v=20260115a"></script>
+    <script src="metrics.js?v=20260125a"></script>
+    <script src="stats.js?v=20260125a"></script>
+    <script src="alerts-config.js?v=20260125d"></script>
+    <script src="alerts.js?v=20260125u"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="script.js?v=20250107m"></script>
+    <script src="script.js?v=20260125c"></script>
 </body>
 </html>

@@ -16,35 +16,42 @@ html, body {
 #floating-buttons button {
     background: none;
     border: none;
-    font-size: 2em;
+    font-size: 2.5em;
     cursor: pointer;
-    display: block;
+    display: inline-block;
     margin-bottom: 5px;
+    margin-right: 5px;
+}
+
+#floating-buttons button:last-child {
+    margin-right: 0;
 }
 
 #floating-buttons #current-station {
-    font-size: 1.2em !important;
+    font-size: 1.5em !important;
     background: rgba(0, 0, 0, 0.1) !important;
-    padding: 5px 8px !important;
-    border-radius: 3px !important;
+    padding: 8px 12px !important;
+    border-radius: 5px !important;
     border: 1px solid rgba(0, 0, 0, 0.2) !important;
     font-weight: bold !important;
     display: block !important;
-    margin-bottom: 5px !important;
+    margin-bottom: 8px !important;
     text-align: center !important;
     color: inherit !important;
 }
 
 #station-dropdown {
-    font-size: 1.0em;
+    font-size: 1.3em;
     background: rgba(0, 0, 0, 0.1);
-    padding: 5px 8px;
-    border-radius: 3px;
+    padding: 8px 12px;
+    border-radius: 5px;
     border: 1px solid rgba(0, 0, 0, 0.2);
     font-weight: bold;
     cursor: pointer;
-    margin-bottom: 5px;
-    min-width: 120px;
+    margin-bottom: 8px;
+    min-width: 140px;
+    display: block;
+    width: 100%;
 }
 
 
@@ -58,6 +65,7 @@ html, body {
 
 #desktop-view h1 {
     text-align: center;
+    font-size: 2.5em;
 }
 
 #desktop-view h1 a {
@@ -84,26 +92,26 @@ html, body {
 
 .grid-item {
     background-color: #f0f0f0;
-    padding: 20px;
-    border-radius: 5px;
+    padding: 25px;
+    border-radius: 8px;
     text-align: center;
-    width: 200px;
+    width: 240px;
     flex-shrink: 0;
 }
 
 .grid-item .label {
-    font-size: 1.2em;
+    font-size: 1.6em;
     display: block;
     margin-bottom: 10px;
 }
 
 .grid-item .value {
-    font-size: 2em;
+    font-size: 2.8em;
     font-weight: bold;
 }
 
 .grid-item .subtitle {
-    font-size: 1.2em;
+    font-size: 1.5em;
     color: #666;
     display: block;
     margin-top: 5px;
@@ -118,6 +126,25 @@ html, body {
 .group h2 {
     text-align: left;
     margin-top: 0;
+    font-size: 1.8em;
+}
+
+.group h3 {
+    font-size: 1.4em;
+}
+
+/* Chart container headings */
+#temperature-chart-container h3,
+#pressure-chart-container h3,
+#rivers-chart-container h3,
+#pm-chart-container h3 {
+    font-size: 1.2em !important;
+}
+
+/* Rain chart headings */
+#rain-chart-daily-container h3,
+#rain-chart-container h3 {
+    font-size: 1.2em !important;
 }
 
 .wind-group-container {
@@ -273,5 +300,193 @@ html, body {
     font-size: 0.85em;
     text-align: left;
     color: #666;
+}
+
+/* Weather Alerts */
+.weather-alerts-container {
+    margin: 20px 0;
+    padding: 0;
+}
+
+.weather-alert {
+    padding: 15px 25px;
+    margin-bottom: 10px;
+    border-radius: 8px;
+    font-size: 1.4em;
+    font-weight: 600;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border-left: 5px solid;
+    animation: alertSlideIn 0.3s ease-out;
+}
+
+@keyframes alertSlideIn {
+    from {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* INFO level alerts - blue/info style */
+.weather-alert-INFO {
+    background-color: #E3F2FD;
+    color: #1976D2;
+    border-left-color: #2196F3;
+}
+
+/* WARN level alerts - orange/warning style */
+.weather-alert-WARN {
+    background-color: #FFF3E0;
+    color: #F57C00;
+    border-left-color: #FF9800;
+    font-size: 1.2em;
+}
+
+/* ALERT level alerts - red/danger style */
+.weather-alert-ALERT {
+    background-color: #FFEBEE;
+    color: #D32F2F;
+    border-left-color: #F44336;
+    font-size: 1.5em;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+}
+
+/* Debug mode alert styles */
+.weather-alert-debug {
+    font-size: 1.1em;
+    padding: 8px 15px;
+    margin-bottom: 5px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.weather-alert-active {
+    background-color: #E8F5E8;
+    color: #2E7D32;
+    border-left-color: #4CAF50;
+}
+
+.weather-alert-inactive {
+    background-color: #F5F5F5;
+    color: #757575;
+    border-left-color: #BDBDBD;
+}
+
+.weather-alert-no-data {
+    background-color: #FFF8E1;
+    color: #F57F17;
+    border-left-color: #FFC107;
+}
+
+.debug-message {
+    flex: 0 0 auto;
+    width: 180px;
+    text-align: left;
+}
+
+.debug-level {
+    flex: 0 0 auto;
+    width: 70px;
+    text-align: center;
+    font-size: 0.9em;
+    font-weight: bold;
+    padding: 2px 6px;
+    border-radius: 3px;
+    margin: 0;
+}
+
+.debug-level-info {
+    background-color: #E3F2FD;
+    color: #1976D2;
+}
+
+.debug-level-warn {
+    background-color: #FFF3E0;
+    color: #F57C00;
+}
+
+.debug-level-alert {
+    background-color: #FFEBEE;
+    color: #D32F2F;
+}
+
+/* Section title styling */
+.debug-section-title {
+    font-size: 1.3em;
+    font-weight: bold;
+    color: #333;
+    margin: 15px 0 5px 0;
+    padding: 8px 0;
+    border-bottom: 2px solid #ddd;
+}
+
+/* Sub-threshold indentation */
+.debug-sub-threshold {
+    margin-left: 20px;
+    font-size: 0.95em;
+    border-left: 2px solid #ddd;
+    padding-left: 10px;
+}
+
+.debug-current {
+    flex: 0 0 auto;
+    width: 130px;
+    text-align: left;
+    font-family: monospace;
+    font-size: 0.95em;
+}
+
+.debug-condition {
+    flex: 1;
+    text-align: left;
+    font-family: monospace;
+    font-size: 0.95em;
+    color: #666;
+}
+
+/* Hide alerts container when empty */
+.weather-alerts-container:empty {
+    display: none !important;
+}
+
+/* Clickable alert effects */
+.clickable-alert {
+    transition: all 0.2s ease;
+}
+
+.clickable-alert:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    opacity: 0.9;
+}
+
+.clickable-alert:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Metric highlight effect when clicked from alerts */
+.metric-highlight {
+    animation: metricGlow 2s ease-out;
+    border-radius: 8px;
+}
+
+@keyframes metricGlow {
+    0% {
+        background-color: rgba(255, 193, 7, 0.3);
+        box-shadow: 0 0 20px rgba(255, 193, 7, 0.4);
+    }
+    50% {
+        background-color: rgba(255, 193, 7, 0.2);
+        box-shadow: 0 0 15px rgba(255, 193, 7, 0.3);
+    }
+    100% {
+        background-color: transparent;
+        box-shadow: none;
+    }
 }
 

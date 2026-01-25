@@ -359,6 +359,16 @@ function updateUI() {
                         var valueElement = desktopElement.querySelector('.value');
                         valueElement.innerHTML = formattedValue;
 
+                        // Trigger alerts update when key metrics are updated
+                        if (metric === 'temperature_ext' || metric === 'wind_speed' || metric === 'rain_rate' || metric === 'river_lot') {
+                            // Use setTimeout to ensure DOM update completes, then check alerts
+                            setTimeout(function() {
+                                if (typeof updateAlertsDisplay === 'function') {
+                                    updateAlertsDisplay();
+                                }
+                            }, 50);
+                        }
+
                         if (resolvedMetric.range) {
                             var link = desktopElement.querySelector('a');
                             if (!link) {
