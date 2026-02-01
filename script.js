@@ -80,9 +80,9 @@ function isMetricAvailableForStation(metricKey) {
         return currentStation === 'cahors';
     }
 
-    // For Lot river, not available for Vayrac station
+    // For Lot river, only available for Cahors station (data source is Cahors)
     if (metricKey === 'river_lot') {
-        return currentStation !== 'vayrac';
+        return currentStation === 'cahors';
     }
 
     return true;
