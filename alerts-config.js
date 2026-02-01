@@ -27,6 +27,20 @@ var WEATHER_ALERTS = [
         ]
     },
 
+    // Solar Radiation Alerts
+    {
+        id: "sun_rad",
+        metric: "sun_rad",
+        unit: " J/m²",
+        thresholds: [
+            { level: "INFO", condition: "less_than", value: 0.5, message: "Nuit" },
+            { level: "INFO", condition: "greater_than", value: 40, message: "Ensoleillement faible" },
+            { level: "INFO", condition: "greater_than", value: 200, message: "Ensoleillement modéré" },
+            { level: "WARN", condition: "greater_than", value: 500, message: "Fort ensoleillement" },
+            { level: "ALERT", condition: "greater_than", value: 800, message: "Très fort ensoleillement" }
+        ]
+    },
+
     // River Alerts (Lot) - High levels
     {
         id: "river_lot",
