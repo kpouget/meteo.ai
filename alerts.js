@@ -29,10 +29,10 @@ function evaluateAlerts() {
 
                     switch (threshold.condition) {
                         case "greater_than":
-                            conditionMet = metricValue > threshold.value;
+                            conditionMet = metricValue >= threshold.value;
                             break;
                         case "less_than":
-                            conditionMet = metricValue < threshold.value;
+                            conditionMet = metricValue <= threshold.value;
                             break;
                         case "equals":
                             conditionMet = metricValue === threshold.value;
@@ -60,10 +60,10 @@ function evaluateAlerts() {
 
                 switch (alert.condition) {
                     case "greater_than":
-                        conditionMet = metricValue > alert.threshold;
+                        conditionMet = metricValue >= alert.threshold;
                         break;
                     case "less_than":
-                        conditionMet = metricValue < alert.threshold;
+                        conditionMet = metricValue <= alert.threshold;
                         break;
                     case "equals":
                         conditionMet = metricValue === alert.threshold;
@@ -284,10 +284,10 @@ function getAllAlertsStatus() {
                 if (metricValue !== null && metricValue !== undefined) {
                     switch (threshold.condition) {
                         case "greater_than":
-                            conditionMet = metricValue > threshold.value;
+                            conditionMet = metricValue >= threshold.value;
                             break;
                         case "less_than":
-                            conditionMet = metricValue < threshold.value;
+                            conditionMet = metricValue <= threshold.value;
                             break;
                         case "equals":
                             conditionMet = metricValue === threshold.value;
@@ -334,10 +334,10 @@ function getAllAlertsStatus() {
             if (metricValue !== null && metricValue !== undefined) {
                 switch (alert.condition) {
                     case "greater_than":
-                        conditionMet = metricValue > alert.threshold;
+                        conditionMet = metricValue >= alert.threshold;
                         break;
                     case "less_than":
-                        conditionMet = metricValue < alert.threshold;
+                        conditionMet = metricValue <= alert.threshold;
                         break;
                     case "equals":
                         conditionMet = metricValue === alert.threshold;
