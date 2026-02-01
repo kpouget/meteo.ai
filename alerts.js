@@ -13,12 +13,25 @@ function evaluateAlerts() {
         var metricValue = currentMetricValues[alert.metric];
         if (metricValue !== null && metricValue !== undefined) {
 
+            // Handle station-specific thresholds
+            var alertThresholds = alert.thresholds;
+            var alertUnit = alert.unit;
+
+            if (alert.stationThresholds) {
+                // Select thresholds based on current station
+                var stationConfig = alert.stationThresholds[currentStation] || alert.stationThresholds.default;
+                if (stationConfig) {
+                    alertThresholds = stationConfig.thresholds;
+                    alertUnit = stationConfig.unit;
+                }
+            }
+
             // Handle multi-threshold alerts
-            if (alert.thresholds) {
+            if (alertThresholds) {
                 var matchingThreshold = null;
 
                 // Sort thresholds by value to find the highest applicable one
-                var sortedThresholds = alert.thresholds.slice().sort(function(a, b) {
+                var sortedThresholds = alertThresholds.slice().sort(function(a, b) {
                     if (a.condition === "greater_than") return b.value - a.value; // Highest first
                     else return a.value - b.value; // Lowest first
                 });
@@ -50,7 +63,7 @@ function evaluateAlerts() {
                         level: matchingThreshold.level,
                         message: matchingThreshold.message,
                         value: metricValue,
-                        unit: alert.unit || '',
+                        unit: alertUnit || '',
                         id: alert.id
                     });
                 }
@@ -100,8 +113,15 @@ function getCurrentMetricValues() {
     // Returns an object with metric_name: value pairs
     var values = {};
 
-    // Collect values from desktop elements
-    ['wind_speed', 'rain_rate', 'temperature_ext', 'river_lot'].forEach(function(metric) {
+    // Collect values from desktop elements - get all metrics that have alerts
+    var alertMetrics = [];
+    WEATHER_ALERTS.forEach(function(alert) {
+        if (alertMetrics.indexOf(alert.metric) === -1) {
+            alertMetrics.push(alert.metric);
+        }
+    });
+
+    alertMetrics.forEach(function(metric) {
         var element = document.getElementById('desktop-' + metric.replace(/_/g, '-'));
         if (element) {
             var valueElement = element.querySelector('.value');
@@ -181,7 +201,7 @@ function updateAlertsDisplay() {
                     thresholdElement.innerHTML = `
                         <span class="debug-level ${levelClass}">${levelText}</span>
                         <span class="debug-message">${threshold.message}</span>
-                        <span class="debug-condition">${conditionText} ${threshold.value}${alert.unit}</span>
+                        <span class="debug-condition">${conditionText} ${threshold.value} ${alert.unit}</span>
                     `;
 
                     thresholdElement.style.cursor = 'pointer';
@@ -271,13 +291,26 @@ function getAllAlertsStatus() {
     WEATHER_ALERTS.forEach(function(alert) {
         var metricValue = currentMetricValues[alert.metric];
 
-        if (alert.thresholds) {
+        // Handle station-specific thresholds
+        var alertThresholds = alert.thresholds;
+        var alertUnit = alert.unit;
+
+        if (alert.stationThresholds) {
+            // Select thresholds based on current station
+            var stationConfig = alert.stationThresholds[currentStation] || alert.stationThresholds.default;
+            if (stationConfig) {
+                alertThresholds = stationConfig.thresholds;
+                alertUnit = stationConfig.unit;
+            }
+        }
+
+        if (alertThresholds) {
             // Handle multi-threshold alerts - show as grouped structure
             var thresholdStatuses = [];
             var hasActiveThreshold = false;
             var overallStatus = 'inactive';
 
-            alert.thresholds.forEach(function(threshold, index) {
+            alertThresholds.forEach(function(threshold, index) {
                 var conditionMet = false;
                 var thresholdStatus = 'inactive';
 
@@ -320,7 +353,7 @@ function getAllAlertsStatus() {
             allStatuses.push({
                 id: alert.id,
                 metric: alert.metric,
-                unit: alert.unit || '',
+                unit: alertUnit || '',
                 currentValue: metricValue,
                 status: overallStatus,
                 isMultiThreshold: true,
