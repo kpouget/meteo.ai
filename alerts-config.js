@@ -53,6 +53,30 @@ var WEATHER_ALERTS = [
         ]
     },
 
+    // River Alerts (Dordogne) - Station-specific thresholds
+    {
+        id: "river_dordogne",
+        metric: "river_dordogne",
+        stationThresholds: {
+            "vayrac": {
+                unit: "m",
+                thresholds: [
+                    { level: "WARN", condition: "greater_than", value: 3.5, message: "Dordogne haute" },
+                    { level: "ALERT", condition: "greater_than", value: 4.5, message: "Dordogne en crue" },
+                    { level: "WARN", condition: "less_than", value: 1.5, message: "Dordogne basse" }
+                ]
+            },
+            "default": {
+                unit: "m³/s",
+                thresholds: [
+                    { level: "WARN", condition: "greater_than", value: 200, message: "Dordogne haute" },
+                    { level: "ALERT", condition: "greater_than", value: 400, message: "Dordogne en crue" },
+                    { level: "WARN", condition: "less_than", value: 50, message: "Dordogne basse" }
+                ]
+            }
+        }
+    },
+
     // Temperature Alerts
     {
         id: "temperature_ext",
