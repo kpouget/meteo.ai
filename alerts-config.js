@@ -4,6 +4,7 @@
 var WEATHER_ALERTS = [
     // Wind Alerts
     {
+	name: "Vitesse du vent",
         id: "wind_speed",
         metric: "wind_speed",
         unit: "km/h",
@@ -17,6 +18,7 @@ var WEATHER_ALERTS = [
 
     // Wind Gust Alerts
     {
+        name: "Vitesse des rafales",
         id: "wind_gust",
         metric: "wind_gust",
         unit: "km/h",
@@ -29,6 +31,7 @@ var WEATHER_ALERTS = [
 
     // Solar Radiation Alerts
     {
+        name: "Ensoleillement",
         id: "sun_rad",
         metric: "sun_rad",
         unit: " J/m²",
@@ -43,6 +46,7 @@ var WEATHER_ALERTS = [
 
     // River Alerts (Lot) - High levels
     {
+        name: "Niveau du Lot",
         id: "river_lot",
         metric: "river_lot",
         unit: "m³/s",
@@ -55,6 +59,7 @@ var WEATHER_ALERTS = [
 
     // River Alerts (Dordogne) - Station-specific thresholds
     {
+        name: "Niveau de la Dordogne",
         id: "river_dordogne",
         metric: "river_dordogne",
         stationThresholds: {
@@ -79,6 +84,7 @@ var WEATHER_ALERTS = [
 
     // Temperature Alerts
     {
+        name: "Température extérieur",
         id: "temperature_ext",
         metric: "temperature_ext",
         unit: "°C",
@@ -92,6 +98,7 @@ var WEATHER_ALERTS = [
 
     // Rain Rate Alerts
     {
+        name: "Force de la pluie",
         id: "rain_rate",
         metric: "rain_rate",
         unit: "mm/h",
@@ -104,6 +111,7 @@ var WEATHER_ALERTS = [
 
     // Add more alerts here following the same pattern:
     // {
+    //     name: "user friendly name",
     //     id: "unique_alert_id",
     //     level: "INFO" | "WARN" | "ALERT",
     //     metric: "metric_name_from_METRICS",

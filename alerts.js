@@ -166,7 +166,7 @@ function updateAlertsDisplay() {
                 var currentValue = alert.currentValue !== null && alert.currentValue !== undefined ?
                                   alert.currentValue.toFixed(1) + ' ' + alert.unit : 'no data';
 
-                sectionTitle.textContent = alert.metric + ' ==> ' + currentValue;
+                sectionTitle.textContent = (alert.name || alert.metric) + ': ' + currentValue;
                 sectionTitle.style.cursor = 'pointer';
                 sectionTitle.title = 'Cliquer pour voir le détail';
                 sectionTitle.addEventListener('click', function() {
@@ -352,6 +352,7 @@ function getAllAlertsStatus() {
 
             allStatuses.push({
                 id: alert.id,
+                name: alert.name,
                 metric: alert.metric,
                 unit: alertUnit || '',
                 currentValue: metricValue,
@@ -386,6 +387,7 @@ function getAllAlertsStatus() {
 
             allStatuses.push({
                 id: alert.id,
+                name: alert.name,
                 message: alert.message,
                 level: alert.level,
                 metric: alert.metric,
