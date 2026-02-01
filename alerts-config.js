@@ -8,9 +8,22 @@ var WEATHER_ALERTS = [
         metric: "wind_speed",
         unit: "km/h",
         thresholds: [
-            { level: "INFO", condition: "greater_than", value: 5, message: "Venteux" },
-            { level: "WARN", condition: "greater_than", value: 10, message: "Fort vents" },
+            { level: "INFO", condition: "greater_than", value: 5, message: "Vents faibles" },
+            { level: "INFO", condition: "greater_than", value: 10, message: "Vents moyens" },
+            { level: "WARN", condition: "greater_than", value: 15, message: "Fort vents" },
             { level: "ALERT", condition: "greater_than", value: 20, message: "Vents très forts" }
+        ]
+    },
+
+    // Wind Gust Alerts
+    {
+        id: "wind_gust",
+        metric: "wind_gust",
+        unit: "km/h",
+        thresholds: [
+            { level: "INFO", condition: "greater_than", value: 15, message: "Rafales" },
+            { level: "WARN", condition: "greater_than", value: 30, message: "Fortes rafales" },
+            { level: "ALERT", condition: "greater_than", value: 40, message: "Rafales violentes" }
         ]
     },
 
