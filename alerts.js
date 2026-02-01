@@ -512,13 +512,13 @@ function toggleAlertsDebugMode() {
             debugButton.style.color = 'white';
             debugButton.style.borderRadius = '4px';
             debugButton.style.padding = '2px 6px';
-            debugButton.title = 'Exit alerts debug mode';
+            debugButton.title = 'Afficher alertes actives seulement';
         } else {
             debugButton.style.backgroundColor = 'transparent';
             debugButton.style.color = '';
             debugButton.style.borderRadius = '';
             debugButton.style.padding = '';
-            debugButton.title = 'Toggle alerts debug';
+            debugButton.title = 'Afficher toutes les alertes';
         }
     }
 
