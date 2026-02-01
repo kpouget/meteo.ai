@@ -1,8 +1,11 @@
 // Weather Alerts Engine
 // Configuration is loaded from alerts-config.js
 
-// Global debug mode state
-var alertsDebugMode = false;
+// Global alerts display mode state
+// 0: Active alerts only
+// 1: Active alerts with section names
+// 2: All alerts with full debug info
+var alertsDisplayMode = 0;
 
 // Alert evaluation and display functions
 function evaluateAlerts() {
@@ -148,7 +151,7 @@ function updateAlertsDisplay() {
 
     var alertsToShow;
 
-    if (alertsDebugMode) {
+    if (alertsDisplayMode === 2) {
         // In debug mode, show all alerts with status
         var allStatuses = getAllAlertsStatus();
         alertsToShow = allStatuses;
@@ -247,8 +250,67 @@ function updateAlertsDisplay() {
                 alertsContainer.appendChild(alertElement);
             }
         });
+    } else if (alertsDisplayMode === 1) {
+        // Active alerts with section names mode - show all sections, but only active alerts
+        var activeAlerts = evaluateAlerts();
+        var allStatuses = getAllAlertsStatus();
+
+        alertsContainer.style.display = 'block';
+        alertsContainer.innerHTML = '';
+
+        // Group active alerts by their metric/section
+        var activeAlertsByMetric = {};
+        activeAlerts.forEach(function(alert) {
+            if (!activeAlertsByMetric[alert.id]) {
+                activeAlertsByMetric[alert.id] = [];
+            }
+            activeAlertsByMetric[alert.id].push(alert);
+        });
+
+        // Show ALL section titles, but only show active alerts underneath
+        allStatuses.forEach(function(alertStatus) {
+            // Always create section title with current value
+            var sectionTitle = document.createElement('div');
+            sectionTitle.className = 'debug-section-title';
+
+            var currentValue = alertStatus.currentValue !== null && alertStatus.currentValue !== undefined ?
+                              alertStatus.currentValue.toFixed(1) + ' ' + alertStatus.unit : 'no data';
+
+            sectionTitle.textContent = (alertStatus.name || alertStatus.metric) + ': ' + currentValue;
+            sectionTitle.style.cursor = 'pointer';
+            sectionTitle.title = 'Cliquer pour voir le détail';
+            sectionTitle.addEventListener('click', function() {
+                scrollToMetric(alertStatus.id);
+            });
+
+            alertsContainer.appendChild(sectionTitle);
+
+            // Show active alerts for this metric (if any)
+            var activeAlertsForMetric = activeAlertsByMetric[alertStatus.id];
+            if (activeAlertsForMetric && activeAlertsForMetric.length > 0) {
+                activeAlertsForMetric.forEach(function(alert) {
+                    var alertElement = document.createElement('div');
+                    alertElement.className = 'weather-alert weather-alert-' + alert.level + ' clickable-alert';
+
+                    // In mode 1, don't show current value - it's already in section title
+                    var alertText = alert.message;
+
+                    alertElement.textContent = alertText;
+                    alertElement.style.cursor = 'pointer';
+                    alertElement.title = 'Cliquer pour voir le détail';
+
+                    // Add click handler to scroll to relevant metric
+                    alertElement.addEventListener('click', function() {
+                        scrollToMetric(alert.id);
+                    });
+
+                    alertElement.style.marginLeft = '20px'; // Indent under section title
+                    alertsContainer.appendChild(alertElement);
+                });
+            }
+        });
     } else {
-        // Normal mode - only show active alerts
+        // Normal mode - only show active alerts (no section names)
         var activeAlerts = evaluateAlerts();
 
         if (activeAlerts.length === 0) {
@@ -502,25 +564,35 @@ function scrollToMetric(alertId) {
     }
 }
 
-// Toggle debug mode
+// Toggle alerts display mode (3-way toggle)
 function toggleAlertsDebugMode() {
-    alertsDebugMode = !alertsDebugMode;
+    // Cycle through 3 modes: 0 -> 1 -> 2 -> 0
+    alertsDisplayMode = (alertsDisplayMode + 1) % 3;
 
     // Update button appearance
     var debugButton = document.getElementById('alerts-debug-toggle');
     if (debugButton) {
-        if (alertsDebugMode) {
+        if (alertsDisplayMode === 0) {
+            // Mode 0: Active alerts only
+            debugButton.style.backgroundColor = 'transparent';
+            debugButton.style.color = '';
+            debugButton.style.borderRadius = '';
+            debugButton.style.padding = '';
+            debugButton.title = 'Afficher alertes actives avec sections';
+        } else if (alertsDisplayMode === 1) {
+            // Mode 1: Active alerts with section names
+            debugButton.style.backgroundColor = '#28a745';
+            debugButton.style.color = 'white';
+            debugButton.style.borderRadius = '4px';
+            debugButton.style.padding = '2px 6px';
+            debugButton.title = 'Afficher toutes les alertes';
+        } else {
+            // Mode 2: All alerts with full debug info
             debugButton.style.backgroundColor = '#007bff';
             debugButton.style.color = 'white';
             debugButton.style.borderRadius = '4px';
             debugButton.style.padding = '2px 6px';
             debugButton.title = 'Afficher alertes actives seulement';
-        } else {
-            debugButton.style.backgroundColor = 'transparent';
-            debugButton.style.color = '';
-            debugButton.style.borderRadius = '';
-            debugButton.style.padding = '';
-            debugButton.title = 'Afficher toutes les alertes';
         }
     }
 
