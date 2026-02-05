@@ -2758,7 +2758,22 @@ function updateRiverSubtitles(riversData) {
                 // Min/max for primary metric (flow) - only in subtitle
                 var flowStats = stats ? stats['river_lot'] : null;
                 if (flowStats && flowStats.min !== undefined && flowStats.max !== undefined) {
-                    subtitleElement.textContent = flowStats.min + '..' + flowStats.max + ' m³/s (7j)';
+                    // Get current value to ensure min/max includes recent 48h data
+                    var currentValue = firstPoint.lot !== undefined ? firstPoint.lot : null;
+                    var displayMax = flowStats.max;
+                    var displayMin = flowStats.min;
+
+                    // If current value is higher than cached 7d max, use current value
+                    if (currentValue !== null && currentValue > displayMax) {
+                        displayMax = Math.round(currentValue);
+                    }
+
+                    // If current value is lower than cached 7d min, use current value
+                    if (currentValue !== null && currentValue < displayMin) {
+                        displayMin = Math.round(currentValue);
+                    }
+
+                    subtitleElement.textContent = displayMin + '..' + displayMax + ' m³/s (7j)';
                 } else {
                     subtitleElement.textContent = '--';
                 }
@@ -2813,12 +2828,29 @@ function updateRiverSubtitles(riversData) {
 
                 var primaryStats = stats ? stats[primaryStatsKey] : null;
                 if (primaryStats && primaryStats.min !== undefined && primaryStats.max !== undefined) {
+                    // Get current primary value to ensure min/max includes recent 48h data
+                    var currentPrimaryValue = firstPoint.dordogne !== undefined ? firstPoint.dordogne : null;
+                    var displayMax = primaryStats.max;
+                    var displayMin = primaryStats.min;
+
+                    // If current value is higher than cached 7d max, use current value
+                    if (currentPrimaryValue !== null && currentPrimaryValue > displayMax) {
+                        displayMax = currentPrimaryValue;
+                    }
+
+                    // If current value is lower than cached 7d min, use current value
+                    if (currentPrimaryValue !== null && currentPrimaryValue < displayMin) {
+                        displayMin = currentPrimaryValue;
+                    }
+
                     if (primaryType === 'height') {
-                        var minHeight = parseFloat(primaryStats.min).toFixed(2);
-                        var maxHeight = parseFloat(primaryStats.max).toFixed(2);
+                        var minHeight = parseFloat(displayMin).toFixed(2);
+                        var maxHeight = parseFloat(displayMax).toFixed(2);
                         subtitleElement.textContent = minHeight + '..' + maxHeight + ' ' + primaryUnit + ' (7j)';
                     } else {
-                        subtitleElement.textContent = primaryStats.min + '..' + primaryStats.max + ' ' + primaryUnit + ' (7j)';
+                        var roundedMax = Math.round(displayMax);
+                        var roundedMin = Math.round(displayMin);
+                        subtitleElement.textContent = roundedMin + '..' + roundedMax + ' ' + primaryUnit + ' (7j)';
                     }
                 } else {
                     subtitleElement.textContent = '--';
