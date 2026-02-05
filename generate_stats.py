@@ -293,7 +293,15 @@ def collect_weekly_sun_radiation_data(prom, station_name, station_config):
         if latest_week_id:
             # Parse latest week and start from the next week
             year, week = latest_week_id.split('-W')
-            latest_week_start = datetime.strptime(f"{year} {week} 0", "%Y %W %w").date()
+            year, week_num = int(year), int(week)
+
+            # Calculate week start date using same logic as get_week_identifier
+            # Week 1 starts on January 1st (or first Sunday if Jan 1 is not Sunday)
+            jan_1 = date(year, 1, 1)
+            days_since_sunday = jan_1.weekday() + 1 if jan_1.weekday() != 6 else 0
+            first_sunday = jan_1 - timedelta(days=days_since_sunday)
+            latest_week_start = first_sunday + timedelta(days=7 * (week_num - 1))
+
             start_date = latest_week_start + timedelta(days=7)
             print(f"Resuming from week after {latest_week_id}")
         else:
