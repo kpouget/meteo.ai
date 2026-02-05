@@ -335,7 +335,6 @@ html, body {
     background-color: #E3F2FD;
     color: #1976D2;
     border-left-color: #2196F3;
-    font-size: 1.1em;
 }
 
 /* WARN level alerts - orange/warning style */
@@ -343,7 +342,6 @@ html, body {
     background-color: #FFF3E0;
     color: #F57C00;
     border-left-color: #FF9800;
-    font-size: 1.2em;
 }
 
 /* ALERT level alerts - red/danger style */
@@ -351,7 +349,6 @@ html, body {
     background-color: #FFEBEE;
     color: #D32F2F;
     border-left-color: #F44336;
-    font-size: 1.5em;
     box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
 }
 
