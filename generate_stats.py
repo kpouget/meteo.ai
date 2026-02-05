@@ -700,7 +700,11 @@ def generate_station_data(prom, station_name, station_config):
                             min_query = f"min_over_time({query}[7d])"
                             min_result = prom.custom_query(query=min_query)
                             if min_result:
-                                result_data["min"] = round(float(min_result[0]['value'][1]))
+                                # For river height, preserve 2 decimal places; for others, round to integer
+                                if name.endswith("_height"):
+                                    result_data["min"] = round(float(min_result[0]['value'][1]), 2)
+                                else:
+                                    result_data["min"] = round(float(min_result[0]['value'][1]))
                         except:
                             pass
 
@@ -709,7 +713,11 @@ def generate_station_data(prom, station_name, station_config):
                         max_query = f"max_over_time({query}[7d])"
                         max_result = prom.custom_query(query=max_query)
                         if max_result:
-                            result_data["max"] = round(float(max_result[0]['value'][1]))
+                            # For river height, preserve 2 decimal places; for others, round to integer
+                            if name.endswith("_height"):
+                                result_data["max"] = round(float(max_result[0]['value'][1]), 2)
+                            else:
+                                result_data["max"] = round(float(max_result[0]['value'][1]))
                     except:
                         pass
 
