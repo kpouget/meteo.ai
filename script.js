@@ -85,6 +85,12 @@ function isMetricAvailableForStation(metricKey) {
         return currentStation === 'cahors';
     }
 
+    // For Dordogne river, only available for stations with river features
+    if (metricKey === 'river_dordogne') {
+        var station = getCurrentStation();
+        return station && station.features.rivers;
+    }
+
     return true;
 }
 
