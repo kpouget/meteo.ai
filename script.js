@@ -375,6 +375,30 @@ function updateUI() {
                         var valueElement = desktopElement.querySelector('.value');
                         valueElement.innerHTML = formattedValue;
 
+                        // Special handling for UV index - fetch 24h max for subtitle
+                        if (metric === 'uv_idx') {
+                            var subtitleElement = desktopElement.querySelector('.subtitle');
+                            if (subtitleElement) {
+                                var maxQuery = resolvedMetric.query.replace('avg_over_time', 'max_over_time').replace('[10m]', '[24h]');
+                                var processedQuery = processQuery(maxQuery, resolvedMetric.labels);
+
+                                fetch(PROMETHEUS_URL + '?query=' + encodeURIComponent(processedQuery))
+                                    .then(function(response) { return response.json(); })
+                                    .then(function(data) {
+                                        if (data.status === 'success' && data.data.result.length > 0) {
+                                            var maxValue = parseFloat(data.data.result[0].value[1]);
+                                            var formattedMax = maxValue.toFixed(0);
+                                            subtitleElement.textContent = 'max: ' + formattedMax + ' (24h)';
+                                        } else {
+                                            subtitleElement.textContent = '--';
+                                        }
+                                    })
+                                    .catch(function(error) {
+                                        subtitleElement.textContent = '--';
+                                    });
+                            }
+                        }
+
                         // Trigger alerts update when key metrics are updated
                         if (metric === 'temperature_ext' || metric === 'wind_speed' || metric === 'rain_rate' || metric === 'river_lot') {
                             // Use setTimeout to ensure DOM update completes, then check alerts
