@@ -348,7 +348,17 @@ function updateUI() {
                         // Special formatting for Dordogne height on Vayrac (2 decimal places)
                         if (metric === 'river_dordogne' && currentStation === 'vayrac') {
                             formattedValue = parseFloat(value).toFixed(2);
-                        } else if (metric.indexOf('rain_') === 0 || metric.indexOf('wind_') === 0 || metric.indexOf('river_') === 0 || metric === 'uv_idx' || metric.indexOf('pm') === 0 || metric.indexOf('temperature_') === 0 || metric.indexOf('humidity_') === 0 || metric === 'sun_rad') {
+                        } else if (metric === 'sun_rad') {
+                            // Special formatting for sun radiation: 2 decimals if < 2 (except 0), otherwise 0 decimals
+                            var numericValue = parseFloat(value);
+                            if (numericValue === 0) {
+                                formattedValue = "0";
+                            } else if (numericValue < 2) {
+                                formattedValue = numericValue.toFixed(2);
+                            } else {
+                                formattedValue = numericValue.toFixed(0);
+                            }
+                        } else if (metric.indexOf('rain_') === 0 || metric.indexOf('wind_') === 0 || metric.indexOf('river_') === 0 || metric === 'uv_idx' || metric.indexOf('pm') === 0 || metric.indexOf('temperature_') === 0 || metric.indexOf('humidity_') === 0) {
                             formattedValue = parseFloat(value).toFixed(0);
                         } else if (metric === 'pressure') {
                             formattedValue = parseFloat(value).toFixed(0);
