@@ -66,7 +66,7 @@ var WEATHER_ALERTS = [
             "vayrac": {
                 unit: "m",
                 thresholds: [
-                    { level: "WARN", condition: "less_than", value: 1.5, message: "Dordogne basse" }
+                    { level: "WARN", condition: "less_than", value: 1.5, message: "Dordogne basse" },
 		    { level: "INFO", condition: "greater_than", value: 3.3, message: "Dordogne sur le pont" },
                     { level: "ALERT", condition: "greater_than", value: 4.35, message: "Dordogne sur les berges" },
 		    { level: "ALERT", condition: "greater_than", value: 5.5, message: "Dordogne sur la route" },
@@ -75,7 +75,7 @@ var WEATHER_ALERTS = [
             "default": {
                 unit: "m³/s",
                 thresholds: [
-		    { level: "WARN", condition: "less_than", value: 50, message: "Dordogne basse" }
+		    { level: "WARN", condition: "less_than", value: 50, message: "Dordogne basse" },
                     { level: "WARN", condition: "greater_than", value: 280, message: "Dordogne sur le pont" },
                     { level: "ALERT", condition: "greater_than", value: 530, message: "Dordogne sur les berges" },
 		    { level: "ALERT", condition: "greater_than", value: 900, message: "Dordogne sur la route" },
