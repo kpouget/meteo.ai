@@ -1620,14 +1620,30 @@ function combineRiverResults(results, riversConfig) {
                 var primaryData = getPrimaryDataForRiver(riverResult);
                 var secondaryData = getSecondaryDataForRiver(riverResult);
 
-                // Add primary metric (for chart display)
-                if (primaryData && primaryData[i]) {
-                    point[riverResult.displayName] = primaryData[i].value;
+                // Add primary metric - use latest value for first point, index for chart
+                if (primaryData && primaryData.length > 0) {
+                    if (i === 0) {
+                        // For display, use the latest primary value
+                        point[riverResult.displayName] = primaryData[primaryData.length - 1].value;
+                    } else {
+                        // For chart points, use index-based alignment
+                        if (primaryData[i]) {
+                            point[riverResult.displayName] = primaryData[i].value;
+                        }
+                    }
                 }
 
-                // Add secondary metric (for subtitle display)
-                if (secondaryData && secondaryData[i]) {
-                    point[riverResult.displayName + '_secondary'] = secondaryData[i].value;
+                // Add secondary metric - use latest value for first point, index for chart
+                if (secondaryData && secondaryData.length > 0) {
+                    if (i === 0) {
+                        // For display, use the latest secondary value
+                        point[riverResult.displayName + '_secondary'] = secondaryData[secondaryData.length - 1].value;
+                    } else {
+                        // For chart points, use index-based alignment
+                        if (secondaryData[i]) {
+                            point[riverResult.displayName + '_secondary'] = secondaryData[i].value;
+                        }
+                    }
                 }
 
                 // Store metric types for UI display
@@ -2749,13 +2765,8 @@ function updateVigicruesLinks() {
     var dordogneLink = document.getElementById('dordogne-vigicrues-link');
     if (dordogneLink) {
         var dordogneStationName;
-        if (currentStation === 'vayrac') {
-            dordogneStationName = 'Carennac';
-        } else if (currentStation === 'cahors') {
-            dordogneStationName = 'Souillac';
-        } else {
-            dordogneStationName = 'Carennac'; // default
-        }
+        // All stations now use Carennac for Dordogne
+        dordogneStationName = 'Carennac';
 
         var stationId = VIGICRUES_STATIONS['Dordogne'][dordogneStationName];
         if (stationId) {
