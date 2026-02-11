@@ -1523,10 +1523,10 @@ function fetchRiversData(callback) {
             { riverName: 'Dordogne', stationName: 'Carennac', displayName: 'dordogne' }
         ];
     } else if (currentStation === 'cahors') {
-        // For Cahors station, show both rivers with Dordogne at Souillac
+        // For Cahors station, show both rivers with Dordogne at Carennac
         riversConfig = [
             { riverName: 'Lot', stationName: 'Cahors', displayName: 'lot' },
-            { riverName: 'Dordogne', stationName: 'Souillac', displayName: 'dordogne' }
+            { riverName: 'Dordogne', stationName: 'Carennac', displayName: 'dordogne' }
         ];
     } else {
         // For other stations, show both rivers with Dordogne at Carennac
@@ -2792,22 +2792,18 @@ function updateRiverSubtitles(riversData) {
                 // Min/max for primary metric (flow) - only in subtitle
                 var flowStats = stats ? stats['river_lot'] : null;
                 if (flowStats && flowStats.min !== undefined && flowStats.max !== undefined) {
-                    // Get current value to ensure min/max includes recent 48h data
-                    var currentValue = firstPoint.lot !== undefined ? firstPoint.lot : null;
-                    var displayMax = flowStats.max;
-                    var displayMin = flowStats.min;
+                    // Calculate max/min from recent 48h data to ensure range includes today's values
+                    var recentMax = Math.max.apply(Math, riversData.map(function(point) {
+                        return point.lot !== undefined ? parseFloat(point.lot) : -Infinity;
+                    }));
+                    var recentMin = Math.min.apply(Math, riversData.map(function(point) {
+                        return point.lot !== undefined ? parseFloat(point.lot) : Infinity;
+                    }));
 
-                    // If current value is higher than cached 7d max, use current value
-                    if (currentValue !== null && currentValue > displayMax) {
-                        displayMax = Math.round(currentValue);
-                    }
+                    var displayMax = Math.max(parseFloat(flowStats.max), recentMax);
+                    var displayMin = Math.min(parseFloat(flowStats.min), recentMin);
 
-                    // If current value is lower than cached 7d min, use current value
-                    if (currentValue !== null && currentValue < displayMin) {
-                        displayMin = Math.round(currentValue);
-                    }
-
-                    subtitleElement.textContent = displayMin + '..' + displayMax + ' m³/s (7j)';
+                    subtitleElement.textContent = Math.round(displayMin) + '..' + Math.round(displayMax) + ' m³/s (7j)';
                 } else {
                     subtitleElement.textContent = '--';
                 }
@@ -2862,20 +2858,16 @@ function updateRiverSubtitles(riversData) {
 
                 var primaryStats = stats ? stats[primaryStatsKey] : null;
                 if (primaryStats && primaryStats.min !== undefined && primaryStats.max !== undefined) {
-                    // Get current primary value to ensure min/max includes recent 48h data
-                    var currentPrimaryValue = firstPoint.dordogne !== undefined ? firstPoint.dordogne : null;
-                    var displayMax = primaryStats.max;
-                    var displayMin = primaryStats.min;
+                    // Calculate max/min from recent 48h data to ensure range includes today's values
+                    var recentMax = Math.max.apply(Math, riversData.map(function(point) {
+                        return point.dordogne !== undefined ? parseFloat(point.dordogne) : -Infinity;
+                    }));
+                    var recentMin = Math.min.apply(Math, riversData.map(function(point) {
+                        return point.dordogne !== undefined ? parseFloat(point.dordogne) : Infinity;
+                    }));
 
-                    // If current value is higher than cached 7d max, use current value
-                    if (currentPrimaryValue !== null && currentPrimaryValue > displayMax) {
-                        displayMax = currentPrimaryValue;
-                    }
-
-                    // If current value is lower than cached 7d min, use current value
-                    if (currentPrimaryValue !== null && currentPrimaryValue < displayMin) {
-                        displayMin = currentPrimaryValue;
-                    }
+                    var displayMax = Math.max(parseFloat(primaryStats.max), recentMax);
+                    var displayMin = Math.min(parseFloat(primaryStats.min), recentMin);
 
                     if (primaryType === 'height') {
                         var minHeight = parseFloat(displayMin).toFixed(2);
