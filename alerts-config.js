@@ -69,7 +69,8 @@ var WEATHER_ALERTS = [
                     { level: "WARN", condition: "less_than", value: 1.5, message: "Dordogne basse" },
 		    { level: "INFO", condition: "greater_than", value: 3.3, message: "Dordogne sur le pont" },
                     { level: "ALERT", condition: "greater_than", value: 4.35, message: "Dordogne sur les berges" },
-		    { level: "ALERT", condition: "greater_than", value: 5.5, message: "Dordogne sur la route" },
+		    { level: "ALERT", condition: "greater_than", value: 5.54, message: "Dordogne au bout du champs" },
+		    { level: "ALERT", condition: "greater_than", value: 5.9, message: "Dordogne sur la route" },
                 ]
             },
             "default": {
@@ -78,7 +79,8 @@ var WEATHER_ALERTS = [
 		    { level: "WARN", condition: "less_than", value: 50, message: "Dordogne basse" },
                     { level: "WARN", condition: "greater_than", value: 280, message: "Dordogne sur le pont" },
                     { level: "ALERT", condition: "greater_than", value: 530, message: "Dordogne sur les berges" },
-		    { level: "ALERT", condition: "greater_than", value: 900, message: "Dordogne sur la route" },
+		    { level: "ALERT", condition: "greater_than", value: 900, message: "Dordogne au bout du champs" },
+		    { level: "ALERT", condition: "greater_than", value: 1000, message: "Dordogne sur la route" },
                 ]
             }
         }
