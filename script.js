@@ -1620,29 +1620,23 @@ function combineRiverResults(results, riversConfig) {
                 var primaryData = getPrimaryDataForRiver(riverResult);
                 var secondaryData = getSecondaryDataForRiver(riverResult);
 
-                // Add primary metric - use latest value for first point, index for chart
-                if (primaryData && primaryData.length > 0) {
-                    if (i === 0) {
-                        // For display, use the latest primary value
-                        point[riverResult.displayName] = primaryData[primaryData.length - 1].value;
-                    } else {
-                        // For chart points, use index-based alignment
-                        if (primaryData[i]) {
-                            point[riverResult.displayName] = primaryData[i].value;
-                        }
-                    }
+                // Add primary metric (for chart display) - keep chronological order
+                if (primaryData && primaryData[i]) {
+                    point[riverResult.displayName] = primaryData[i].value;
                 }
 
-                // Add secondary metric - use latest value for first point, index for chart
-                if (secondaryData && secondaryData.length > 0) {
-                    if (i === 0) {
-                        // For display, use the latest secondary value
-                        point[riverResult.displayName + '_secondary'] = secondaryData[secondaryData.length - 1].value;
-                    } else {
-                        // For chart points, use index-based alignment
-                        if (secondaryData[i]) {
-                            point[riverResult.displayName + '_secondary'] = secondaryData[i].value;
-                        }
+                // Add secondary metric (for chart display) - keep chronological order
+                if (secondaryData && secondaryData[i]) {
+                    point[riverResult.displayName + '_secondary'] = secondaryData[i].value;
+                }
+
+                // Store latest values separately for UI display (only on last iteration)
+                if (i === baseData.length - 1) {
+                    if (primaryData && primaryData.length > 0) {
+                        point[riverResult.displayName + '_latest'] = primaryData[primaryData.length - 1].value;
+                    }
+                    if (secondaryData && secondaryData.length > 0) {
+                        point[riverResult.displayName + '_secondary_latest'] = secondaryData[secondaryData.length - 1].value;
                     }
                 }
 
@@ -2778,8 +2772,9 @@ function updateVigicruesLinks() {
 function updateRiverSubtitles(riversData) {
     if (!riversData || riversData.length === 0) return;
 
-    // Get the first data point to extract metadata and current values
+    // Get the first and last data points
     var firstPoint = riversData[0];
+    var lastPoint = riversData[riversData.length - 1];
     var stats = getStatsForCurrentStation();
 
     // Update Lot river subtitle (if available)
@@ -2790,8 +2785,9 @@ function updateRiverSubtitles(riversData) {
             var subtitleElement = lotElement.querySelector('.subtitle');
 
             if (labelElement && subtitleElement) {
-                // Current secondary metric (height)
-                var secondaryValue = firstPoint.lot_secondary ? firstPoint.lot_secondary.toFixed(2) + ' m' : '';
+                // Use latest values for display
+                var currentSecondary = lastPoint.lot_secondary_latest !== undefined ? lastPoint.lot_secondary_latest : firstPoint.lot_secondary;
+                var secondaryValue = currentSecondary ? currentSecondary.toFixed(2) + ' m' : '';
 
                 // Update label to include secondary metric
                 if (secondaryValue) {
@@ -2835,13 +2831,14 @@ function updateRiverSubtitles(riversData) {
                 var primaryUnit = firstPoint.dordogne_primary_unit;
                 var secondaryUnit = firstPoint.dordogne_secondary_unit;
 
-                // Current secondary metric
+                // Current secondary metric - use latest value
                 var secondaryValue = '';
-                if (firstPoint.dordogne_secondary !== undefined) {
+                var currentSecondary = lastPoint.dordogne_secondary_latest !== undefined ? lastPoint.dordogne_secondary_latest : firstPoint.dordogne_secondary;
+                if (currentSecondary !== undefined) {
                     if (secondaryType === 'height') {
-                        secondaryValue = firstPoint.dordogne_secondary.toFixed(2) + ' ' + secondaryUnit;
+                        secondaryValue = currentSecondary.toFixed(2) + ' ' + secondaryUnit;
                     } else {
-                        secondaryValue = firstPoint.dordogne_secondary.toFixed(0) + ' ' + secondaryUnit;
+                        secondaryValue = currentSecondary.toFixed(0) + ' ' + secondaryUnit;
                     }
                 }
 
