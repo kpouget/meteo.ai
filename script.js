@@ -228,6 +228,13 @@ function updateStationSpecificVisibility() {
             desktopElement.style.display = isAvailable ? 'block' : 'none';
         }
     }
+
+    // Show ensoleillement box when sun_rad is available
+    var ensoleillementElement = document.getElementById('desktop-ensoleillement');
+    if (ensoleillementElement) {
+        var sunRadAvailable = isMetricAvailableForStation('sun_rad');
+        ensoleillementElement.style.display = sunRadAvailable ? 'block' : 'none';
+    }
 }
 
 function formatLabels(labelsDict) {
@@ -427,6 +434,11 @@ function updateUI() {
                 }
             });
         })(metric);
+    }
+
+    // Update sun radiation with sunrise/sunset times
+    if (isMetricAvailableForStation('sun_rad', currentStation)) {
+        updateSunRadiationTimes();
     }
 
     // Refresh the linear charts
@@ -1708,6 +1720,119 @@ function getSecondaryUnit(riverResult) {
 }
 
 
+
+function updateSunRadiationTimes() {
+    // Build the sun radiation query manually
+    var currentStationConfig = getCurrentStation();
+    if (!currentStationConfig) return;
+
+    var query = 'avg_over_time(sun_rad{instance="wunderground.972.ovh:443", job="internet scraping", station_id="' + currentStationConfig.station_id + '"}[10m])';
+
+    // Get today's data from midnight to now (fixed daily window)
+    var now = new Date();
+    var startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
+    var endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
+
+    var start = Math.floor(startOfDay.getTime() / 1000);
+    var end = Math.floor(endOfDay.getTime() / 1000);
+    var step = 5 * 60; // 5 minutes
+
+    var url = PROMETHEUS_URL.replace('/query', '/query_range') +
+              '?query=' + encodeURIComponent(query) +
+              '&start=' + start +
+              '&end=' + end +
+              '&step=' + step;
+
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', url, true);
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState === 4) {
+            if (xhr.status === 200) {
+                try {
+                    var data = JSON.parse(xhr.responseText);
+                    if (data.status === 'success' && data.data.result.length > 0) {
+                        var values = data.data.result[0].values;
+                        var sunTimes = calculateSunriseSunset(values);
+                        updateEnsoleillementDisplay(sunTimes);
+                    } else {
+                        updateEnsoleillementDisplay(null);
+                    }
+                } catch (error) {
+                    updateEnsoleillementDisplay(null);
+                }
+            } else {
+                updateEnsoleillementDisplay(null);
+            }
+        }
+    };
+    xhr.send();
+}
+
+function calculateSunriseSunset(values) {
+    var threshold = 0.2; // W/m² threshold for sun activity
+    var sunrise = null;
+    var sunset = null;
+
+
+    // Find sunrise: first time it goes above threshold, starting at midnight
+    for (var i = 0; i < values.length; i++) {
+        var currentValue = parseFloat(values[i][1]);
+        var timestamp = values[i][0] * 1000;
+
+        if (currentValue > threshold) {
+            sunrise = new Date(timestamp);
+            break;
+        }
+    }
+
+    // Find sunset: first time it goes below threshold, starting at noon
+    var noonTimestamp = Math.floor(Date.now() / 1000 / 86400) * 86400 + 12 * 3600; // Today at noon
+
+    for (var i = 0; i < values.length; i++) {
+        var currentValue = parseFloat(values[i][1]);
+        var timestamp = values[i][0];
+
+        // Only check times from noon onwards
+        if (timestamp >= noonTimestamp && currentValue <= threshold) {
+            sunset = new Date(timestamp * 1000);
+            break;
+        }
+    }
+
+    return { sunrise: sunrise, sunset: sunset };
+}
+
+function updateEnsoleillementDisplay(sunTimes) {
+    var ensoleillementElement = document.getElementById('desktop-ensoleillement');
+    if (!ensoleillementElement) return;
+
+    var valueElement = ensoleillementElement.querySelector('.value');
+    if (!valueElement) return;
+
+    if (sunTimes && sunTimes.sunrise && sunTimes.sunset) {
+        var sunriseTime = sunTimes.sunrise.toLocaleTimeString('fr-FR', {hour: '2-digit', minute: '2-digit'});
+        var sunsetTime = sunTimes.sunset.toLocaleTimeString('fr-FR', {hour: '2-digit', minute: '2-digit'});
+
+        // Calculate duration
+        var durationMs = sunTimes.sunset.getTime() - sunTimes.sunrise.getTime();
+        var durationHours = Math.floor(durationMs / (1000 * 60 * 60));
+        var durationMinutes = Math.floor((durationMs % (1000 * 60 * 60)) / (1000 * 60));
+
+        valueElement.innerHTML = sunriseTime + '<br>' + sunsetTime;
+
+        // Update subtitle with duration
+        var subtitleElement = ensoleillementElement.querySelector('.subtitle');
+        if (subtitleElement) {
+            subtitleElement.textContent = durationHours + 'h ' + durationMinutes + 'm';
+        }
+    } else {
+        valueElement.textContent = '--';
+        var subtitleElement = ensoleillementElement.querySelector('.subtitle');
+        if (subtitleElement) {
+            subtitleElement.textContent = '--';
+        }
+    }
+}
 
 function fetchSunRadBuckets(callback) {
     // Get sun radiation bucket data from station stats
