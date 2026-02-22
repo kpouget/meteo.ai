@@ -1728,10 +1728,17 @@ function updateSunRadiationTimes() {
 
     var query = 'avg_over_time(sun_rad{instance="wunderground.972.ovh:443", job="internet scraping", station_id="' + currentStationConfig.station_id + '"}[10m])';
 
-    // Get today's data from midnight to now (fixed daily window)
+    // Use yesterday's data if it's before evening, otherwise use today
     var now = new Date();
-    var startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
-    var endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
+    var targetDate = new Date(now);
+
+    // If it's before 20:00, use yesterday's complete data
+    if (now.getHours() < 20) {
+        targetDate.setDate(targetDate.getDate() - 1);
+    }
+
+    var startOfDay = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate(), 0, 0, 0);
+    var endOfDay = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate(), 23, 59, 59);
 
     var start = Math.floor(startOfDay.getTime() / 1000);
     var end = Math.floor(endOfDay.getTime() / 1000);
@@ -1752,7 +1759,7 @@ function updateSunRadiationTimes() {
                     var data = JSON.parse(xhr.responseText);
                     if (data.status === 'success' && data.data.result.length > 0) {
                         var values = data.data.result[0].values;
-                        var sunTimes = calculateSunriseSunset(values);
+                        var sunTimes = calculateSunriseSunset(values, startOfDay);
                         updateEnsoleillementDisplay(sunTimes);
                     } else {
                         updateEnsoleillementDisplay(null);
@@ -1768,7 +1775,7 @@ function updateSunRadiationTimes() {
     xhr.send();
 }
 
-function calculateSunriseSunset(values) {
+function calculateSunriseSunset(values, startOfDay) {
     var threshold = 0.2; // W/m² threshold for sun activity
     var sunrise = null;
     var sunset = null;
@@ -1786,7 +1793,8 @@ function calculateSunriseSunset(values) {
     }
 
     // Find sunset: first time it goes below threshold, starting at noon
-    var noonTimestamp = Math.floor(Date.now() / 1000 / 86400) * 86400 + 12 * 3600; // Today at noon
+    var dayStart = Math.floor(startOfDay.getTime() / 1000);
+    var noonTimestamp = dayStart + 12 * 3600; // Noon of the target day
 
     for (var i = 0; i < values.length; i++) {
         var currentValue = parseFloat(values[i][1]);
