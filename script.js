@@ -229,11 +229,16 @@ function updateStationSpecificVisibility() {
         }
     }
 
-    // Show ensoleillement box when sun_rad is available
+    // Show ensoleillement and night duration boxes when sun_rad is available
     var ensoleillementElement = document.getElementById('desktop-ensoleillement');
+    var nuitElement = document.getElementById('desktop-duree-nuit');
+    var sunRadAvailable = isMetricAvailableForStation('sun_rad');
+
     if (ensoleillementElement) {
-        var sunRadAvailable = isMetricAvailableForStation('sun_rad');
         ensoleillementElement.style.display = sunRadAvailable ? 'block' : 'none';
+    }
+    if (nuitElement) {
+        nuitElement.style.display = sunRadAvailable ? 'block' : 'none';
     }
 }
 
@@ -439,6 +444,7 @@ function updateUI() {
     // Update sun radiation with sunrise/sunset times
     if (isMetricAvailableForStation('sun_rad', currentStation)) {
         updateSunRadiationTimes();
+        updateNightDuration();
     }
 
     // Refresh the linear charts
@@ -1842,6 +1848,188 @@ function updateEnsoleillementDisplay(sunTimes) {
     }
 }
 
+function updateNightDuration() {
+    // First check current solar radiation to determine which night to calculate
+    var currentStationConfig = getCurrentStation();
+    if (!currentStationConfig) return;
+
+    var currentQuery = 'sun_rad{instance="wunderground.972.ovh:443", job="internet scraping", station_id="' + currentStationConfig.station_id + '"}';
+
+    // Get current solar radiation value
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', PROMETHEUS_URL + '?query=' + encodeURIComponent(currentQuery), true);
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState === 4 && xhr.status === 200) {
+            try {
+                var data = JSON.parse(xhr.responseText);
+                var currentSolarRad = 0;
+
+                if (data.status === 'success' && data.data.result.length > 0) {
+                    currentSolarRad = parseFloat(data.data.result[0].value[1]);
+                }
+
+                // Determine which dates to use based on current solar conditions
+                var now = new Date();
+                var sunsetDate = new Date(now);
+                var sunriseDate = new Date(now);
+
+                if (currentSolarRad === 0) {
+                    // Currently dark - show current ongoing night
+                    // Sunset: today (just happened), Sunrise: tomorrow (will happen)
+                    // sunsetDate stays as today
+                    sunriseDate.setDate(sunriseDate.getDate() + 1);
+                } else {
+                    // Currently light - show most recent complete night
+                    // Sunset: yesterday, Sunrise: today (just happened)
+                    sunsetDate.setDate(sunsetDate.getDate() - 1);
+                    // sunriseDate stays as today
+                }
+
+                // Now fetch the night duration data
+                fetchNightDurationData(currentStationConfig, sunsetDate, sunriseDate);
+
+            } catch (error) {
+                // Silent error handling - fallback to showing nothing
+                updateNightDurationDisplay({ sunsetDay: null, sunriseDay: null });
+            }
+        }
+    };
+    xhr.send();
+}
+
+function fetchNightDurationData(currentStationConfig, sunsetDate, sunriseDate) {
+    var query = 'avg_over_time(sun_rad{instance="wunderground.972.ovh:443", job="internet scraping", station_id="' + currentStationConfig.station_id + '"}[10m])';
+    var step = 5 * 60; // 5 minutes
+    var results = { sunsetDay: null, sunriseDay: null };
+    var completedRequests = 0;
+
+    // Get sunset data
+    var sunsetStart = new Date(sunsetDate.getFullYear(), sunsetDate.getMonth(), sunsetDate.getDate(), 0, 0, 0);
+    var sunsetEnd = new Date(sunsetDate.getFullYear(), sunsetDate.getMonth(), sunsetDate.getDate(), 23, 59, 59);
+
+    var url1 = PROMETHEUS_URL.replace('/query', '/query_range') +
+               '?query=' + encodeURIComponent(query) +
+               '&start=' + Math.floor(sunsetStart.getTime() / 1000) +
+               '&end=' + Math.floor(sunsetEnd.getTime() / 1000) +
+               '&step=' + step;
+
+    // Get sunrise data
+    var sunriseStart = new Date(sunriseDate.getFullYear(), sunriseDate.getMonth(), sunriseDate.getDate(), 0, 0, 0);
+    var sunriseEnd = new Date(sunriseDate.getFullYear(), sunriseDate.getMonth(), sunriseDate.getDate(), 23, 59, 59);
+
+    var url2 = PROMETHEUS_URL.replace('/query', '/query_range') +
+               '?query=' + encodeURIComponent(query) +
+               '&start=' + Math.floor(sunriseStart.getTime() / 1000) +
+               '&end=' + Math.floor(sunriseEnd.getTime() / 1000) +
+               '&step=' + step;
+
+    // Fetch yesterday's data
+    var xhr1 = new XMLHttpRequest();
+    xhr1.open('GET', url1, true);
+    xhr1.onreadystatechange = function() {
+        if (xhr1.readyState === 4 && xhr1.status === 200) {
+            try {
+                var data = JSON.parse(xhr1.responseText);
+                if (data.status === 'success' && data.data.result.length > 0) {
+                    var values = data.data.result[0].values;
+                    results.sunsetDay = findSunset(values, sunsetStart);
+                }
+            } catch (error) {
+                // Silent error handling
+            }
+            completedRequests++;
+            checkNightDurationComplete();
+        }
+    };
+
+    // Fetch today's data
+    var xhr2 = new XMLHttpRequest();
+    xhr2.open('GET', url2, true);
+    xhr2.onreadystatechange = function() {
+        if (xhr2.readyState === 4 && xhr2.status === 200) {
+            try {
+                var data = JSON.parse(xhr2.responseText);
+                if (data.status === 'success' && data.data.result.length > 0) {
+                    var values = data.data.result[0].values;
+                    results.sunriseDay = findSunrise(values);
+                }
+            } catch (error) {
+                // Silent error handling
+            }
+            completedRequests++;
+            checkNightDurationComplete();
+        }
+    };
+
+    function checkNightDurationComplete() {
+        if (completedRequests === 2) {
+            updateNightDurationDisplay(results);
+        }
+    }
+
+    xhr1.send();
+    xhr2.send();
+}
+
+function findSunset(values, dayStart) {
+    var threshold = 0.2;
+    var dayStartTimestamp = Math.floor(dayStart.getTime() / 1000);
+    var noonTimestamp = dayStartTimestamp + 12 * 3600; // Noon
+
+    for (var i = 0; i < values.length; i++) {
+        var currentValue = parseFloat(values[i][1]);
+        var timestamp = values[i][0];
+
+        // Only check times from noon onwards
+        if (timestamp >= noonTimestamp && currentValue <= threshold) {
+            return new Date(timestamp * 1000);
+        }
+    }
+    return null;
+}
+
+function findSunrise(values) {
+    var threshold = 0.2;
+
+    for (var i = 0; i < values.length; i++) {
+        var currentValue = parseFloat(values[i][1]);
+        var timestamp = values[i][0] * 1000;
+
+        if (currentValue > threshold) {
+            return new Date(timestamp);
+        }
+    }
+    return null;
+}
+
+function updateNightDurationDisplay(results) {
+    var nuitElement = document.getElementById('desktop-duree-nuit');
+    if (!nuitElement) return;
+
+    var valueElement = nuitElement.querySelector('.value');
+    var subtitleElement = nuitElement.querySelector('.subtitle');
+
+    if (!valueElement) return;
+
+    if (results.sunsetDay && results.sunriseDay) {
+        // Calculate night duration
+        var durationMs = results.sunriseDay.getTime() - results.sunsetDay.getTime();
+        var durationHours = Math.floor(durationMs / (1000 * 60 * 60));
+        var durationMinutes = Math.floor((durationMs % (1000 * 60 * 60)) / (1000 * 60));
+
+        valueElement.textContent = durationHours + 'h ' + durationMinutes + 'm';
+
+        if (subtitleElement) {
+            subtitleElement.textContent = 'nuit précédente';
+        }
+    } else {
+        valueElement.textContent = '--';
+        if (subtitleElement) {
+            subtitleElement.textContent = 'nuit précédente';
+        }
+    }
+}
+
 function fetchSunRadBuckets(callback) {
     // Get sun radiation bucket data from station stats
     var stats = getStatsForCurrentStation();
@@ -1998,39 +2186,6 @@ function renderSunRad48hPieChart(bucketData) {
     });
 }
 
-function updateNightDurationUI(bucketData) {
-    var nightDurationElement = document.getElementById('desktop-night-duration');
-    if (!nightDurationElement) return;
-
-    var valueSpan = nightDurationElement.querySelector('.value');
-
-    if (!bucketData || bucketData.length === 0) {
-        valueSpan.textContent = '--';
-        return;
-    }
-
-    // Calculate average night duration over the available days
-    var totalNightHours = 0;
-    var validDays = 0;
-
-    bucketData.forEach(function(dayData) {
-        if (dayData.buckets) {
-            // Support both old and new bucket labels
-            var nightHours = dayData.buckets['Nuit'] || dayData.buckets['≤ 0.5'] || 0;
-            if (nightHours > 0) {
-                totalNightHours += nightHours;
-                validDays++;
-            }
-        }
-    });
-
-    if (validDays > 0) {
-        var averageNightHours = (totalNightHours / validDays).toFixed(1);
-        valueSpan.textContent = averageNightHours + 'h';
-    } else {
-        valueSpan.textContent = '--';
-    }
-}
 
 function fetchSunRadWeeklyBuckets(callback) {
     // Get weekly sun radiation bucket data from station stats
@@ -3264,7 +3419,6 @@ function main() {
         fetchSunRadBuckets(function(bucketData) {
             if (bucketData) {
                 renderSunRadBucketsChart(bucketData);
-                updateNightDurationUI(bucketData);
                 renderSunRad48hPieChart(bucketData);
             }
         });
