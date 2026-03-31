@@ -370,6 +370,8 @@ function updateUI() {
                             } else {
                                 formattedValue = numericValue.toFixed(0);
                             }
+                        } else if (metric === 'temperature_inkbird') {
+                            formattedValue = parseFloat(value).toFixed(1);
                         } else if (metric.indexOf('rain_') === 0 || metric.indexOf('wind_') === 0 || metric.indexOf('river_') === 0 || metric === 'uv_idx' || metric.indexOf('pm') === 0 || metric.indexOf('temperature_') === 0 || metric.indexOf('humidity_') === 0) {
                             formattedValue = parseFloat(value).toFixed(0);
                         } else if (metric === 'pressure') {
