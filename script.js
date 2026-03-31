@@ -411,6 +411,49 @@ function updateUI() {
                             }
                         }
 
+                        // Special handling for inkbird temperature - show age of measurement
+                        if (metric === 'temperature_inkbird') {
+                            var subtitleElement = desktopElement.querySelector('.subtitle');
+                            if (subtitleElement) {
+                                var timestampQuery = processQuery('inkbird_temperature_celsius{LABELS}', resolvedMetric.labels);
+
+                                fetch(PROMETHEUS_URL + '?query=' + encodeURIComponent(timestampQuery))
+                                    .then(function(response) { return response.json(); })
+                                    .then(function(data) {
+                                        if (data.status === 'success' && data.data.result.length > 0) {
+                                            var timestamp = parseFloat(data.data.result[0].value[0]);
+                                            var now = Math.floor(Date.now() / 1000);
+                                            var ageSeconds = now - timestamp;
+
+                                            var ageText = '';
+                                            if (ageSeconds < 60) {
+                                                ageText = 'il y a ' + ageSeconds + 's';
+                                            } else if (ageSeconds < 3600) {
+                                                var minutes = Math.floor(ageSeconds / 60);
+                                                ageText = 'il y a ' + minutes + 'min';
+                                            } else if (ageSeconds < 86400) {
+                                                var hours = Math.floor(ageSeconds / 3600);
+                                                var remainingMinutes = Math.floor((ageSeconds % 3600) / 60);
+                                                ageText = 'il y a ' + hours + 'h';
+                                                if (remainingMinutes > 0) {
+                                                    ageText += ' ' + remainingMinutes + 'min';
+                                                }
+                                            } else {
+                                                var days = Math.floor(ageSeconds / 86400);
+                                                ageText = 'il y a ' + days + 'j';
+                                            }
+
+                                            subtitleElement.textContent = ageText;
+                                        } else {
+                                            subtitleElement.textContent = '--';
+                                        }
+                                    })
+                                    .catch(function(error) {
+                                        subtitleElement.textContent = '--';
+                                    });
+                            }
+                        }
+
                         // Trigger alerts update when key metrics are updated
                         if (metric === 'temperature_ext' || metric === 'wind_speed' || metric === 'rain_rate' || metric === 'river_lot') {
                             // Use setTimeout to ensure DOM update completes, then check alerts
