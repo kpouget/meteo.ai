@@ -415,15 +415,15 @@ function updateUI() {
                         if (metric === 'temperature_inkbird') {
                             var subtitleElement = desktopElement.querySelector('.subtitle');
                             if (subtitleElement) {
-                                var timestampQuery = processQuery('inkbird_temperature_celsius{LABELS}', resolvedMetric.labels);
+                                var timestampQuery = processQuery('inkbird_last_seen_timestamp{LABELS}', resolvedMetric.labels);
 
                                 fetch(PROMETHEUS_URL + '?query=' + encodeURIComponent(timestampQuery))
                                     .then(function(response) { return response.json(); })
                                     .then(function(data) {
                                         if (data.status === 'success' && data.data.result.length > 0) {
-                                            var timestamp = parseFloat(data.data.result[0].value[0]);
-                                            var now = Math.floor(Date.now() / 1000);
-                                            var ageSeconds = now - timestamp;
+                                            var timestamp = parseFloat(data.data.result[0].value[1]);
+                                            var now = Date.now() / 1000;
+                                            var ageSeconds = Math.floor(now - timestamp);
 
                                             var ageText = '';
                                             if (ageSeconds < 60) {
