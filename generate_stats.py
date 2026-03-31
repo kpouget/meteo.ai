@@ -61,14 +61,14 @@ STATIONS = {
 # Base metrics configuration (current + historical data sources)
 METRICS_TO_QUERY = {
     "pressure": {
-        "query_template": 'pressure{{instance="wunderground.972.ovh:443", job="internet scraping", station_id="{station_id}"}}',
-        "historical_query": 'pressure{group="wundeground", instance="home.972.ovh:35007", job="raspi sensors"}',
+        "query_template": 'pressure{{job="internet scraping", station_id="{station_id}"}}',
+        "historical_query": 'pressure{group="wundeground", job="raspi sensors"}',
         "unit": "hPa",
         "has_historical": ["cahors"]
     },
     "temperature_ext": {
-        "query_template": 'temperature{{instance="wunderground.972.ovh:443", job="internet scraping", mode="actual", station_id="{station_id}"}}',
-        "historical_query": 'temperature{group="wundeground", instance="home.972.ovh:35007", job="raspi sensors", location="toiture", mode="actual"}',
+        "query_template": 'temperature{{job="internet scraping", mode="actual", station_id="{station_id}"}}',
+        "historical_query": 'temperature{group="wundeground", job="raspi sensors", location="toiture", mode="actual"}',
         "unit": "°C",
         "has_historical": ["cahors"]
     },
@@ -93,35 +93,35 @@ METRICS_TO_QUERY = {
         "available_for": ["cahors", "vayrac"]
     },
     "sun_rad": {
-        "query_template": 'sun_rad{{instance="wunderground.972.ovh:443", job="internet scraping", station_id="{station_id}"}}',
-        "historical_query": 'sun_rad{group="wundeground", instance="home.972.ovh:35007", job="raspi sensors"}',
+        "query_template": 'sun_rad{{job="internet scraping", station_id="{station_id}"}}',
+        "historical_query": 'sun_rad{group="wundeground", job="raspi sensors"}',
         "unit": "J/m²",
         "has_historical": ["cahors"]
     },
     "rain_total_week": {
-        "query_template": 'increase(rain{{instance="wunderground.972.ovh:443", job="internet scraping", mode="total", station_id="{station_id}"}}[1w])',
-        "historical_query": 'increase(rain{group="wundeground", instance="home.972.ovh:35007", job="raspi sensors", mode="total"}[1w])',
+        "query_template": 'increase(rain{{job="internet scraping", mode="total", station_id="{station_id}"}}[1w])',
+        "historical_query": 'increase(rain{group="wundeground", job="raspi sensors", mode="total"}[1w])',
         "unit": "mm",
         "has_historical": ["cahors"]
     },
     "rain_total_month": {
-        "query_template": 'increase(rain{{instance="wunderground.972.ovh:443", job="internet scraping", mode="total", station_id="{station_id}"}}[30d])',
-        "historical_query": 'increase(rain{group="wundeground", instance="home.972.ovh:35007", job="raspi sensors", mode="total"}[30d])',
+        "query_template": 'increase(rain{{job="internet scraping", mode="total", station_id="{station_id}"}}[30d])',
+        "historical_query": 'increase(rain{group="wundeground", job="raspi sensors", mode="total"}[30d])',
         "unit": "mm",
         "has_historical": ["cahors"]
     },
     "pm1": {
-        "query_template": 'PM1{{instance="home.972.ovh:35000", job="raspi sensors"}}',
+        "query_template": 'PM1{{job="raspi sensors"}}',
         "unit": "μg/m³",
         "available_for": ["cahors"]
     },
     "pm25": {
-        "query_template": 'PM25{{instance="home.972.ovh:35000", job="raspi sensors"}}',
+        "query_template": 'PM25{{job="raspi sensors"}}',
         "unit": "μg/m³",
         "available_for": ["cahors"]
     },
     "pm10": {
-        "query_template": 'PM10{{instance="home.972.ovh:35000", job="raspi sensors"}}',
+        "query_template": 'PM10{{job="raspi sensors"}}',
         "unit": "μg/m³",
         "available_for": ["cahors"]
     }
@@ -486,8 +486,8 @@ def generate_station_data(prom, station_name, station_config):
 
         # Create a temporary metric config for this monthly query
         monthly_metric_config = {
-            "query_template": f'increase(rain{{instance="wunderground.972.ovh:443", job="internet scraping", mode="total", station_id="{station_config["station_id"]}"}}[{range_seconds}s])',
-            "historical_query": f'increase(rain{{group="wundeground", instance="home.972.ovh:35007", job="raspi sensors", mode="total"}}[{range_seconds}s])'
+            "query_template": f'increase(rain{{job="internet scraping", mode="total", station_id="{station_config["station_id"]}"}}[{range_seconds}s])',
+            "historical_query": f'increase(rain{{group="wundeground", job="raspi sensors", mode="total"}}[{range_seconds}s])'
         }
 
         # Get current query
@@ -541,8 +541,8 @@ def generate_station_data(prom, station_name, station_config):
                 return None
 
         # Get current and historical queries
-        current_query = f'increase(rain{{instance="wunderground.972.ovh:443", job="internet scraping", mode="total", station_id="{station_config["station_id"]}"}}[24h])'
-        historical_query = f'increase(rain{{group="wundeground", instance="home.972.ovh:35007", job="raspi sensors", mode="total"}}[24h])' if has_historical_data("rain_total_week", station_name) else None
+        current_query = f'increase(rain{{job="internet scraping", mode="total", station_id="{station_config["station_id"]}"}}[24h])'
+        historical_query = f'increase(rain{{group="wundeground", job="raspi sensors", mode="total"}}[24h])' if has_historical_data("rain_total_week", station_name) else None
 
         current_value = daily_rain_query(current_query)
         historical_value = daily_rain_query(historical_query) if historical_query else None

@@ -495,7 +495,6 @@ function fetch24hTemperatureStats(callback) {
 
     // Query for 24-hour min and max temperature
     var baseLabels = {
-        "instance": "wunderground.972.ovh:443",
         "job": "internet scraping",
         "mode": "actual",
         "station_id": station.station_id
@@ -783,9 +782,9 @@ function fetchWindData(callback) {
     }
 
     // Use new Wunderground labels with station_id
-    var speedQuery = 'avg_over_time(wind{instance="wunderground.972.ovh:443", job="internet scraping", mode="speed", station_id="' + station.station_id + '"}[10m])';
-    var gustQuery = 'avg_over_time(wind{instance="wunderground.972.ovh:443", job="internet scraping", mode="gust", station_id="' + station.station_id + '"}[10m])';
-    var dirQuery = 'avg_over_time(wind_dir{instance="wunderground.972.ovh:443", job="internet scraping", station_id="' + station.station_id + '"}[10m])';
+    var speedQuery = 'avg_over_time(wind{job="internet scraping", mode="speed", station_id="' + station.station_id + '"}[10m])';
+    var gustQuery = 'avg_over_time(wind{job="internet scraping", mode="gust", station_id="' + station.station_id + '"}[10m])';
+    var dirQuery = 'avg_over_time(wind_dir{job="internet scraping", station_id="' + station.station_id + '"}[10m])';
 
 
     var urls = [
@@ -1267,9 +1266,9 @@ function fetchWindDataMonth(callback) {
     }
 
     // Use new Wunderground labels with station_id
-    var speedQuery = 'avg_over_time(wind{instance="wunderground.972.ovh:443", job="internet scraping", mode="speed", station_id="' + station.station_id + '"}[1h])';
-    var gustQuery = 'avg_over_time(wind{instance="wunderground.972.ovh:443", job="internet scraping", mode="gust", station_id="' + station.station_id + '"}[1h])';
-    var dirQuery = 'avg_over_time(wind_dir{instance="wunderground.972.ovh:443", job="internet scraping", station_id="' + station.station_id + '"}[1h])';
+    var speedQuery = 'avg_over_time(wind{job="internet scraping", mode="speed", station_id="' + station.station_id + '"}[1h])';
+    var gustQuery = 'avg_over_time(wind{job="internet scraping", mode="gust", station_id="' + station.station_id + '"}[1h])';
+    var dirQuery = 'avg_over_time(wind_dir{job="internet scraping", station_id="' + station.station_id + '"}[1h])';
 
 
     var urls = [
@@ -1732,7 +1731,7 @@ function updateSunRadiationTimes() {
     var currentStationConfig = getCurrentStation();
     if (!currentStationConfig) return;
 
-    var query = 'avg_over_time(sun_rad{instance="wunderground.972.ovh:443", job="internet scraping", station_id="' + currentStationConfig.station_id + '"}[10m])';
+    var query = 'avg_over_time(sun_rad{job="internet scraping", station_id="' + currentStationConfig.station_id + '"}[10m])';
 
     // Use yesterday's data if it's before evening, otherwise use today
     var now = new Date();
@@ -1853,7 +1852,7 @@ function updateNightDuration() {
     var currentStationConfig = getCurrentStation();
     if (!currentStationConfig) return;
 
-    var currentQuery = 'sun_rad{instance="wunderground.972.ovh:443", job="internet scraping", station_id="' + currentStationConfig.station_id + '"}';
+    var currentQuery = 'sun_rad{job="internet scraping", station_id="' + currentStationConfig.station_id + '"}';
 
     // Get current solar radiation value
     var xhr = new XMLHttpRequest();
@@ -1898,7 +1897,7 @@ function updateNightDuration() {
 }
 
 function fetchNightDurationData(currentStationConfig, sunsetDate, sunriseDate) {
-    var query = 'avg_over_time(sun_rad{instance="wunderground.972.ovh:443", job="internet scraping", station_id="' + currentStationConfig.station_id + '"}[10m])';
+    var query = 'avg_over_time(sun_rad{job="internet scraping", station_id="' + currentStationConfig.station_id + '"}[10m])';
     var step = 5 * 60; // 5 minutes
     var results = { sunsetDay: null, sunriseDay: null };
     var completedRequests = 0;
