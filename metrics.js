@@ -67,6 +67,15 @@ var METRICS = {
         "unit": "&deg;C",
         "range": "1d"
     },
+    "temperature_inkbird": {
+        "query": "avg_over_time(inkbird_temperature_celsius{LABELS}[10m])",
+        "labels": {
+            "group": "inkbird",
+            "job": "raspi sensors"
+        },
+        "unit": "&deg;C",
+        "range": "1d"
+    },
     "dew_point": {
         "query": "avg_over_time(temperature{LABELS}[10m])",
         "labels": {

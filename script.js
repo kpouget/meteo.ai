@@ -76,7 +76,7 @@ function isMetricAvailableForStation(metricKey) {
     }
 
     // For internal temperatures, only available for Cahors
-    if (metricKey === 'temperature_int' || metricKey === 'temperature_e1_chauffage') {
+    if (metricKey === 'temperature_int' || metricKey === 'temperature_e1_chauffage' || metricKey === 'temperature_inkbird') {
         return currentStation === 'cahors';
     }
 
