@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Température de la Piscine</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Source+Sans+Pro:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css?v=20260205b">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Température de la Piscine</h1>
+        </div>
+
+        <div class="grid">
+            <div class="temperature-card pool-temp">
+                <div class="temperature-label">
+                    <span class="status-indicator"></span>
+                    Température de la Piscine
+                </div>
+                <div class="temperature-value" id="pool-temp">
+                    --<span class="temperature-unit">°C</span>
+                </div>
+                <div class="temperature-subtitle" id="pool-temp-subtitle">Chargement...</div>
+            </div>
+
+            <div class="temperature-card air-temp">
+                <div class="temperature-label">
+                    <span class="status-indicator"></span>
+                    Température Extérieure
+                </div>
+                <div class="temperature-value" id="air-temp">
+                    --<span class="temperature-unit">°C</span>
+                </div>
+                <div class="temperature-subtitle" id="air-temp-subtitle">Référence</div>
+            </div>
+        </div>
+
+        <div class="chart-section">
+            <h2 class="chart-title">Historique 48h</h2>
+            <div class="chart-container">
+                <canvas id="temperature-chart-48h"></canvas>
+            </div>
+        </div>
+
+        <div class="chart-section">
+            <h2 class="chart-title">Historique 7 Jours</h2>
+            <div class="chart-container">
+                <canvas id="temperature-chart-7d"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/app.js?v=20260205e"></script>
+</body>
+</html>
