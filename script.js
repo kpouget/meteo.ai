@@ -131,10 +131,10 @@ function updateStationDropdown() {
     // Clear existing options except the first placeholder
     dropdown.innerHTML = '<option value="">Station</option>';
 
-    // Add options for all stations except the current one
+    // Add options for all stations except the current one, plus special entries
     for (var stationId in STATIONS) {
-        if (stationId !== currentStation) {
-            var station = STATIONS[stationId];
+        var station = STATIONS[stationId];
+        if (station.special || stationId !== currentStation) {
             var option = document.createElement('option');
             option.value = stationId;
             option.textContent = station.name;
@@ -3407,6 +3407,9 @@ function main() {
         if (selectedStation === 'health') {
             // Navigate to health dashboard
             window.location.href = 'health.html';
+        } else if (selectedStation === 'pool') {
+            // Navigate to pool monitoring page
+            window.location.href = 'pool/index.html';
         } else if (selectedStation) {
             switchToStation(selectedStation);
         }

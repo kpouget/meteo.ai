@@ -70,6 +70,12 @@ var STATIONS = {
             "pm_sensors": false,
             "rivers": false
         }
+    },
+    "pool": {
+        "name": "🏊‍♂️ Piscine",
+        "url": "pool/index.html",
+        "special": true,
+        "features": {}
     }
 };
 
