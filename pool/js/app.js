@@ -163,48 +163,83 @@ async function updateDailyExtremes() {
         const columnsDiv = document.createElement('div');
         columnsDiv.className = 'extreme-columns';
 
-        // MAX column
-        const maxColumn = document.createElement('div');
-        maxColumn.className = 'extreme-column';
+        // Determine chronological order
+        let firstExtreme, secondExtreme, isRising;
 
-        if (extremes.max.timestamp) {
-            const maxTime = new Date(extremes.max.timestamp);
-            const maxTimeString = maxTime.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-            maxColumn.innerHTML = `
-                <div class="extreme-type max">MAX</div>
-                <div class="extreme-temp">${extremes.max.value.toFixed(1)}°</div>
-                <div class="extreme-timestamp">${maxTimeString}</div>
+        if (extremes.min.timestamp && extremes.max.timestamp) {
+            if (extremes.min.timestamp < extremes.max.timestamp) {
+                // Min happened first, then max (temperature rising)
+                firstExtreme = { type: 'min', ...extremes.min };
+                secondExtreme = { type: 'max', ...extremes.max };
+                isRising = true;
+            } else {
+                // Max happened first, then min (temperature falling)
+                firstExtreme = { type: 'max', ...extremes.max };
+                secondExtreme = { type: 'min', ...extremes.min };
+                isRising = false;
+            }
+        }
+
+        // First column (chronologically first)
+        const firstColumn = document.createElement('div');
+        firstColumn.className = 'extreme-column';
+
+        if (firstExtreme) {
+            const firstTime = new Date(firstExtreme.timestamp);
+            const firstTimeString = firstTime.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+            firstColumn.innerHTML = `
+                <div class="extreme-type ${firstExtreme.type}">${firstExtreme.type.toUpperCase()}</div>
+                <div class="extreme-temp">${firstExtreme.value.toFixed(1)}°</div>
+                <div class="extreme-timestamp">${firstTimeString}</div>
             `;
         } else {
-            maxColumn.innerHTML = `
-                <div class="extreme-type max">MAX</div>
+            firstColumn.innerHTML = `
+                <div class="extreme-type">--</div>
                 <div class="extreme-temp">--°</div>
                 <div class="extreme-timestamp">--</div>
             `;
         }
 
-        // MIN column
-        const minColumn = document.createElement('div');
-        minColumn.className = 'extreme-column';
+        // Arrow container (always pointing right)
+        const arrowContainer = document.createElement('div');
+        arrowContainer.className = 'trend-arrow-container';
 
-        if (extremes.min.timestamp) {
-            const minTime = new Date(extremes.min.timestamp);
-            const minTimeString = minTime.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-            minColumn.innerHTML = `
-                <div class="extreme-type min">MIN</div>
-                <div class="extreme-temp">${extremes.min.value.toFixed(1)}°</div>
-                <div class="extreme-timestamp">${minTimeString}</div>
+        if (firstExtreme && secondExtreme) {
+            // Calculate temperature difference
+            const tempDiff = Math.abs(extremes.max.value - extremes.min.value);
+            const diffText = isRising ? `+${tempDiff.toFixed(1)}°` : `-${tempDiff.toFixed(1)}°`;
+
+            // Arrow color based on temperature trend
+            const arrowClass = isRising ? 'up' : 'down';
+            arrowContainer.innerHTML = `
+                <div class="horizontal-arrow ${arrowClass}">→</div>
+                <div class="temp-diff ${arrowClass}">${diffText}</div>
+            `;
+        }
+
+        // Second column (chronologically second)
+        const secondColumn = document.createElement('div');
+        secondColumn.className = 'extreme-column';
+
+        if (secondExtreme) {
+            const secondTime = new Date(secondExtreme.timestamp);
+            const secondTimeString = secondTime.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+            secondColumn.innerHTML = `
+                <div class="extreme-type ${secondExtreme.type}">${secondExtreme.type.toUpperCase()}</div>
+                <div class="extreme-temp">${secondExtreme.value.toFixed(1)}°</div>
+                <div class="extreme-timestamp">${secondTimeString}</div>
             `;
         } else {
-            minColumn.innerHTML = `
-                <div class="extreme-type min">MIN</div>
+            secondColumn.innerHTML = `
+                <div class="extreme-type">--</div>
                 <div class="extreme-temp">--°</div>
                 <div class="extreme-timestamp">--</div>
             `;
         }
 
-        columnsDiv.appendChild(maxColumn);
-        columnsDiv.appendChild(minColumn);
+        columnsDiv.appendChild(firstColumn);
+        columnsDiv.appendChild(arrowContainer);
+        columnsDiv.appendChild(secondColumn);
         container.appendChild(columnsDiv);
     }
 

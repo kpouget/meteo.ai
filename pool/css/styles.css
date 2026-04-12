@@ -408,8 +408,9 @@ body::before {
 /* Vertical column layout within cards */
 .extreme-columns {
     display: flex;
+    align-items: center;
     justify-content: space-between;
-    gap: 1.5rem;
+    gap: 1rem;
 }
 
 .extreme-column {
@@ -419,6 +420,45 @@ body::before {
     border-radius: 12px;
     padding: 1rem 0.75rem;
     transition: all 0.3s ease;
+}
+
+.trend-arrow-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-width: 40px;
+    text-align: center;
+}
+
+.horizontal-arrow {
+    font-size: 1.5rem;
+    font-weight: bold;
+    transition: all 0.3s ease;
+    margin-bottom: 0.25rem;
+}
+
+.horizontal-arrow.up {
+    color: #ef4444;
+}
+
+.horizontal-arrow.down {
+    color: #3b82f6;
+}
+
+.temp-diff {
+    font-family: 'Source Sans Pro', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 600;
+    line-height: 1;
+}
+
+.temp-diff.up {
+    color: #ef4444;
+}
+
+.temp-diff.down {
+    color: #3b82f6;
 }
 
 .extreme-column:hover {
@@ -472,7 +512,7 @@ body::before {
     }
 
     .extreme-columns {
-        gap: 1rem;
+        gap: 0.5rem;
     }
 
     .extreme-column {
@@ -489,6 +529,19 @@ body::before {
 
     .extreme-type {
         font-size: 0.7rem;
+    }
+
+    .trend-arrow-container {
+        min-width: 30px;
+    }
+
+    .horizontal-arrow {
+        font-size: 1.2rem;
+        margin-bottom: 0.2rem;
+    }
+
+    .temp-diff {
+        font-size: 0.75rem;
     }
 
     .extreme-card {
