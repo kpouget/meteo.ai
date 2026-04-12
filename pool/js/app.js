@@ -307,20 +307,28 @@ async function updateCurrentTemperatures() {
     if (airTemp !== null) {
         document.getElementById('air-temp').innerHTML = `${airTemp.toFixed(1)}<span class="temperature-unit">°C</span>`;
 
-        // Calculate and display temperature difference
+        // Calculate and display temperature difference with visual indicator
         if (poolTemp !== null) {
             const diff = airTemp - poolTemp; // Air temp compared to pool temp
-            let diffText;
+            let diffText, diffIcon, diffColor;
 
             if (Math.abs(diff) < 0.1) {
                 diffText = 'même température que l\'eau';
+                diffIcon = '=';
+                diffColor = '#6b7280';
             } else if (diff > 0) {
                 diffText = `${diff.toFixed(1)}°C plus chaud que l'eau`;
+                diffIcon = '↗';
+                diffColor = '#ef4444';
             } else {
                 diffText = `${Math.abs(diff).toFixed(1)}°C plus froid que l'eau`;
+                diffIcon = '↘';
+                diffColor = '#3b82f6';
             }
 
-            document.getElementById('air-temp-subtitle').textContent = diffText;
+            const subtitleEl = document.getElementById('air-temp-subtitle');
+            subtitleEl.innerHTML = `<span style="color: ${diffColor}; font-weight: 600;">${diffIcon}</span> ${diffText}`;
+            subtitleEl.style.color = diffColor;
         } else {
             document.getElementById('air-temp-subtitle').textContent = 'Référence';
         }
@@ -423,6 +431,23 @@ async function createTemperatureChart(canvasId, hours = 168, extremesData = null
     console.log('Air data points:', airTemps.filter(t => t !== null).length);
     console.log('Sample data:', sortedData.slice(0, 3));
 
+    // Create dynamic point colors based on air vs pool temperature comparison
+    const pointColors = poolTemps.map((poolTemp, index) => {
+        if (poolTemp === null || airTemps[index] === null) {
+            return '#0284c7'; // Default dark cyan
+        }
+        const airTemp = airTemps[index];
+        const diff = airTemp - poolTemp;
+
+        if (Math.abs(diff) < 0.1) {
+            return '#0284c7'; // Default dark cyan when temperatures are equal
+        } else if (diff > 0) {
+            return '#ea580c'; // More vibrant orange when air > pool
+        } else {
+            return '#1e40af'; // Darker blue when air < pool
+        }
+    });
+
     // Prepare datasets - temperature lines first (bottom layer)
     const datasets = [
         {
@@ -433,11 +458,35 @@ async function createTemperatureChart(canvasId, hours = 168, extremesData = null
             borderWidth: 3,
             fill: true,
             tension: 0.4,
-            pointRadius: hours === 48 ? 2 : 0,
-            pointBackgroundColor: '#0284c7',
+            pointRadius: 2,
+            pointBackgroundColor: pointColors,
             pointBorderWidth: 0,
             pointHoverRadius: 6,
             spanGaps: true,
+            segment: {
+                borderColor: function(ctx) {
+                    const currentIndex = ctx.p0DataIndex;
+                    const nextIndex = ctx.p1DataIndex;
+
+                    // Get temperatures at current segment
+                    const poolTemp = poolTemps[currentIndex];
+                    const airTemp = airTemps[currentIndex];
+
+                    if (poolTemp === null || airTemp === null) {
+                        return '#06b6d4'; // Default cyan
+                    }
+
+                    const diff = airTemp - poolTemp;
+
+                    if (Math.abs(diff) < 0.1) {
+                        return '#06b6d4'; // Default cyan when equal
+                    } else if (diff > 0) {
+                        return '#ea580c'; // More vibrant orange when air > pool
+                    } else {
+                        return '#1e40af'; // Darker blue when air < pool
+                    }
+                }
+            },
             order: 10
         },
         {
@@ -448,7 +497,7 @@ async function createTemperatureChart(canvasId, hours = 168, extremesData = null
             borderWidth: 3,
             fill: true,
             tension: 0.4,
-            pointRadius: hours === 48 ? 2 : 0,
+            pointRadius: 0,
             pointBackgroundColor: '#1e3a8a',
             pointBorderWidth: 0,
             pointHoverRadius: 6,
