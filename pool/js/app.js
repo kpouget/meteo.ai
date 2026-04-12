@@ -432,7 +432,9 @@ async function createTemperatureChart(canvasId, hours = 168, extremesData = null
             borderWidth: 3,
             fill: true,
             tension: 0.4,
-            pointRadius: 0,
+            pointRadius: 2,
+            pointBackgroundColor: '#1e3a8a',
+            pointBorderWidth: 0,
             pointHoverRadius: 6,
             spanGaps: true
         },
@@ -444,7 +446,9 @@ async function createTemperatureChart(canvasId, hours = 168, extremesData = null
             borderWidth: 3,
             fill: true,
             tension: 0.4,
-            pointRadius: 0,
+            pointRadius: 2,
+            pointBackgroundColor: '#1e3a8a',
+            pointBorderWidth: 0,
             pointHoverRadius: 6,
             spanGaps: true,
             hidden: true
@@ -456,9 +460,10 @@ async function createTemperatureChart(canvasId, hours = 168, extremesData = null
         const minPoints = [];
         const maxPoints = [];
 
-        // Helper function to find closest data point on the line
-        function findClosestDataPoint(targetTimestamp) {
-            let closestIndex = 0;
+        // Helper function to find actual min/max around a timestamp on the chart line
+        function findExtremeOnChartLine(targetTimestamp, isMax = true) {
+            // Find the closest chart point
+            let closestIndex = -1;
             let minTimeDiff = Infinity;
 
             labels.forEach((label, index) => {
@@ -469,33 +474,54 @@ async function createTemperatureChart(canvasId, hours = 168, extremesData = null
                 }
             });
 
+            if (closestIndex < 0) return null;
+
+            // Look at points around the closest index (±2 points)
+            const startIndex = Math.max(0, closestIndex - 2);
+            const endIndex = Math.min(poolTemps.length - 1, closestIndex + 2);
+
+            let extremeIndex = closestIndex;
+            let extremeValue = poolTemps[closestIndex];
+
+            for (let i = startIndex; i <= endIndex; i++) {
+                if (poolTemps[i] !== null) {
+                    if (isMax && poolTemps[i] > extremeValue) {
+                        extremeValue = poolTemps[i];
+                        extremeIndex = i;
+                    } else if (!isMax && poolTemps[i] < extremeValue) {
+                        extremeValue = poolTemps[i];
+                        extremeIndex = i;
+                    }
+                }
+            }
+
             return {
-                x: labels[closestIndex],
-                y: poolTemps[closestIndex]
+                x: labels[extremeIndex],
+                y: poolTemps[extremeIndex]
             };
         }
 
-        // Add yesterday's extremes
+        // Add yesterday's extremes using chart line extremes
         if (extremesData.yesterdayExtremes.min.timestamp) {
-            const point = findClosestDataPoint(extremesData.yesterdayExtremes.min.timestamp);
-            minPoints.push(point);
+            const point = findExtremeOnChartLine(extremesData.yesterdayExtremes.min.timestamp, false);
+            if (point) minPoints.push(point);
         }
         if (extremesData.yesterdayExtremes.max.timestamp) {
-            const point = findClosestDataPoint(extremesData.yesterdayExtremes.max.timestamp);
-            maxPoints.push(point);
+            const point = findExtremeOnChartLine(extremesData.yesterdayExtremes.max.timestamp, true);
+            if (point) maxPoints.push(point);
         }
 
-        // Add today's extremes
+        // Add today's extremes using chart line extremes
         if (extremesData.todayExtremes.min.timestamp) {
-            const point = findClosestDataPoint(extremesData.todayExtremes.min.timestamp);
-            minPoints.push(point);
+            const point = findExtremeOnChartLine(extremesData.todayExtremes.min.timestamp, false);
+            if (point) minPoints.push(point);
         }
         if (extremesData.todayExtremes.max.timestamp) {
-            const point = findClosestDataPoint(extremesData.todayExtremes.max.timestamp);
-            maxPoints.push(point);
+            const point = findExtremeOnChartLine(extremesData.todayExtremes.max.timestamp, true);
+            if (point) maxPoints.push(point);
         }
 
-        // Add min points dataset (blue)
+        // Add min points dataset (blue) - render on top
         if (minPoints.length > 0) {
             datasets.push({
                 label: 'Minimums',
@@ -507,11 +533,12 @@ async function createTemperatureChart(canvasId, hours = 168, extremesData = null
                 pointHoverRadius: 6,
                 showLine: false,
                 pointStyle: 'circle',
-                borderWidth: 2
+                borderWidth: 2,
+                order: 1
             });
         }
 
-        // Add max points dataset (red)
+        // Add max points dataset (red) - render on top
         if (maxPoints.length > 0) {
             datasets.push({
                 label: 'Maximums',
@@ -523,7 +550,8 @@ async function createTemperatureChart(canvasId, hours = 168, extremesData = null
                 pointHoverRadius: 6,
                 showLine: false,
                 pointStyle: 'circle',
-                borderWidth: 2
+                borderWidth: 2,
+                order: 0
             });
         }
     }
