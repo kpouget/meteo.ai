@@ -149,7 +149,8 @@ async function fetchDailyExtremes(dayOffset = 0) {
 async function updateDailyExtremes() {
     console.log('Updating daily extremes...');
 
-    const [yesterdayExtremes, todayExtremes] = await Promise.all([
+    const [firstDayExtremes, yesterdayExtremes, todayExtremes] = await Promise.all([
+        fetchDailyExtremes(2), // First day (2 days ago)
         fetchDailyExtremes(1), // Yesterday
         fetchDailyExtremes(0)  // Today
     ]);
@@ -247,7 +248,7 @@ async function updateDailyExtremes() {
     createDayExtremesDisplay(yesterdayExtremes, 'yesterday-chronological');
     createDayExtremesDisplay(todayExtremes, 'today-chronological');
 
-    return { yesterdayExtremes, todayExtremes };
+    return { firstDayExtremes, yesterdayExtremes, todayExtremes };
 }
 
 async function fetchTemperatureHistory(hours = 168) { // 168h = 7 days
@@ -422,7 +423,7 @@ async function createTemperatureChart(canvasId, hours = 168, extremesData = null
     console.log('Air data points:', airTemps.filter(t => t !== null).length);
     console.log('Sample data:', sortedData.slice(0, 3));
 
-    // Prepare datasets
+    // Prepare datasets - temperature lines first (bottom layer)
     const datasets = [
         {
             label: 'Température Piscine',
@@ -432,11 +433,12 @@ async function createTemperatureChart(canvasId, hours = 168, extremesData = null
             borderWidth: 3,
             fill: true,
             tension: 0.4,
-            pointRadius: 2,
-            pointBackgroundColor: '#1e3a8a',
+            pointRadius: hours === 48 ? 2 : 0,
+            pointBackgroundColor: '#0284c7',
             pointBorderWidth: 0,
             pointHoverRadius: 6,
-            spanGaps: true
+            spanGaps: true,
+            order: 10
         },
         {
             label: 'Température Extérieure',
@@ -446,17 +448,18 @@ async function createTemperatureChart(canvasId, hours = 168, extremesData = null
             borderWidth: 3,
             fill: true,
             tension: 0.4,
-            pointRadius: 2,
+            pointRadius: hours === 48 ? 2 : 0,
             pointBackgroundColor: '#1e3a8a',
             pointBorderWidth: 0,
             pointHoverRadius: 6,
             spanGaps: true,
-            hidden: true
+            hidden: true,
+            order: 9
         }
     ];
 
     // Add extreme points for 48h chart only
-    if (hours <= 48 && extremesData) {
+    if (hours === 48 && extremesData) {
         const minPoints = [];
         const maxPoints = [];
 
@@ -501,6 +504,16 @@ async function createTemperatureChart(canvasId, hours = 168, extremesData = null
             };
         }
 
+        // Add first day's extremes using chart line extremes (48h only)
+        if (extremesData.firstDayExtremes.min.timestamp) {
+            const point = findExtremeOnChartLine(extremesData.firstDayExtremes.min.timestamp, false);
+            if (point) minPoints.push(point);
+        }
+        if (extremesData.firstDayExtremes.max.timestamp) {
+            const point = findExtremeOnChartLine(extremesData.firstDayExtremes.max.timestamp, true);
+            if (point) maxPoints.push(point);
+        }
+
         // Add yesterday's extremes using chart line extremes
         if (extremesData.yesterdayExtremes.min.timestamp) {
             const point = findExtremeOnChartLine(extremesData.yesterdayExtremes.min.timestamp, false);
@@ -521,16 +534,16 @@ async function createTemperatureChart(canvasId, hours = 168, extremesData = null
             if (point) maxPoints.push(point);
         }
 
-        // Add min points dataset (blue) - render on top
+        // Add min points dataset (darker blue) - render on top
         if (minPoints.length > 0) {
             datasets.push({
                 label: 'Minimums',
                 data: minPoints,
                 type: 'scatter',
-                borderColor: '#3b82f6',
-                backgroundColor: '#3b82f6',
-                pointRadius: 4,
-                pointHoverRadius: 6,
+                borderColor: '#2563eb',
+                backgroundColor: '#2563eb',
+                pointRadius: 6,
+                pointHoverRadius: 8,
                 showLine: false,
                 pointStyle: 'circle',
                 borderWidth: 2,
@@ -538,16 +551,16 @@ async function createTemperatureChart(canvasId, hours = 168, extremesData = null
             });
         }
 
-        // Add max points dataset (red) - render on top
+        // Add max points dataset (darker red) - render on top
         if (maxPoints.length > 0) {
             datasets.push({
                 label: 'Maximums',
                 data: maxPoints,
                 type: 'scatter',
-                borderColor: '#ef4444',
-                backgroundColor: '#ef4444',
-                pointRadius: 4,
-                pointHoverRadius: 6,
+                borderColor: '#dc2626',
+                backgroundColor: '#dc2626',
+                pointRadius: 6,
+                pointHoverRadius: 8,
                 showLine: false,
                 pointStyle: 'circle',
                 borderWidth: 2,
