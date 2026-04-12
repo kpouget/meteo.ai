@@ -271,10 +271,236 @@ body::before {
     }
 }
 
+/* Extremes section */
+.extremes-section {
+    margin: 3rem 0;
+    animation: slideInUp 1.2s ease-out 0.6s both;
+}
+
+.extremes-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    text-align: center;
+    margin-bottom: 2rem;
+    position: relative;
+}
+
+.extremes-title::after {
+    content: '';
+    position: absolute;
+    bottom: -0.5rem;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 3px;
+    background: linear-gradient(90deg, var(--pool-cool), var(--pool-warm));
+    border-radius: 2px;
+}
+
+.extremes-chronological {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.extremes-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2rem;
+}
+
+.extreme-card {
+    background: var(--card-background);
+    backdrop-filter: blur(20px);
+    border-radius: 20px;
+    padding: 1.5rem;
+    text-align: center;
+    box-shadow: var(--shadow-soft);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.extreme-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(circle, var(--pool-cool) 0%, transparent 70%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+}
+
+.extreme-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+}
+
+.extreme-card:hover::before {
+    opacity: 0.05;
+}
+
+.extreme-label {
+    font-family: 'Source Sans Pro', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.8rem;
+}
+
+.extreme-value {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--pool-cool);
+    margin-bottom: 0.5rem;
+    position: relative;
+    z-index: 1;
+}
+
+.extreme-time {
+    font-family: 'Source Sans Pro', sans-serif;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    font-weight: 400;
+    position: relative;
+    z-index: 1;
+}
+
+.extreme-pair {
+    display: flex;
+    justify-content: space-between;
+    gap: 1.5rem;
+    margin-top: 1rem;
+}
+
+.extreme-item {
+    flex: 1;
+    text-align: center;
+}
+
+.extreme-sublabel {
+    font-family: 'Source Sans Pro', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.5rem;
+}
+
+.extreme-item .extreme-value {
+    font-size: 1.6rem;
+    margin-bottom: 0.3rem;
+}
+
+.extreme-item .extreme-time {
+    font-size: 0.75rem;
+}
+
+/* Vertical column layout within cards */
+.extreme-columns {
+    display: flex;
+    justify-content: space-between;
+    gap: 1.5rem;
+}
+
+.extreme-column {
+    flex: 1;
+    text-align: center;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 12px;
+    padding: 1rem 0.75rem;
+    transition: all 0.3s ease;
+}
+
+.extreme-column:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: translateY(-2px);
+}
+
+.extreme-type {
+    font-family: 'Source Sans Pro', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.5rem;
+}
+
+.extreme-type.min {
+    color: #3b82f6;
+}
+
+.extreme-type.max {
+    color: #ef4444;
+}
+
+.extreme-temp {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--pool-cool);
+    margin-bottom: 0.5rem;
+    line-height: 1;
+}
+
+.extreme-timestamp {
+    font-family: 'Source Sans Pro', sans-serif;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    font-weight: 400;
+}
+
 @media (max-width: 768px) {
     .grid {
         grid-template-columns: 1fr;
         gap: 1.5rem;
+    }
+
+    .extremes-grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+
+    .extreme-columns {
+        gap: 1rem;
+    }
+
+    .extreme-column {
+        padding: 0.75rem 0.5rem;
+    }
+
+    .extreme-temp {
+        font-size: 1.6rem;
+    }
+
+    .extreme-timestamp {
+        font-size: 0.8rem;
+    }
+
+    .extreme-type {
+        font-size: 0.7rem;
+    }
+
+    .extreme-card {
+        padding: 1.5rem 1rem;
+    }
+
+    .extreme-pair {
+        gap: 1rem;
+    }
+
+    .extreme-item .extreme-value {
+        font-size: 1.4rem;
     }
 
     .header h1 {

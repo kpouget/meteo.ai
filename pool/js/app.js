@@ -87,6 +87,134 @@ async function fetchCurrentTemperature(metric) {
     }
 }
 
+async function fetchDailyExtremes(dayOffset = 0) {
+    try {
+        const now = new Date();
+        const targetDate = new Date(now);
+        targetDate.setDate(targetDate.getDate() - dayOffset);
+
+        // Get start and end of the target day in UTC
+        const startOfDay = new Date(targetDate);
+        startOfDay.setHours(0, 0, 0, 0);
+        const endOfDay = new Date(targetDate);
+        endOfDay.setHours(23, 59, 59, 999);
+
+        const startTime = Math.floor(startOfDay.getTime() / 1000);
+        const endTime = Math.floor(endOfDay.getTime() / 1000);
+
+        console.log(`Fetching extremes for ${dayOffset === 0 ? 'today' : 'yesterday'}: ${startOfDay.toISOString()} to ${endOfDay.toISOString()}`);
+
+        const poolQuery = 'inkbird_temperature_celsius{group="inkbird", job="raspi sensors"}';
+
+        // For timestamps, we need to query the raw data and find when min/max occurred
+        const rangeResponse = await fetch(`${PROMETHEUS_RANGE_URL}?query=${encodeURIComponent(poolQuery)}&start=${startTime}&end=${endTime}&step=600`);
+        const rangeData = await rangeResponse.json();
+
+        let minValue = null, maxValue = null, minTime = null, maxTime = null;
+
+        // Find the timestamps when min/max occurred
+        if (rangeData.status === 'success' && rangeData.data.result.length > 0) {
+            const values = rangeData.data.result[0].values;
+            let minTemp = Infinity, maxTemp = -Infinity;
+
+            values.forEach(([timestamp, value]) => {
+                const temp = parseFloat(value);
+                if (temp <= minTemp) {
+                    minTemp = temp;
+                    minTime = timestamp * 1000; // Convert to milliseconds
+                }
+                if (temp >= maxTemp) {
+                    maxTemp = temp;
+                    maxTime = timestamp * 1000; // Convert to milliseconds
+                }
+            });
+
+            if (minTemp !== Infinity) minValue = minTemp;
+            if (maxTemp !== -Infinity) maxValue = maxTemp;
+        }
+
+        return {
+            min: { value: minValue, timestamp: minTime },
+            max: { value: maxValue, timestamp: maxTime }
+        };
+    } catch (error) {
+        console.error(`Error fetching daily extremes for day offset ${dayOffset}:`, error);
+        return {
+            min: { value: null, timestamp: null },
+            max: { value: null, timestamp: null }
+        };
+    }
+}
+
+async function updateDailyExtremes() {
+    console.log('Updating daily extremes...');
+
+    const [yesterdayExtremes, todayExtremes] = await Promise.all([
+        fetchDailyExtremes(1), // Yesterday
+        fetchDailyExtremes(0)  // Today
+    ]);
+
+    // Helper function to create vertical columns display for a day
+    function createDayExtremesDisplay(extremes, containerId) {
+        const container = document.getElementById(containerId);
+        container.innerHTML = '';
+
+        // Create the two-column layout
+        const columnsDiv = document.createElement('div');
+        columnsDiv.className = 'extreme-columns';
+
+        // MAX column
+        const maxColumn = document.createElement('div');
+        maxColumn.className = 'extreme-column';
+
+        if (extremes.max.timestamp) {
+            const maxTime = new Date(extremes.max.timestamp);
+            const maxTimeString = maxTime.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+            maxColumn.innerHTML = `
+                <div class="extreme-type max">MAX</div>
+                <div class="extreme-temp">${extremes.max.value.toFixed(1)}°</div>
+                <div class="extreme-timestamp">${maxTimeString}</div>
+            `;
+        } else {
+            maxColumn.innerHTML = `
+                <div class="extreme-type max">MAX</div>
+                <div class="extreme-temp">--°</div>
+                <div class="extreme-timestamp">--</div>
+            `;
+        }
+
+        // MIN column
+        const minColumn = document.createElement('div');
+        minColumn.className = 'extreme-column';
+
+        if (extremes.min.timestamp) {
+            const minTime = new Date(extremes.min.timestamp);
+            const minTimeString = minTime.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+            minColumn.innerHTML = `
+                <div class="extreme-type min">MIN</div>
+                <div class="extreme-temp">${extremes.min.value.toFixed(1)}°</div>
+                <div class="extreme-timestamp">${minTimeString}</div>
+            `;
+        } else {
+            minColumn.innerHTML = `
+                <div class="extreme-type min">MIN</div>
+                <div class="extreme-temp">--°</div>
+                <div class="extreme-timestamp">--</div>
+            `;
+        }
+
+        columnsDiv.appendChild(maxColumn);
+        columnsDiv.appendChild(minColumn);
+        container.appendChild(columnsDiv);
+    }
+
+    // Create displays for both days
+    createDayExtremesDisplay(yesterdayExtremes, 'yesterday-chronological');
+    createDayExtremesDisplay(todayExtremes, 'today-chronological');
+
+    return { yesterdayExtremes, todayExtremes };
+}
+
 async function fetchTemperatureHistory(hours = 168) { // 168h = 7 days
     try {
         const endTime = Math.floor(Date.now() / 1000);
@@ -166,7 +294,7 @@ async function updateCurrentTemperatures() {
     }
 }
 
-async function createTemperatureChart(canvasId, hours = 168) {
+async function createTemperatureChart(canvasId, hours = 168, extremesData = null) {
     console.log(`Creating ${hours}h temperature chart...`);
 
     const historyData = await fetchTemperatureHistory(hours);
@@ -214,37 +342,117 @@ async function createTemperatureChart(canvasId, hours = 168) {
     console.log('Air data points:', airTemps.filter(t => t !== null).length);
     console.log('Sample data:', sortedData.slice(0, 3));
 
+    // Prepare datasets
+    const datasets = [
+        {
+            label: 'Température Piscine',
+            data: poolTemps,
+            borderColor: '#06b6d4',
+            backgroundColor: 'rgba(6, 182, 212, 0.1)',
+            borderWidth: 3,
+            fill: true,
+            tension: 0.4,
+            pointRadius: 0,
+            pointHoverRadius: 6,
+            spanGaps: true
+        },
+        {
+            label: 'Température Extérieure',
+            data: airTemps,
+            borderColor: '#8b5cf6',
+            backgroundColor: 'rgba(139, 92, 246, 0.1)',
+            borderWidth: 3,
+            fill: true,
+            tension: 0.4,
+            pointRadius: 0,
+            pointHoverRadius: 6,
+            spanGaps: true,
+            hidden: true
+        }
+    ];
+
+    // Add extreme points for 48h chart only
+    if (hours <= 48 && extremesData) {
+        const minPoints = [];
+        const maxPoints = [];
+
+        // Helper function to find closest data point on the line
+        function findClosestDataPoint(targetTimestamp) {
+            let closestIndex = 0;
+            let minTimeDiff = Infinity;
+
+            labels.forEach((label, index) => {
+                const timeDiff = Math.abs(label.getTime() - targetTimestamp);
+                if (timeDiff < minTimeDiff && poolTemps[index] !== null) {
+                    minTimeDiff = timeDiff;
+                    closestIndex = index;
+                }
+            });
+
+            return {
+                x: labels[closestIndex],
+                y: poolTemps[closestIndex]
+            };
+        }
+
+        // Add yesterday's extremes
+        if (extremesData.yesterdayExtremes.min.timestamp) {
+            const point = findClosestDataPoint(extremesData.yesterdayExtremes.min.timestamp);
+            minPoints.push(point);
+        }
+        if (extremesData.yesterdayExtremes.max.timestamp) {
+            const point = findClosestDataPoint(extremesData.yesterdayExtremes.max.timestamp);
+            maxPoints.push(point);
+        }
+
+        // Add today's extremes
+        if (extremesData.todayExtremes.min.timestamp) {
+            const point = findClosestDataPoint(extremesData.todayExtremes.min.timestamp);
+            minPoints.push(point);
+        }
+        if (extremesData.todayExtremes.max.timestamp) {
+            const point = findClosestDataPoint(extremesData.todayExtremes.max.timestamp);
+            maxPoints.push(point);
+        }
+
+        // Add min points dataset (blue)
+        if (minPoints.length > 0) {
+            datasets.push({
+                label: 'Minimums',
+                data: minPoints,
+                type: 'scatter',
+                borderColor: '#3b82f6',
+                backgroundColor: '#3b82f6',
+                pointRadius: 4,
+                pointHoverRadius: 6,
+                showLine: false,
+                pointStyle: 'circle',
+                borderWidth: 2
+            });
+        }
+
+        // Add max points dataset (red)
+        if (maxPoints.length > 0) {
+            datasets.push({
+                label: 'Maximums',
+                data: maxPoints,
+                type: 'scatter',
+                borderColor: '#ef4444',
+                backgroundColor: '#ef4444',
+                pointRadius: 4,
+                pointHoverRadius: 6,
+                showLine: false,
+                pointStyle: 'circle',
+                borderWidth: 2
+            });
+        }
+    }
+
     new Chart(ctx, {
         type: 'line',
         data: {
             labels: labels,
-            datasets: [
-                {
-                    label: 'Température Piscine',
-                    data: poolTemps,
-                    borderColor: '#06b6d4',
-                    backgroundColor: 'rgba(6, 182, 212, 0.1)',
-                    borderWidth: 3,
-                    fill: true,
-                    tension: 0.4,
-                    pointRadius: 0,
-                    pointHoverRadius: 6,
-                    spanGaps: true
-                },
-                {
-                    label: 'Température Extérieure',
-                    data: airTemps,
-                    borderColor: '#8b5cf6',
-                    backgroundColor: 'rgba(139, 92, 246, 0.1)',
-                    borderWidth: 3,
-                    fill: true,
-                    tension: 0.4,
-                    pointRadius: 0,
-                    pointHoverRadius: 6,
-                    spanGaps: true,
-                    hidden: true
-                }
-            ]
+            datasets: datasets
         },
         options: {
             responsive: true,
@@ -260,6 +468,10 @@ async function createTemperatureChart(canvasId, hours = 168) {
                             family: "'Source Sans Pro', sans-serif",
                             size: 14,
                             weight: '600'
+                        },
+                        filter: function(item, chart) {
+                            // Hide extreme points from legend
+                            return item.text !== 'Minimums' && item.text !== 'Maximums';
                         }
                     }
                 },
@@ -360,8 +572,14 @@ async function init() {
 
     try {
         await updateCurrentTemperatures();
-        await createTemperatureChart('temperature-chart-48h', 48);
+
+        // Update daily extremes and get the data
+        const extremesData = await updateDailyExtremes();
+
+        // Create charts - pass extremes data to 48h chart
+        await createTemperatureChart('temperature-chart-48h', 48, extremesData);
         await createTemperatureChart('temperature-chart-7d', 168);
+
         console.log('Page initialization complete');
     } catch (error) {
         console.error('Error during initialization:', error);
@@ -372,6 +590,15 @@ async function init() {
         console.log('Auto-updating temperatures...');
         updateCurrentTemperatures();
     }, 5 * 60 * 1000);
+
+    // Update daily extremes every hour
+    setInterval(() => {
+        console.log('Auto-updating daily extremes...');
+        updateDailyExtremes().then(extremesData => {
+            // Recreate 48h chart with updated extremes
+            createTemperatureChart('temperature-chart-48h', 48, extremesData);
+        });
+    }, 60 * 60 * 1000);
 }
 
 // Start the application when DOM is loaded

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Température de la Piscine</title>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Source+Sans+Pro:wght@300;400;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/styles.css?v=20260205b">
+    <link rel="stylesheet" href="css/styles.css?v=20260205c">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
 </head>
@@ -39,6 +39,24 @@
             </div>
         </div>
 
+        <div class="extremes-section">
+            <h2 class="extremes-title">Mini-Max</h2>
+            <div class="extremes-grid">
+                <div class="extreme-card">
+                    <div class="extreme-label">Hier</div>
+                    <div id="yesterday-chronological">
+                        <!-- Yesterday's extremes in chronological order -->
+                    </div>
+                </div>
+                <div class="extreme-card">
+                    <div class="extreme-label">Aujourd'hui</div>
+                    <div id="today-chronological">
+                        <!-- Today's extremes in chronological order -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="chart-section">
             <h2 class="chart-title">Historique 48h</h2>
             <div class="chart-container">
@@ -54,6 +72,6 @@
         </div>
     </div>
 
-    <script src="js/app.js?v=20260205e"></script>
+    <script src="js/app.js?v=20260205f"></script>
 </body>
 </html>
