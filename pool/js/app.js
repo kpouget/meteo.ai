@@ -329,6 +329,51 @@ async function updateCurrentTemperatures() {
     }
 }
 
+function addMidnightMarkers(chart, hours) {
+    // Generate midnight times for the chart period
+    const now = new Date();
+    const startTime = new Date(now.getTime() - (hours * 60 * 60 * 1000));
+    const midnights = [];
+
+    // Find all midnight times within the chart period
+    const currentDate = new Date(startTime);
+    currentDate.setHours(0, 0, 0, 0);
+
+    while (currentDate <= now) {
+        if (currentDate > startTime) {
+            midnights.push(new Date(currentDate));
+        }
+        currentDate.setDate(currentDate.getDate() + 1);
+    }
+
+    // Draw midnight lines on the chart
+    const originalDraw = chart.draw;
+    chart.draw = function() {
+        originalDraw.apply(this, arguments);
+
+        const ctx = this.ctx;
+        const chartArea = this.chartArea;
+        const xScale = this.scales.x;
+
+        ctx.save();
+        ctx.strokeStyle = 'rgba(0, 0, 0, 0.3)';
+        ctx.lineWidth = 1;
+        ctx.setLineDash([3, 3]);
+
+        midnights.forEach(midnight => {
+            const xPos = xScale.getPixelForValue(midnight);
+            if (xPos >= chartArea.left && xPos <= chartArea.right) {
+                ctx.beginPath();
+                ctx.moveTo(xPos, chartArea.top);
+                ctx.lineTo(xPos, chartArea.bottom);
+                ctx.stroke();
+            }
+        });
+
+        ctx.restore();
+    };
+}
+
 async function createTemperatureChart(canvasId, hours = 168, extremesData = null) {
     console.log(`Creating ${hours}h temperature chart...`);
 
@@ -483,7 +528,7 @@ async function createTemperatureChart(canvasId, hours = 168, extremesData = null
         }
     }
 
-    new Chart(ctx, {
+    const chart = new Chart(ctx, {
         type: 'line',
         data: {
             labels: labels,
@@ -599,6 +644,9 @@ async function createTemperatureChart(canvasId, hours = 168, extremesData = null
             }
         }
     });
+
+    // Add midnight markers after chart is created
+    addMidnightMarkers(chart, hours);
 }
 
 // Initialize the page
