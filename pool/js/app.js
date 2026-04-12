@@ -87,6 +87,24 @@ async function fetchCurrentTemperature(metric) {
     }
 }
 
+async function fetchPoolTemperatureOneHourAgo() {
+    try {
+        const oneHourAgo = Math.floor((Date.now() - 60 * 60 * 1000) / 1000); // 1 hour ago in seconds
+        const query = 'avg_over_time(inkbird_temperature_celsius{group="inkbird", job="raspi sensors"}[10m])';
+
+        const response = await fetch(`${PROMETHEUS_URL}?query=${encodeURIComponent(query)}&time=${oneHourAgo}`);
+        const data = await response.json();
+
+        if (data.status === 'success' && data.data.result.length > 0) {
+            return parseFloat(data.data.result[0].value[1]);
+        }
+        return null;
+    } catch (error) {
+        console.error('Error fetching pool temperature from 1 hour ago:', error);
+        return null;
+    }
+}
+
 async function fetchDailyExtremes(dayOffset = 0) {
     try {
         const now = new Date();
@@ -286,49 +304,68 @@ async function fetchTemperatureHistory(hours = 168) { // 168h = 7 days
 async function updateCurrentTemperatures() {
     console.log('Updating current temperatures...');
 
-    const poolTemp = await fetchCurrentTemperature('pool');
-    const airTemp = await fetchCurrentTemperature('air');
+    const [poolTemp, airTemp, poolTempOneHourAgo] = await Promise.all([
+        fetchCurrentTemperature('pool'),
+        fetchCurrentTemperature('air'),
+        fetchPoolTemperatureOneHourAgo()
+    ]);
 
     console.log('Pool temperature:', poolTemp);
     console.log('Air temperature:', airTemp);
+    console.log('Pool temperature 1h ago:', poolTempOneHourAgo);
 
     if (poolTemp !== null) {
-        document.getElementById('pool-temp').innerHTML = `${poolTemp.toFixed(1)}<span class="temperature-unit">°C</span>`;
+        const poolTempEl = document.getElementById('pool-temp');
+        poolTempEl.innerHTML = `${poolTemp.toFixed(1)}<span class="temperature-unit">°C</span>`;
         updatePoolTempColor(poolTemp);
 
-        // Update subtitle with age of measurement
+        // Set age as tooltip
         const age = await fetchInkbirdAge();
-        document.getElementById('pool-temp-subtitle').textContent = age || 'Âge indisponible';
+        poolTempEl.title = age || 'Âge indisponible';
+
+        // Update subtitle with 1-hour trend only
+        if (poolTempOneHourAgo !== null) {
+            const diff = poolTemp - poolTempOneHourAgo;
+            let trendText, trendIcon;
+
+            if (Math.abs(diff) < 0.1) {
+                trendText = `stable depuis 1h`;
+                trendIcon = '→';
+            } else if (diff > 0) {
+                trendText = `+${diff.toFixed(1)}°C depuis 1h`;
+                trendIcon = '↗';
+            } else {
+                trendText = `${diff.toFixed(1)}°C depuis 1h`;
+                trendIcon = '↘';
+            }
+
+            document.getElementById('pool-temp-subtitle').textContent = `${trendIcon} ${trendText}`;
+        } else {
+            document.getElementById('pool-temp-subtitle').textContent = 'Tendance indisponible';
+        }
     } else {
         document.getElementById('pool-temp').innerHTML = `--<span class="temperature-unit">°C</span>`;
+        document.getElementById('pool-temp').title = '';
         document.getElementById('pool-temp-subtitle').textContent = 'Données indisponibles';
     }
 
     if (airTemp !== null) {
         document.getElementById('air-temp').innerHTML = `${airTemp.toFixed(1)}<span class="temperature-unit">°C</span>`;
 
-        // Calculate and display temperature difference with visual indicator
+        // Calculate and display temperature difference
         if (poolTemp !== null) {
             const diff = airTemp - poolTemp; // Air temp compared to pool temp
-            let diffText, diffIcon, diffColor;
+            let diffText;
 
             if (Math.abs(diff) < 0.1) {
                 diffText = 'même température que l\'eau';
-                diffIcon = '=';
-                diffColor = '#6b7280';
             } else if (diff > 0) {
                 diffText = `${diff.toFixed(1)}°C plus chaud que l'eau`;
-                diffIcon = '↗';
-                diffColor = '#ef4444';
             } else {
                 diffText = `${Math.abs(diff).toFixed(1)}°C plus froid que l'eau`;
-                diffIcon = '↘';
-                diffColor = '#3b82f6';
             }
 
-            const subtitleEl = document.getElementById('air-temp-subtitle');
-            subtitleEl.innerHTML = `<span style="color: ${diffColor}; font-weight: 600;">${diffIcon}</span> ${diffText}`;
-            subtitleEl.style.color = diffColor;
+            document.getElementById('air-temp-subtitle').textContent = diffText;
         } else {
             document.getElementById('air-temp-subtitle').textContent = 'Référence';
         }
