@@ -6,7 +6,7 @@ A comprehensive monitoring dashboard for weather station and river flow exporter
 
 The health dashboard provides real-time monitoring of:
 - **Weather Stations**: Vayrac (IVAYRA1) and Cahors (ICAHOR23)
-- **River Flow**: Lot (Cahors), Dordogne (Souillac), and Dordogne (Carennac)
+- **River Flow**: Lot (Cahors), Dordogne (Carennac)
 - **System Overview**: Overall service health statistics
 - **Alerts**: Recent service issues and status changes
 

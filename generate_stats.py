@@ -26,24 +26,19 @@ STATIONS = {
         "station_id": "IVAYRA1",
         "features": {"pm_sensors": False, "rivers": True}
     },
-    "coublevie": {
-        "name": "Coublevie",
-        "station_id": "ICOUBL3",
-        "features": {"pm_sensors": False, "rivers": False}
-    },
-    "revel": {
-        "name": "Revel",
-        "station_id": "IREVEL54",
-        "features": {"pm_sensors": False, "rivers": False}
-    },
     "pamplona": {
-        "name": "Pamplune",
+        "name": "Pamplona",
         "station_id": "IPAMPL52",
         "features": {"pm_sensors": False, "rivers": False}
     },
-    "mandeli": {
+    "mandelieu": {
         "name": "Mandelieu",
-        "station_id": "IMANDELI41",
+        "station_id": "IMANDE68",
+        "features": {"pm_sensors": False, "rivers": False}
+    },
+    "martinique": {
+        "name": "Martinique",
+        "station_id": "ILEDIA1",
         "features": {"pm_sensors": False, "rivers": False}
     },
     "eastboston": {
@@ -62,15 +57,17 @@ STATIONS = {
 METRICS_TO_QUERY = {
     "pressure": {
         "query_template": 'pressure{{job="internet scraping", station_id="{station_id}"}}',
-        "historical_query": 'pressure{group="wundeground", job="raspi sensors"}',
+        "historical_query_cahors": 'pressure{group="wundeground", job="raspi sensors"}',
+        "historical_query_mandelieu": 'pressure{{job="internet scraping", station_id="IMANDELI41"}}',
         "unit": "hPa",
-        "has_historical": ["cahors"]
+        "has_historical": ["cahors", "mandelieu"]
     },
     "temperature_ext": {
         "query_template": 'temperature{{job="internet scraping", mode="actual", station_id="{station_id}"}}',
-        "historical_query": 'temperature{group="wundeground", job="raspi sensors", location="toiture", mode="actual"}',
+        "historical_query_cahors": 'temperature{group="wundeground", job="raspi sensors", location="toiture", mode="actual"}',
+        "historical_query_mandelieu": 'temperature{{job="internet scraping", mode="actual", station_id="IMANDELI41"}}',
         "unit": "°C",
-        "has_historical": ["cahors"]
+        "has_historical": ["cahors", "mandelieu"]
     },
     "river_lot": {
         "query_template": 'river_flow{{river="Lot", station="Cahors"}}',
@@ -94,21 +91,31 @@ METRICS_TO_QUERY = {
     },
     "sun_rad": {
         "query_template": 'sun_rad{{job="internet scraping", station_id="{station_id}"}}',
-        "historical_query": 'sun_rad{group="wundeground", job="raspi sensors"}',
+        "historical_query_cahors": 'sun_rad{group="wundeground", job="raspi sensors"}',
+        "historical_query_mandelieu": 'sun_rad{{job="internet scraping", station_id="IMANDELI41"}}',
         "unit": "J/m²",
-        "has_historical": ["cahors"]
+        "has_historical": ["cahors", "mandelieu"]
+    },
+    "uv_idx": {
+        "query_template": 'uv_idx{{job="internet scraping", station_id="{station_id}"}}',
+        "historical_query_cahors": 'uv_idx{group="wundeground", job="raspi sensors"}',
+        "historical_query_mandelieu": 'uv_idx{{job="internet scraping", station_id="IMANDELI41"}}',
+        "unit": "/11",
+        "has_historical": ["cahors", "mandelieu"]
     },
     "rain_total_week": {
         "query_template": 'increase(rain{{job="internet scraping", mode="total", station_id="{station_id}"}}[1w])',
-        "historical_query": 'increase(rain{group="wundeground", job="raspi sensors", mode="total"}[1w])',
+        "historical_query_cahors": 'increase(rain{group="wundeground", job="raspi sensors", mode="total"}[1w])',
+        "historical_query_mandelieu": 'increase(rain{{job="internet scraping", mode="total", station_id="IMANDELI41"}}[1w])',
         "unit": "mm",
-        "has_historical": ["cahors"]
+        "has_historical": ["cahors", "mandelieu"]
     },
     "rain_total_month": {
         "query_template": 'increase(rain{{job="internet scraping", mode="total", station_id="{station_id}"}}[30d])',
-        "historical_query": 'increase(rain{group="wundeground", job="raspi sensors", mode="total"}[30d])',
+        "historical_query_cahors": 'increase(rain{group="wundeground", job="raspi sensors", mode="total"}[30d])',
+        "historical_query_mandelieu": 'increase(rain{{job="internet scraping", mode="total", station_id="IMANDELI41"}}[30d])',
         "unit": "mm",
-        "has_historical": ["cahors"]
+        "has_historical": ["cahors", "mandelieu"]
     },
     "pm1": {
         "query_template": 'PM1{{job="raspi sensors"}}',
@@ -164,9 +171,17 @@ def query_metric_with_historical(prom, metric_name, station_name, station_config
     # Query historical data if available
     historical_result = None
     if has_historical_data(metric_name, station_name):
-        print(f"  - Historical query: {metric_config['historical_query']}")
+        # Use station-specific historical query
+        station_historical_key = f"historical_query_{station_name}"
+        if station_historical_key in metric_config:
+            historical_query = metric_config[station_historical_key]
+            print(f"  - Station-specific historical query: {historical_query}")
+        else:
+            print(f"  - Error: No historical query found for station {station_name}")
+            return None
+
         try:
-            historical_result = query_func(metric_config["historical_query"])
+            historical_result = query_func(historical_query)
             if historical_result:
                 print(f"  - Historical data: {historical_result}")
         except Exception as e:
@@ -348,7 +363,13 @@ def collect_weekly_sun_radiation_data(prom, station_name, station_config):
 
             # Try current data first
             current_query = get_query_for_station(METRICS_TO_QUERY['sun_rad'], station_config['station_id'])
-            historical_query = METRICS_TO_QUERY['sun_rad']['historical_query'] if has_historical_data("sun_rad", station_name) else None
+
+            # Get station-specific historical query
+            historical_query = None
+            if has_historical_data("sun_rad", station_name):
+                station_historical_key = f"historical_query_{station_name}"
+                if station_historical_key in METRICS_TO_QUERY['sun_rad']:
+                    historical_query = METRICS_TO_QUERY['sun_rad'][station_historical_key]
 
             day_bucket_hours = {bucket["label"]: 0 for bucket in intensity_buckets}
 
@@ -484,15 +505,16 @@ def generate_station_data(prom, station_name, station_config):
             except:
                 return None
 
-        # Create a temporary metric config for this monthly query
-        monthly_metric_config = {
-            "query_template": f'increase(rain{{job="internet scraping", mode="total", station_id="{station_config["station_id"]}"}}[{range_seconds}s])',
-            "historical_query": f'increase(rain{{group="wundeground", job="raspi sensors", mode="total"}}[{range_seconds}s])'
-        }
+        # Create queries for this monthly query
+        current_query = f'increase(rain{{job="internet scraping", mode="total", station_id="{station_config["station_id"]}"}}[{range_seconds}s])'
 
-        # Get current query
-        current_query = monthly_metric_config["query_template"]
-        historical_query = monthly_metric_config["historical_query"] if has_historical_data("rain_total_month", station_name) else None
+        # Get station-specific historical query
+        historical_query = None
+        if has_historical_data("rain_total_month", station_name):
+            if station_name == "cahors":
+                historical_query = f'increase(rain{{group="wundeground", job="raspi sensors", mode="total"}}[{range_seconds}s])'
+            elif station_name == "mandelieu":
+                historical_query = f'increase(rain{{job="internet scraping", mode="total", station_id="IMANDELI41"}}[{range_seconds}s])'
 
         current_value = monthly_rain_query(current_query)
         historical_value = monthly_rain_query(historical_query) if historical_query else None
@@ -542,7 +564,14 @@ def generate_station_data(prom, station_name, station_config):
 
         # Get current and historical queries
         current_query = f'increase(rain{{job="internet scraping", mode="total", station_id="{station_config["station_id"]}"}}[24h])'
-        historical_query = f'increase(rain{{group="wundeground", job="raspi sensors", mode="total"}}[24h])' if has_historical_data("rain_total_week", station_name) else None
+
+        # Get station-specific historical query
+        historical_query = None
+        if has_historical_data("rain_total_week", station_name):
+            if station_name == "cahors":
+                historical_query = f'increase(rain{{group="wundeground", job="raspi sensors", mode="total"}}[24h])'
+            elif station_name == "mandelieu":
+                historical_query = f'increase(rain{{job="internet scraping", mode="total", station_id="IMANDELI41"}}[24h])'
 
         current_value = daily_rain_query(current_query)
         historical_value = daily_rain_query(historical_query) if historical_query else None
@@ -599,7 +628,13 @@ def generate_station_data(prom, station_name, station_config):
 
             # Try current data first
             current_query = get_query_for_station(METRICS_TO_QUERY['sun_rad'], station_config['station_id'])
-            historical_query = METRICS_TO_QUERY['sun_rad']['historical_query'] if has_historical_data("sun_rad", station_name) else None
+
+            # Get station-specific historical query
+            historical_query = None
+            if has_historical_data("sun_rad", station_name):
+                station_historical_key = f"historical_query_{station_name}"
+                if station_historical_key in METRICS_TO_QUERY['sun_rad']:
+                    historical_query = METRICS_TO_QUERY['sun_rad'][station_historical_key]
 
             for query_name, query in [("current", current_query), ("historical", historical_query)]:
                 if query is None:

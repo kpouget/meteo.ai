@@ -17,26 +17,8 @@ var STATIONS = {
             "rivers": true
         }
     },
-    "coublevie": {
-        "name": "Coublevie",
-        "station_id": "ICOUBL3",
-        "default": false,
-        "features": {
-            "pm_sensors": false,
-            "rivers": false
-        }
-    },
-    "revel": {
-        "name": "Revel",
-        "station_id": "IREVEL54",
-        "default": false,
-        "features": {
-            "pm_sensors": false,
-            "rivers": false
-        }
-    },
     "pamplona": {
-        "name": "Pamplune",
+        "name": "Pamplona",
         "station_id": "IPAMPL52",
         "default": false,
         "features": {
@@ -44,9 +26,18 @@ var STATIONS = {
             "rivers": false
         }
     },
-    "mandeli": {
+    "mandelieu": {
         "name": "Mandelieu",
-        "station_id": "IMANDELI41",
+        "station_id": "IMANDE68",
+        "default": false,
+        "features": {
+            "pm_sensors": false,
+            "rivers": false
+        }
+    },
+    "martinique": {
+        "name": "Martinique",
+        "station_id": "ILEDIA1",
         "default": false,
         "features": {
             "pm_sensors": false,
