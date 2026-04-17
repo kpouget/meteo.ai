@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Température de la Piscine</title>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Source+Sans+Pro:wght@300;400;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/styles.css?v=20260205c">
+    <link rel="stylesheet" href="css/styles.css?v=20260205d">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
 </head>
@@ -21,8 +21,11 @@
                     <span class="status-indicator"></span>
                     Température de la Piscine
                 </div>
-                <div class="temperature-value" id="pool-temp">
-                    --<span class="temperature-unit">°C</span>
+                <div class="tooltip-container">
+                    <div class="temperature-value" id="pool-temp">
+                        --<span class="temperature-unit">°C</span>
+                    </div>
+                    <div class="custom-tooltip" id="pool-temp-tooltip">Chargement...</div>
                 </div>
                 <div class="temperature-subtitle" id="pool-temp-subtitle">Chargement...</div>
             </div>
@@ -72,6 +75,6 @@
         </div>
     </div>
 
-    <script src="js/app.js?v=20260205g"></script>
+    <script src="js/app.js?v=20260205i"></script>
 </body>
 </html>

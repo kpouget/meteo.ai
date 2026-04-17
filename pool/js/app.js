@@ -319,9 +319,10 @@ async function updateCurrentTemperatures() {
         poolTempEl.innerHTML = `${poolTemp.toFixed(1)}<span class="temperature-unit">°C</span>`;
         updatePoolTempColor(poolTemp);
 
-        // Set age as tooltip
+        // Update custom tooltip with age
         const age = await fetchInkbirdAge();
-        poolTempEl.title = age || 'Âge indisponible';
+        const tooltipEl = document.getElementById('pool-temp-tooltip');
+        tooltipEl.textContent = age || 'Âge indisponible';
 
         // Update subtitle with 1-hour trend only
         if (poolTempOneHourAgo !== null) {
@@ -345,7 +346,7 @@ async function updateCurrentTemperatures() {
         }
     } else {
         document.getElementById('pool-temp').innerHTML = `--<span class="temperature-unit">°C</span>`;
-        document.getElementById('pool-temp').title = '';
+        document.getElementById('pool-temp-tooltip').textContent = 'Données indisponibles';
         document.getElementById('pool-temp-subtitle').textContent = 'Données indisponibles';
     }
 
@@ -776,11 +777,39 @@ async function createTemperatureChart(canvasId, hours = 168, extremesData = null
     addMidnightMarkers(chart, hours);
 }
 
+// Setup mobile-friendly tooltip
+function setupTooltip() {
+    const tooltipContainer = document.querySelector('.tooltip-container');
+
+    if (!tooltipContainer) return;
+
+    // Handle tap events for mobile
+    tooltipContainer.addEventListener('click', function(e) {
+        e.preventDefault();
+        this.classList.toggle('tooltip-active');
+    });
+
+    // Hide tooltip when clicking elsewhere
+    document.addEventListener('click', function(e) {
+        if (!tooltipContainer.contains(e.target)) {
+            tooltipContainer.classList.remove('tooltip-active');
+        }
+    });
+
+    // Prevent tooltip from staying active on desktop hover
+    tooltipContainer.addEventListener('mouseleave', function() {
+        this.classList.remove('tooltip-active');
+    });
+}
+
 // Initialize the page
 async function init() {
     console.log('Initializing pool monitoring page...');
 
     try {
+        // Setup tooltip functionality
+        setupTooltip();
+
         await updateCurrentTemperatures();
 
         // Update daily extremes and get the data
