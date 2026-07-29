@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comparaison de Stations Météo</title>
+    <link rel="stylesheet" href="style.css?v=20260205a">
+</head>
+<body>
+    <div id="floating-buttons">
+        <button id="back-to-main" title="Retour à l'accueil">🏠</button>
+        <button id="comparison-refresh" title="Actualiser les données">↻</button>
+    </div>
+
+    <div id="comparison-view" class="active">
+        <div id="comparison-selectors">
+            <div class="selector-group">
+                <select id="station-a-dropdown">
+                    <option value="">Station A</option>
+                </select>
+            </div>
+            <div class="selector-group">
+                <select id="station-b-dropdown">
+                    <option value="">Station B</option>
+                </select>
+            </div>
+            <div class="selector-group">
+                <select id="duration-dropdown">
+                    <option value="24h">24h</option>
+                    <option value="48h" selected>48h</option>
+                    <option value="1week">1 semaine</option>
+                </select>
+            </div>
+            <div class="date-navigation-group">
+                <button id="date-prev" title="Période précédente">◀</button>
+                <span id="date-display">--</span>
+                <button id="date-next" title="Période suivante">▶</button>
+                <button id="date-today" title="Retour à aujourd'hui">>></button>
+            </div>
+        </div>
+
+        <div id="comparison-content">
+            <div id="comparison-summary"></div>
+
+            <div id="comparison-charts">
+                <div class="chart-section">
+                    <div class="chart-header">
+                        <h3 id="temperature-chart-title">Évolution de la Température</h3>
+                        <button class="fullscreen-btn" onclick="toggleChartFullscreen('temperature')" title="Plein écran">⛶</button>
+                    </div>
+                    <canvas id="comparison-temperature-chart"></canvas>
+                </div>
+
+                <div class="chart-section">
+                    <div class="chart-header">
+                        <h3 id="pressure-chart-title">Évolution de la Pression</h3>
+                        <button class="fullscreen-btn" onclick="toggleChartFullscreen('pressure')" title="Plein écran">⛶</button>
+                    </div>
+                    <canvas id="comparison-pressure-chart"></canvas>
+                </div>
+
+                <div class="chart-section">
+                    <h3>Données de Précipitations</h3>
+                    <div style="margin-bottom: 20px;">
+                        <h4>Quantité de Pluie Actuelle</h4>
+                        <div id="rain-total-comparison" class="metric-comparison">
+                            <div class="station-metric" id="rain-total-a">
+                                <div class="station-name">--</div>
+                                <div class="metric-value">-- mm</div>
+                            </div>
+                            <div class="comparison-vs">🆚</div>
+                            <div class="station-metric" id="rain-total-b">
+                                <div class="station-name">--</div>
+                                <div class="metric-value">-- mm</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="chart-header">
+                            <h4 id="rain-intensity-chart-title">Force de la Pluie</h4>
+                            <button class="fullscreen-btn" onclick="toggleChartFullscreen('rain-intensity')" title="Plein écran">⛶</button>
+                        </div>
+                        <canvas id="comparison-rain-48h-chart"></canvas>
+                    </div>
+                    <div style="margin-top: 20px;">
+                        <div class="chart-header">
+                            <h4 id="rain-cumul-chart-title">Quantité de Pluie</h4>
+                            <button class="fullscreen-btn" onclick="toggleChartFullscreen('rain-cumul')" title="Plein écran">⛶</button>
+                        </div>
+                        <canvas id="comparison-rain-cumul-chart"></canvas>
+                    </div>
+                </div>
+
+                <div class="chart-section">
+                    <h3>Rayonnement et UV</h3>
+                    <div class="chart-row" style="margin-bottom: 20px;">
+                        <div class="chart-half">
+                            <h4>Rayonnement Solaire Actuel</h4>
+                            <div id="solar-rad-comparison" class="metric-comparison">
+                                <div class="station-metric" id="solar-rad-a">
+                                    <div class="station-name">--</div>
+                                    <div class="metric-value">-- J/m²</div>
+                                </div>
+                                <div class="comparison-vs">☀️</div>
+                                <div class="station-metric" id="solar-rad-b">
+                                    <div class="station-name">--</div>
+                                    <div class="metric-value">-- J/m²</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="chart-half">
+                            <h4>Index UV Actuel</h4>
+                            <div id="uv-index-comparison" class="metric-comparison">
+                                <div class="station-metric" id="uv-index-a">
+                                    <div class="station-name">--</div>
+                                    <div class="metric-value">-- UV</div>
+                                </div>
+                                <div class="comparison-vs">🌞</div>
+                                <div class="station-metric" id="uv-index-b">
+                                    <div class="station-name">--</div>
+                                    <div class="metric-value">-- UV</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="chart-header">
+                            <h4 id="solar-chart-title">Évolution du Rayonnement Solaire</h4>
+                            <button class="fullscreen-btn" onclick="toggleChartFullscreen('solar')" title="Plein écran">⛶</button>
+                        </div>
+                        <canvas id="comparison-solar-48h-chart"></canvas>
+                    </div>
+                </div>
+
+                <div class="chart-section">
+                    <h3>Données de Vent</h3>
+                    <div class="chart-row" style="margin-bottom: 20px;">
+                        <div class="chart-half">
+                            <h4>Vitesse du Vent Actuelle</h4>
+                            <div id="wind-speed-comparison" class="metric-comparison">
+                                <div class="station-metric" id="wind-speed-a">
+                                    <div class="station-name">--</div>
+                                    <div class="metric-value">-- km/h</div>
+                                </div>
+                                <div class="comparison-vs">💨</div>
+                                <div class="station-metric" id="wind-speed-b">
+                                    <div class="station-name">--</div>
+                                    <div class="metric-value">-- km/h</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="chart-half">
+                            <h4>Rafales de Vent Actuelles</h4>
+                            <div id="wind-gust-comparison" class="metric-comparison">
+                                <div class="station-metric" id="wind-gust-a">
+                                    <div class="station-name">--</div>
+                                    <div class="metric-value">-- km/h</div>
+                                </div>
+                                <div class="comparison-vs">🌪️</div>
+                                <div class="station-metric" id="wind-gust-b">
+                                    <div class="station-name">--</div>
+                                    <div class="metric-value">-- km/h</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="chart-header">
+                            <h4 id="wind-chart-title">Évolution du Vent</h4>
+                            <button class="fullscreen-btn" onclick="toggleChartFullscreen('wind')" title="Plein écran">⛶</button>
+                        </div>
+                        <canvas id="comparison-wind-48h-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="stations.js?v=20260205a"></script>
+    <script src="metrics.js?v=20260404a"></script>
+    <script src="stats.js?v=20260404a"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="comparaison.js?v=20260729a"></script>
+</body>
+</html>

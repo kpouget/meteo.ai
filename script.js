@@ -154,6 +154,12 @@ function updateStationDropdown() {
     separatorOption.textContent = '-'.repeat(longestNameLength);
     dropdown.appendChild(separatorOption);
 
+    // Add comparison page option
+    var comparisonOption = document.createElement('option');
+    comparisonOption.value = 'comparaison';
+    comparisonOption.textContent = 'Comparaison ⚖️';
+    dropdown.appendChild(comparisonOption);
+
     // Add health dashboard option
     var healthOption = document.createElement('option');
     healthOption.value = 'health';
@@ -3390,6 +3396,8 @@ function renderWindRoseChartMonth(processedData) {
     });
 }
 
+// Comparison mode functionality moved to separate page (comparaison.html)
+
 function main() {
     // Initialize station system (no UI, just URL parameter detection)
     loadStationFromSources();
@@ -3400,11 +3408,17 @@ function main() {
 
     updateStaticUI();
 
-
     // Station dropdown event handler
     document.getElementById('station-dropdown').addEventListener('change', function() {
         var selectedStation = this.value;
-        if (selectedStation === 'health') {
+        if (selectedStation === 'comparaison') {
+            // Navigate to comparison page
+            var url = 'comparaison.html';
+            if (currentStation) {
+                url += '?stationA=' + currentStation + '&stationB=vayrac';
+            }
+            window.location.href = url;
+        } else if (selectedStation === 'health') {
             // Navigate to health dashboard
             window.location.href = 'health.html';
         } else if (selectedStation === 'pool') {
@@ -3414,6 +3428,19 @@ function main() {
             switchToStation(selectedStation);
         }
     });
+
+    // Comparison mode button event handler
+    var comparisonButton = document.getElementById('comparison-mode-button');
+    if (comparisonButton) {
+        comparisonButton.addEventListener('click', function() {
+            // Navigate to comparison page with current station as stationA
+            var url = 'comparaison.html';
+            if (currentStation) {
+                url += '?stationA=' + currentStation + '&stationB=vayrac';
+            }
+            window.location.href = url;
+        });
+    }
 
     function refreshAllDynamicData() {
         fetchWindData(function(windData) {
@@ -3463,31 +3490,41 @@ function main() {
             }
         });
 
-        fetchSunRadBuckets(function(bucketData) {
-            if (bucketData) {
-                renderSunRadBucketsChart(bucketData);
-                renderSunRad48hPieChart(bucketData);
-            }
-        });
+        updateAllMetrics();
 
-        fetchSunRadWeeklyBuckets(function(weeklyData) {
-            if (weeklyData) {
-                renderSunRadWeeklyBucketsChart(weeklyData);
-            }
-        });
+        updateSunRadiationBucketsChart();
+        updateSunRadiationWeeklyBucketsChart();
+        updateSunRad48hPieChart();
+
+        updateSunRadiationTimes();
+        updateNightDuration();
+
+        updateStaticRainData();
     }
 
+    // Refresh button event handler
     document.getElementById('refresh-button').addEventListener('click', function() {
-        updateUI();
-        updateStaticUI(); // Refresh static charts for current station
-        refreshAllDynamicData(); // Refresh all dynamic charts and data
+        refreshAllDynamicData();
     });
 
-    updateUI();
-    setInterval(updateUI, 60000);
+    // Alerts debug toggle event handler
+    document.getElementById('alerts-debug-toggle').addEventListener('click', function() {
+        var currentMode = parseInt(this.dataset.mode || '0');
+        var nextMode = (currentMode + 1) % 3;
+        this.dataset.mode = nextMode;
 
-    // Initial load of dynamic data
+        var modeText = ['Active', 'Section', 'Debug'][nextMode];
+        this.title = 'Alerts mode: ' + modeText;
+
+        evaluateAndDisplayAlerts();
+    });
+
+    // Initial data load
     refreshAllDynamicData();
+    evaluateAndDisplayAlerts();
+
+    console.log('Meteo station application initialized for station:', currentStation);
 }
 
-loadStatsAndRunMain();
+// Initialize when page loads
+window.addEventListener('load', loadStatsAndRunMain);

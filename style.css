@@ -488,3 +488,470 @@ html, body {
     }
 }
 
+/* Comparison Mode Styles */
+#comparison-view {
+    padding: 20px;
+    height: 100vh;
+    overflow-y: auto;
+    box-sizing: border-box;
+    display: none; /* Hidden by default, shown when comparison mode is active */
+}
+
+#comparison-view.active {
+    display: block;
+}
+
+
+
+#comparison-selectors {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 30px;
+    flex-wrap: wrap;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: white;
+    z-index: 1000;
+    padding: 15px 0;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    border-bottom: 1px solid #ddd;
+}
+
+.selector-group {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.date-navigation-group {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 0;
+}
+
+
+#station-a-dropdown,
+#station-b-dropdown,
+#duration-dropdown {
+    font-size: 1.3em;
+    background: rgba(0, 0, 0, 0.1);
+    padding: 8px 12px;
+    border-radius: 5px;
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    font-weight: bold;
+    cursor: pointer;
+    min-width: 140px;
+}
+
+#date-prev,
+#date-next,
+#date-today {
+    background: rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    border-radius: 5px;
+    padding: 8px 12px;
+    font-size: 1.2em;
+    cursor: pointer;
+    margin: 0 5px;
+    transition: background-color 0.2s ease;
+}
+
+#date-prev:hover,
+#date-next:hover,
+#date-today:hover {
+    background-color: rgba(0, 0, 0, 0.2);
+}
+
+#date-display {
+    font-size: 1.1em;
+    font-weight: bold;
+    color: #333;
+    padding: 8px 12px;
+    background: rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    border-radius: 5px;
+    min-width: 80px;
+    text-align: center;
+    display: inline-block;
+}
+
+#comparison-refresh,
+#back-to-single {
+    background: none;
+    border: none;
+    font-size: 2.5em;
+    cursor: pointer;
+    padding: 5px;
+    border-radius: 5px;
+    transition: background-color 0.2s ease;
+}
+
+#comparison-refresh:hover,
+#back-to-single:hover {
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+#comparison-mode-button {
+    background: none;
+    border: none;
+    font-size: 2.5em;
+    cursor: pointer;
+    display: inline-block;
+    margin-bottom: 5px;
+    margin-right: 5px;
+}
+
+#comparison-mode-button:hover {
+    background-color: rgba(0, 0, 0, 0.1);
+    border-radius: 5px;
+}
+
+#comparison-content {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+    margin-top: 100px; /* Account for fixed selectors height */
+}
+
+.chart-section {
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 30px;
+}
+
+.chart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.chart-section h3 {
+    margin: 0;
+    font-size: 1.6em;
+    color: #333;
+    text-align: center;
+    flex: 1;
+}
+
+.chart-section h4 {
+    margin: 0;
+    font-size: 1.2em;
+    color: #666;
+    text-align: center;
+    flex: 1;
+}
+
+.fullscreen-btn {
+    background: none;
+    border: 1px solid rgba(0, 0, 0, 0.2);
+    border-radius: 3px;
+    padding: 4px 8px;
+    font-size: 1em;
+    cursor: pointer;
+    color: #666;
+    transition: all 0.2s ease;
+    margin-left: 10px;
+}
+
+.fullscreen-btn:hover {
+    background-color: rgba(0, 0, 0, 0.1);
+    color: #333;
+}
+
+.fullscreen-chart {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    background-color: white !important;
+    z-index: 10000 !important;
+    padding: 10px !important;
+    box-sizing: border-box !important;
+    margin: 0 !important;
+}
+
+.fullscreen-chart .chart-header {
+    margin-bottom: 10px !important;
+}
+
+.fullscreen-chart h3,
+.fullscreen-chart h4 {
+    margin-top: 0 !important;
+}
+
+.fullscreen-chart canvas {
+    width: calc(100vw - 20px) !important;
+    height: calc(100vh - 60px) !important;
+    min-height: calc(100vh - 60px) !important;
+}
+
+.fullscreen-chart .fullscreen-btn {
+    background-color: rgba(255, 0, 0, 0.1) !important;
+    border-color: rgba(255, 0, 0, 0.3) !important;
+    color: #d32f2f !important;
+}
+
+.fullscreen-chart .fullscreen-btn:hover {
+    background-color: rgba(255, 0, 0, 0.2) !important;
+}
+
+.chart-row {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+}
+
+.chart-half {
+    flex: 1;
+    text-align: center;
+}
+
+.chart-section canvas {
+    max-width: 100%;
+    height: auto;
+    margin: 0 auto;
+    display: block;
+}
+
+#comparison-temperature-chart,
+#comparison-pressure-chart {
+    height: 300px !important;
+}
+
+#comparison-rain-daily-chart,
+#comparison-rain-monthly-chart {
+    height: 250px !important;
+}
+
+#comparison-solar-chart {
+    height: 300px !important;
+}
+
+#comparison-wind-48h-chart {
+    height: 300px !important;
+}
+
+#comparison-rain-48h-chart,
+#comparison-rain-cumul-chart,
+#comparison-solar-48h-chart {
+    height: 300px !important;
+}
+
+/* Rain rate comparison styling */
+.metric-comparison {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: 20px;
+    background: #f9f9f9;
+    border-radius: 8px;
+    margin: 10px 0;
+}
+
+.station-metric {
+    text-align: center;
+    flex: 1;
+}
+
+.station-metric .station-name {
+    font-size: 1.2em;
+    font-weight: bold;
+    color: #666;
+    margin-bottom: 10px;
+}
+
+.station-metric .metric-value {
+    font-size: 2.5em;
+    font-weight: bold;
+    color: #333;
+}
+
+.station-metric:first-child .metric-value {
+    color: #1976d2;
+}
+
+.station-metric:last-child .metric-value {
+    color: #f57c00;
+}
+
+.comparison-vs {
+    font-size: 2em;
+    margin: 0 20px;
+    color: #999;
+}
+
+@media (max-width: 768px) {
+    .metric-comparison {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .comparison-vs {
+        margin: 0;
+    }
+}
+
+#comparison-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.comparison-group {
+    border-radius: 5px;
+    padding: 10px;
+    margin-bottom: 20px;
+}
+
+.comparison-group h2 {
+    text-align: left;
+    margin-top: 0;
+    font-size: 1.8em;
+}
+
+.group-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.comparison-grid-item {
+    background-color: #f0f0f0;
+    padding: 25px;
+    border-radius: 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto 10px auto;
+    box-sizing: border-box;
+}
+
+.comparison-metric-label {
+    flex: 0 0 auto;
+    font-size: 1.6em;
+    font-weight: bold;
+    color: #333;
+    min-width: 160px;
+    text-align: left;
+}
+
+.station-data {
+    flex: 1;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.station-name {
+    font-size: 1.2em;
+    font-weight: bold;
+    color: #666;
+}
+
+.station-value {
+    font-size: 2.2em;
+    font-weight: bold;
+    color: #000;
+}
+
+.station-subtitle {
+    font-size: 1.2em;
+    color: #888;
+}
+
+.comparison-delta {
+    flex: 0 0 auto;
+    text-align: center;
+    min-width: 100px;
+    padding: 0 15px;
+}
+
+.delta-value {
+    font-size: 1.4em;
+    font-weight: bold;
+    display: block;
+}
+
+.delta-percentage {
+    font-size: 1em;
+    color: #666;
+    display: block;
+    margin-top: 2px;
+}
+
+.delta-positive {
+    color: #4CAF50;
+}
+
+.delta-negative {
+    color: #F44336;
+}
+
+.delta-neutral {
+    color: #666;
+}
+
+/* Mobile responsive design for comparison */
+@media (max-width: 768px) {
+    #comparison-selectors {
+        flex-direction: column;
+        gap: 20px;
+        padding: 10px 0;
+    }
+
+    .comparison-grid-item {
+        flex-direction: column;
+        text-align: center;
+        gap: 15px;
+        padding: 20px;
+    }
+
+    .comparison-metric-label {
+        min-width: auto;
+        text-align: center;
+    }
+
+    .station-data {
+        width: 100%;
+    }
+
+    .comparison-delta {
+        min-width: auto;
+        padding: 0;
+        border-top: 1px solid #ddd;
+        padding-top: 10px;
+    }
+
+    .chart-row {
+        flex-direction: column;
+        gap: 30px;
+    }
+
+    .chart-half {
+        width: 100%;
+    }
+
+    .chart-section {
+        padding: 15px;
+    }
+
+    .chart-section h3 {
+        font-size: 1.4em;
+    }
+
+    .chart-section h4 {
+        font-size: 1.1em;
+    }
+}
+
